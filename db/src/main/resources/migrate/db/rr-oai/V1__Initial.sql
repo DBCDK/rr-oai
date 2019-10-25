@@ -13,7 +13,7 @@ INSERT INTO oaisets (setSpec, setName, description) VALUES ('onl', 'Onlinemateri
 
 CREATE TABLE oairecords (
     pid VARCHAR(128) NOT NULL,
-    changed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timeofday()::timestamp,
+    changed TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT oairecords_pk PRIMARY KEY (pid)
 );
