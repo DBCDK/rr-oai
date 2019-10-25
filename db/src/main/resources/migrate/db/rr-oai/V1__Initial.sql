@@ -7,7 +7,7 @@ CREATE TABLE oaisets (
 );
 
 INSERT INTO oaisets (setSpec, setName, description) VALUES ('bkm', 'Bibliotekskatalogiserede Materialer', 'Betalingsprodukt - kræver adgangskode.');
-INSERT INTO oaisets (setSpec, setName, description) VALUES ('nat', 'Nationalbibliografi', 'Materialer udgivet i Danmark. Offentligt tilgængeligt.');
+INSERT INTO oaisets (setSpec, setName, description) VALUES ('nat', 'Nationalbibliografi', 'Materialer udgivet i Danmark - Offentligt tilgængeligt.');
 INSERT INTO oaisets (setSpec, setName, description) VALUES ('art', 'Artikler', 'Artikler fra Artikelbasen - Offentligt tilgængeligt.');
 INSERT INTO oaisets (setSpec, setName, description) VALUES ('onl', 'Onlinematerialer', 'Betalingsprodukt - kræver adgangskode');
 
