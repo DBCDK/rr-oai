@@ -65,7 +65,7 @@ pipeline {
                           execPattern: 'target/*.exec,**/target/*.exec',
                           classPattern: 'target/classes,**/target/classes',
                           sourcePattern: 'src/main/java,**/src/main/java',
-                          exclusionPattern: 'src/test*,**/src/test*,**/*?Request.*,**/*?Response.*,**/*?Request$*,**/*?Response$*,**/*?DTO.*,**/*?DTO$*'
+                          exclusionPattern: 'src/test*,**/src/test*,**/*?DTO.*,**/*?DTO$*'
                     ])
 
                     warnings consoleParsers: [
