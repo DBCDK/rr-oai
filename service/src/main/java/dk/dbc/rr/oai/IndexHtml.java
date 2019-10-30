@@ -45,7 +45,7 @@ public class IndexHtml {
     @PostConstruct
     public void init() {
         ClassLoader loader = getClass().getClassLoader();
-        try (InputStream is = OaiBean.class.getClassLoader().getResourceAsStream("oai-index.html")) {
+        try (InputStream is = loader.getResourceAsStream("oai-index.html")) {
             indexHtml = new byte[0];
             while (true) {
                 int avail = is.available();
