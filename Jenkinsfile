@@ -38,12 +38,13 @@ pipeline {
                         rm -rf \$WORKSPACE/.repo
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null 2>&1 || true
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo clean
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo --fail-at-end org.jacoco:jacoco-maven-plugin:prepare-agent install -Dsurefire.useFile=false
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl wsdl install
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl --fail-at-end org.jacoco:jacoco-maven-plugin:prepare-agent install -Dsurefire.useFile=false
                     """
 
                     // We want code-coverage and pmd/findbugs even if unittests fails
                     status += sh returnStatus: true, script:  """
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo pmd:pmd pmd:cpd findbugs:findbugs javadoc:aggregate
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd findbugs:findbugs javadoc:aggregate
                     """
 
                     junit testResults: '**/target/*-reports/TEST-*.xml'
@@ -65,7 +66,7 @@ pipeline {
                           execPattern: 'target/*.exec,**/target/*.exec',
                           classPattern: 'target/classes,**/target/classes',
                           sourcePattern: 'src/main/java,**/src/main/java',
-                          exclusionPattern: 'src/test*,**/src/test*,**/*?DTO.*,**/*?DTO$*'
+                          exclusionPattern: 'src/test*,**/src/test*,**/*?DTO.*,**/*?DTO$*,**/dk/dbc/oai/pmh/**'
                     ])
 
                     warnings consoleParsers: [

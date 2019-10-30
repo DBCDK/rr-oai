@@ -11,6 +11,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rr-oai-wsdl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- jdk11 dependencies
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -44,27 +50,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
-                <executions>
-                    <execution>
-                        <id>xjc</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <verbose>true</verbose>
-                    <schemaDirectory>${basedir}/src/main/xsd</schemaDirectory>
-                    <extension>true</extension>
-                    <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

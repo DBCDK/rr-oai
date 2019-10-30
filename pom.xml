@@ -24,6 +24,7 @@
     
     <modules>
         <module>db</module>
+        <module>wsdl</module>
         <module>service</module>
     </modules>
 </project>
