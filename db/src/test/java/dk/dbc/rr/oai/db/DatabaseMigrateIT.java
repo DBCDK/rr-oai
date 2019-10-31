@@ -30,23 +30,23 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
-public class DatabaseMigratorIT {
+public class DatabaseMigrateIT {
 
-    public DatabaseMigratorIT() {
+    public DatabaseMigrateIT() {
     }
 
     @Test(timeout = 10_000L)
     public void migrate() throws Exception {
         System.out.println("migrate");
         DataSource ds = makeDataSource();
-        DatabaseMigrator.migrate(ds);
+        DatabaseMigrate.migrate(ds);
 
         try (Connection connection = ds.getConnection() ;
              Statement stmt = connection.createStatement() ;
              ResultSet resultSet = stmt.executeQuery("SELECT COUNT(*) AS count FROM flyway_schema_history")) {
             if (resultSet.next()) {
                 int count = resultSet.getInt(1);
-                assertThat(count, is(1));
+                assertThat(count, is(2));
                 return; // Everything is OK!
             }
         }
@@ -59,10 +59,8 @@ public class DatabaseMigratorIT {
         String password = null;
         String database = "rroai";
         String host = "localhost";
-        System.out.println("port = " + port);
         if (port == null) {
             String username = System.getProperty("user.name");
-            System.out.println("username = " + username);
             Map<String, String> env = System.getenv();
             user = env.getOrDefault("PGUSER", username);
             password = env.getOrDefault("PGPASSWORD", username);
