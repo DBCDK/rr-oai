@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfoService;
+import org.flywaydb.core.api.MigrationVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +31,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
  */
-public class DatabaseMigrator {
+public class DatabaseMigrate {
 
-    private static final Logger log = LoggerFactory.getLogger(DatabaseMigrator.class);
+    private static final Logger log = LoggerFactory.getLogger(DatabaseMigrate.class);
 
     public static void migrate(DataSource ds) {
         Flyway flyway = Flyway.configure()
                 .locations("migrate/db/rr-oai")
+                .baselineOnMigrate(true)
+                .baselineVersion(MigrationVersion.fromVersion("1"))
                 .dataSource(ds)
                 .load();
         MigrationInfoService info = flyway.info();
