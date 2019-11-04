@@ -103,7 +103,7 @@ public class JavaScriptFormatter {
     public String format(MarcXChangeWrapper[] records, String format, String sets) {
         List<String> setList = Arrays.asList(sets.split(","));
         try {
-            if (!allowedFormats.contains(format))
+            if (!checkFormat(format))
                 throw new IllegalArgumentException("Format '" + format + "' not allowed. Formats allowed: " + allowedFormats);
             return (String) environment.callMethod(FORMATTER_METHOD, new Object[] {records, format, setList});
         } catch (Exception ex) {
@@ -111,6 +111,10 @@ public class JavaScriptFormatter {
             log.debug("Error formatting record: ", ex);
             throw new IllegalStateException("Cannot format record");
         }
+    }
+
+    public boolean checkFormat(String format) {
+        return allowedFormats.contains(format);
     }
 
     private HashSet<String> getAllowedFormats() throws Exception {

@@ -18,11 +18,8 @@
  */
 package dk.dbc.formatter.js;
 
-import dk.dbc.rawrepo.RecordData;
-import org.junit.After;
-import org.junit.AfterClass;
+import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -50,10 +47,10 @@ public class JavaScriptFormatterTest {
         System.out.println("testFormattingMultilevel");
 
         MarcXChangeWrapper[] records = new MarcXChangeWrapper[] {
-            new MarcXChangeWrapper(MARCX_28407866, new RecordData.RecordId[] {}),
-            new MarcXChangeWrapper(MARCX_28413882, new RecordData.RecordId[] {
-                new RecordData.RecordId("this-is-magic", 870970),
-                new RecordData.RecordId("28407866", 870970)
+            new MarcXChangeWrapper(MARCX_28407866, new RecordId[] {}),
+            new MarcXChangeWrapper(MARCX_28413882, new RecordId[] {
+                new RecordId("this-is-magic", 870970),
+                new RecordId("28407866", 870970)
             })
         };
         String formatted = formatter.format(records, "marcx", "bkm");
@@ -62,5 +59,13 @@ public class JavaScriptFormatterTest {
         assertThat(formatted, containsString("<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\"><marcx:subfield code=\"a\">28413882</marcx:subfield>"));
         assertThat(formatted, containsString("<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\"><marcx:subfield code=\"a\">28407866</marcx:subfield>"));
         assertThat(formatted, containsString("<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"015\"><marcx:subfield code=\"a\">this-is-magic</marcx:subfield></marcx:datafield>"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testCheckFormat() throws Exception {
+        System.out.println("testCheckFormat");
+        assertThat(formatter.checkFormat("foo"), is(false));
+        assertThat(formatter.checkFormat("marcx"), is(true));
+        assertThat(formatter.checkFormat("oai_dc"), is(true));
     }
 }

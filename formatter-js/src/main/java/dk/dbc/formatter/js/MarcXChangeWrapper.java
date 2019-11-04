@@ -18,7 +18,7 @@
  */
 package dk.dbc.formatter.js;
 
-import dk.dbc.rawrepo.RecordData.RecordId;
+import dk.dbc.rawrepo.RecordId;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
