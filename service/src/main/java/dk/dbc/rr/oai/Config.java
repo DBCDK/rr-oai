@@ -18,7 +18,6 @@
  */
 package dk.dbc.rr.oai;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
