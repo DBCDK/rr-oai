@@ -1,0 +1,17 @@
+{
+  "id" : "02c101a5-5f4a-3e05-9822-959a4a03004c",
+  "request" : {
+    "url" : "/rawrepo-oai-formatter-service/api/format?id=870970%3Aerror&format=marcx&sets=bkm",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-format-INVALIDXML.xml",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/xml",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "02c101a5-5f4a-3e05-9822-959a4a03004c"
+}
