@@ -153,9 +153,6 @@
                     <environmentVariables>
                         <RAWREPO_RECORD_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-record-service/</RAWREPO_RECORD_SERVICE_URL>
                     </environmentVariables>
-                    <systemProperties>
-                        <javax.ws.rs.client.ClientBuilder>org.glassfish.jersey.client.JerseyClientBuilder</javax.ws.rs.client.ClientBuilder>
-                    </systemProperties>
                 </configuration>
                 <executions>
                     <execution>
