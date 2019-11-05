@@ -27,5 +27,6 @@
         <module>wsdl</module>
         <module>service</module>
         <module>formatter-js</module>
+        <module>formatter</module>
     </modules>
 </project>

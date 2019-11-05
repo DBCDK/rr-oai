@@ -1,0 +1,17 @@
+{
+  "id" : "9a11f23a-677e-397e-ac96-66c9159e8473",
+  "request" : {
+    "url" : "/rawrepo-record-service/api/v1/record/999999/health-check/exists",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-health-check-exists.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "9a11f23a-677e-397e-ac96-66c9159e8473"
+}
