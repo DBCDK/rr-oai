@@ -189,6 +189,9 @@
                         <RAWREPO_OAI_FORMATTER_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-oai-formatter-service/</RAWREPO_OAI_FORMATTER_SERVICE_URL>
                         <RAWREPO_OAI_POSTGRESQL_URL>localhost:${postgresql.port}/rroai</RAWREPO_OAI_POSTGRESQL_URL>
                     </environmentVariables>
+                    <systemProperties>
+                        <postgresql.port>${postgresql.port}</postgresql.port>
+                    </systemProperties>
                 </configuration>
                 <executions>
                     <execution>
