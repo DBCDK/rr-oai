@@ -53,10 +53,10 @@ public class ParallelFetch {
     private static final Logger log = LoggerFactory.getLogger(ParallelFetch.class);
 
     @Inject
-    Config config;
+    public Config config;
 
     @Inject
-    DocumentBuilderPool documentBuilders;
+    public DocumentBuilderPool documentBuilders;
 
     // List of currently active threads, for forced stop upon timeout
     private final ConcurrentHashMap<Long, Thread> threads;

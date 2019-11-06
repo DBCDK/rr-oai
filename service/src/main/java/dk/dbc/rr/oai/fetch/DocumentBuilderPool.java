@@ -51,7 +51,7 @@ public class DocumentBuilderPool {
             (publicId, systemId) -> new InputSource(new StringReader(""));
 
     @Inject
-    Config config;
+    public Config config;
 
     private ObjectPool<DocumentBuilder> pool;
     private boolean inBadState;
