@@ -288,7 +288,7 @@ public class OaiRequest {
                 ensureUnset(UNTIL, until, RESUMPTION_TOKEN_IS_SET);
                 OaiResumptionToken parsed = OaiResumptionToken.of(resumptionToken);
                 if (parsed == null) {
-                    error(OAIPMHerrorcodeType.BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
+                    error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
                     ok = false;
                     resumptionToken = null;
                 } else {
@@ -315,7 +315,7 @@ public class OaiRequest {
             ensureUnset(SET, set);
             ensureUnset(UNTIL, until);
             if (resumptionToken != null)
-                error(OAIPMHerrorcodeType.BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
+                error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
         }
 
         private OaiRequest asOaiRequest() {
