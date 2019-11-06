@@ -53,7 +53,7 @@ public class DB {
     @Before
     public void initDatabase() throws SQLException {
         String portProperty = System.getProperty("postgresql.port");
-            String username = System.getProperty("user.name");
+        String username = System.getProperty("user.name");
         String user = username;
         String pass = "";
         String host = "localhost";
