@@ -209,7 +209,9 @@ public class OaiResumptionToken {
         if (l == Integer.MIN_VALUE)
             return null;
         byte[] bytes = new byte[l];
-        dis.read(bytes);
+        int read = dis.read(bytes);
+        if (bytes.length != read)
+            throw new IllegalStateException("Internal error on read from resumprtion token expected " + bytes.length + " but got " + read + " bytes");
         return new String(bytes, UTF_8);
     }
 
