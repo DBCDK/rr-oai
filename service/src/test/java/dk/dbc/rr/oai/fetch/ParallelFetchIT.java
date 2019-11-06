@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import static dk.dbc.rr.oai.BeanFactory.*;
 import static java.util.stream.Collectors.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -52,17 +53,17 @@ public class ParallelFetchIT {
         ConcurrentSkipListSet<Long> tids = new ConcurrentSkipListSet<>();
 
         Map<String, String> env = System.getenv();
-        Config config = new Config(Stream.of(
-                "EXPOSED_URL=http://foo/bar",
-                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
-                "PARALLEL_FETCH=30",
-                "FETCH_TIMEOUT_IN_SECONDS=30",
-                "POOL_MIN_IDLE=10",
-                "POOL_MAX_IDLE=100",
-                "USER_AGENT=fool-me/1.0"
-        )
-                .map(s -> s.split("=", 2))
-                .collect(toMap(a -> a[0], a -> a[1]))) {
+        Config config = new Config(
+                Stream.of(
+                        "EXPOSED_URL=http://foo/bar",
+                        "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
+                        "PARALLEL_FETCH=30",
+                        "FETCH_TIMEOUT_IN_SECONDS=30",
+                        "POOL_MIN_IDLE=10",
+                        "POOL_MAX_IDLE=100",
+                        "USER_AGENT=fool-me/1.0")
+                        .map(s -> s.split("=", 2))
+                        .collect(toMap(a -> a[0], a -> a[1]))) {
 
             @Override
             public Client getHttpClient() {
@@ -70,16 +71,9 @@ public class ParallelFetchIT {
                 tids.add(Thread.currentThread().getId());
                 return super.getHttpClient();
             }
-
         };
         config.init();
-        DocumentBuilderPool documentBuilderPool = new DocumentBuilderPool();
-        documentBuilderPool.config = config;
-        documentBuilderPool.init();
-
-        ParallelFetch parallelFetch = new ParallelFetch();
-        parallelFetch.config = config;
-        parallelFetch.documentBuilders = documentBuilderPool;
+        ParallelFetch parallelFetch = newParallelFetch(config);
 
         List<String> ids = Arrays.asList(
                 "870970:00010480", "870970:00010626", "870970:00020001", "870970:00020087", "870970:00020117",
@@ -101,12 +95,12 @@ public class ParallelFetchIT {
         assertThat("Multiple threads in play", tids.size() > 1, is(true));
     }
 
-    @Test(timeout = 2_000L)
+    @Test(timeout = 10_000L)
     public void testBadXml() throws Exception {
         System.out.println("testBadXml");
 
         Map<String, String> env = System.getenv();
-        Config config = Config.of(
+        Config config = newConfig(
                 "EXPOSED_URL=http://foo/bar",
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=30",
@@ -115,14 +109,7 @@ public class ParallelFetchIT {
                 "POOL_MAX_IDLE=100",
                 "USER_AGENT=fool-me/1.0"
         );
-        config.init();
-        DocumentBuilderPool documentBuilderPool = new DocumentBuilderPool();
-        documentBuilderPool.config = config;
-        documentBuilderPool.init();
-
-        ParallelFetch parallelFetch = new ParallelFetch();
-        parallelFetch.config = config;
-        parallelFetch.documentBuilders = documentBuilderPool;
+        ParallelFetch parallelFetch = newParallelFetch(config);
 
         List<String> ids = Arrays.asList(
                 "870970:00010480", "870970:error");
@@ -137,12 +124,12 @@ public class ParallelFetchIT {
                 .anyMatch(e -> e == null), is(true));
     }
 
-    @Test(timeout = 2_000L, expected = ServerErrorException.class)
+    @Test(timeout = 10_000L, expected = ServerErrorException.class)
     public void testTimeout() throws Exception {
         System.out.println("testTimeout");
 
         Map<String, String> env = System.getenv();
-        Config config = Config.of(
+        Config config = newConfig(
                 "EXPOSED_URL=http://foo/bar",
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=1",
@@ -151,14 +138,7 @@ public class ParallelFetchIT {
                 "POOL_MAX_IDLE=100",
                 "USER_AGENT=fool-me/1.0"
         );
-        config.init();
-        DocumentBuilderPool documentBuilderPool = new DocumentBuilderPool();
-        documentBuilderPool.config = config;
-        documentBuilderPool.init();
-
-        ParallelFetch parallelFetch = new ParallelFetch();
-        parallelFetch.config = config;
-        parallelFetch.documentBuilders = documentBuilderPool;
+        ParallelFetch parallelFetch = newParallelFetch(config);
 
         ArrayList<URI> uris = new ArrayList<>(10_000);
         URI uri = parallelFetch.buildUri("870970:00010480", "marcx", "bkm");

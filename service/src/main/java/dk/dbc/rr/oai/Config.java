@@ -21,7 +21,6 @@ package dk.dbc.rr.oai;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -34,7 +33,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.stream.Collectors.toMap;
 
 /**
  *
@@ -62,13 +60,6 @@ public class Config {
 
     public Config(Map<String, String> env) {
         this.env = env;
-    }
-
-    public static Config of(String... envs) {
-        Map<String, String> env = Stream.of(envs)
-                .map(s -> s.split("=", 2))
-                .collect(toMap(a -> a[0], a -> a[1]));
-        return new Config(env);
     }
 
     @PostConstruct
