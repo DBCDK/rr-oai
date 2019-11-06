@@ -44,6 +44,10 @@
         </dependency> -->
 
         <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
         </dependency>
@@ -123,6 +127,7 @@
                         <configuration>
                             <portNames>
                                 <portName>wiremock.port</portName>
+                                <portName>postgresql.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
@@ -147,6 +152,34 @@
             </plugin>
 
             <plugin>
+                <groupId>dk.dbc</groupId>
+                <artifactId>postgresql-maven-plugin</artifactId>
+                <version>1.3-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>start-postgresql</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <pgPort>${postgresql.port}</pgPort>
+                            <pgDbName>rroai</pgDbName>
+                            <pgDbScripts>
+                            </pgDbScripts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-postgresql</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>shutdown</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.1</version>
@@ -154,6 +187,7 @@
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                     <environmentVariables>
                         <RAWREPO_OAI_FORMATTER_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-oai-formatter-service/</RAWREPO_OAI_FORMATTER_SERVICE_URL>
+                        <RAWREPO_OAI_POSTGRESQL_URL>localhost:${postgresql.port}/rroai</RAWREPO_OAI_POSTGRESQL_URL>
                     </environmentVariables>
                 </configuration>
                 <executions>
