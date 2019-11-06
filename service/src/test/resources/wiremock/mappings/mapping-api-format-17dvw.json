@@ -1,0 +1,17 @@
+{
+  "id" : "a81a4451-baed-33ad-89f4-8d45c4c00ef3",
+  "request" : {
+    "url" : "/rawrepo-oai-formatter-service/api/format?id=870970%3A00020389&format=marcx&sets=bkm",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-api-format-17dvw.xml",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/xml",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "a81a4451-baed-33ad-89f4-8d45c4c00ef3"
+}
