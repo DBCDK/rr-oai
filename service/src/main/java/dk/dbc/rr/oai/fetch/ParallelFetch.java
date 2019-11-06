@@ -74,7 +74,7 @@ public class ParallelFetch {
     }
 
     /**
-     * Produces a list or of DOM Elements for the given uris
+     * Produces a list of DOM Elements for the given uris
      * <p>
      * If the service doesn't supply a valid xml response the element will be
      * null.
@@ -94,7 +94,6 @@ public class ParallelFetch {
                 .collect(toList());
         executor.shutdown();
         try {
-            System.out.println("threads = " + threads);
             boolean completed = executor.awaitTermination(config.getFetchTimeoutInSeconds(), TimeUnit.SECONDS);
             log.debug("completed = {}", completed);
             if (!completed)

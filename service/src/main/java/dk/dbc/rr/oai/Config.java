@@ -144,14 +144,6 @@ public class Config {
             return value;
         }
 
-//        private FromEnv is(String test, Predicate<String> p) {
-//            if (!p.test(value)) {
-//                log.error("Variable: {} is {}", name, test);
-//                throw new IllegalArgumentException("Variable: " + name + " is invalid");
-//            }
-//            return this;
-//        }
-
         private FromEnv isNot(String test, Predicate<String> p) {
             if (p.test(value)) {
                 log.error("Variable: {} is {}", name, test);
