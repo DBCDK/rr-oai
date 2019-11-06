@@ -209,7 +209,7 @@ public class OaiResumptionToken {
         if (l == Integer.MIN_VALUE)
             return null;
         if (l == 0)
-            return new String();
+            return "";
         byte[] bytes = new byte[l];
         int read = dis.read(bytes);
         if (bytes.length != read)
