@@ -1,0 +1,16 @@
+{
+  "id" : "d8be9f44-a8ab-3c80-b3ec-aa734609278d",
+  "request" : {
+    "url" : "/rawrepo-record-service/api/v1/record/870970/28407866/children",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-28407866-children.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "d8be9f44-a8ab-3c80-b3ec-aa734609278d"
+}
