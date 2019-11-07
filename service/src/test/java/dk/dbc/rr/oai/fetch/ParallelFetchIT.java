@@ -52,19 +52,7 @@ public class ParallelFetchIT {
 
         ConcurrentSkipListSet<Long> tids = new ConcurrentSkipListSet<>();
 
-        Map<String, String> env = System.getenv();
-        Config config = new Config(
-                Stream.of(
-                        "EXPOSED_URL=http://foo/bar",
-                        "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
-                        "PARALLEL_FETCH=30",
-                        "FETCH_TIMEOUT_IN_SECONDS=30",
-                        "POOL_MIN_IDLE=10",
-                        "POOL_MAX_IDLE=100",
-                        "USER_AGENT=fool-me/1.0")
-                        .map(s -> s.split("=", 2))
-                        .collect(toMap(a -> a[0], a -> a[1]))) {
-
+        Config config = new Config(configMapWithDefaults()) {
             @Override
             public Client getHttpClient() {
                 // Record which threads get http clients
@@ -99,16 +87,7 @@ public class ParallelFetchIT {
     public void testBadXml() throws Exception {
         System.out.println("testBadXml");
 
-        Map<String, String> env = System.getenv();
-        Config config = newConfig(
-                "EXPOSED_URL=http://foo/bar",
-                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
-                "PARALLEL_FETCH=30",
-                "FETCH_TIMEOUT_IN_SECONDS=30",
-                "POOL_MIN_IDLE=10",
-                "POOL_MAX_IDLE=100",
-                "USER_AGENT=fool-me/1.0"
-        );
+        Config config = newConfig();
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         List<String> ids = Arrays.asList(
@@ -128,15 +107,11 @@ public class ParallelFetchIT {
     public void testTimeout() throws Exception {
         System.out.println("testTimeout");
 
-        Map<String, String> env = System.getenv();
         Config config = newConfig(
-                "EXPOSED_URL=http://foo/bar",
-                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + env.getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=1",
                 "FETCH_TIMEOUT_IN_SECONDS=1",
                 "POOL_MIN_IDLE=1",
-                "POOL_MAX_IDLE=100",
-                "USER_AGENT=fool-me/1.0"
+                "POOL_MAX_IDLE=100"
         );
         ParallelFetch parallelFetch = newParallelFetch(config);
 

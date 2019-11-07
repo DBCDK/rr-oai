@@ -20,8 +20,15 @@ package dk.dbc.rr.oai;
 
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
+import javax.ws.rs.core.MultivaluedHashMap;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -32,12 +39,33 @@ import static java.util.stream.Collectors.toMap;
 public class BeanFactory {
 
     public static Config newConfig(String... envs) {
-        Map<String, String> env = Stream.of(envs)
-                .map(s -> s.split("=", 2))
-                .collect(toMap(a -> a[0], a -> a[1]));
-        Config config = new Config(env);
+        Config config = new Config(configMapWithDefaults(envs));
         config.init();
         return config;
+    }
+
+    public static Map<String, String> configMapWithDefaults(String... envs) {
+        Map<String, String> defaults = configMap(
+                "ADMIN_EMAIL=user@example.com",
+                "DESCRIPTION=some text",
+                "EXPOSED_URL=http://foo/bar",
+                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
+                "PARALLEL_FETCH=5",
+                "FETCH_TIMEOUT_IN_SECONDS=30",
+                "POOL_MIN_IDLE=5",
+                "POOL_MAX_IDLE=10",
+                "USER_AGENT=SpecialAgent/1.0");
+        Map<String, String> declared = configMap(envs);
+        HashMap<String, String> env = new HashMap<>();
+        env.putAll(defaults);
+        env.putAll(declared);
+        return env;
+    }
+
+    private static Map<String, String> configMap(String... envs) {
+        return Stream.of(envs)
+                .map(s -> s.split("=", 2))
+                .collect(toMap(a -> a[0], a -> a[1]));
     }
 
     public static IndexHtml newIndexHtml() {
@@ -68,7 +96,7 @@ public class BeanFactory {
         return newOaiBean(newIndexHtml());
     }
 
-    private static OaiBean newOaiBean(IndexHtml indexHtml) {
+    public static OaiBean newOaiBean(IndexHtml indexHtml) {
         OaiBean oaiBean = new OaiBean();
         oaiBean.indexHtml = indexHtml;
         return oaiBean;
