@@ -29,6 +29,12 @@
             <version>2.4.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
         <!-- jdk11 dependencies
         <dependency>
             <groupId>javax.xml.bind</groupId>
