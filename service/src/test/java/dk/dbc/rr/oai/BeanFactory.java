@@ -20,16 +20,10 @@ package dk.dbc.rr.oai;
 
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
-import dk.dbc.rr.oai.fetch.forsright.ForsRights;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
+import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
-import javax.ws.rs.core.MultivaluedHashMap;
 
 import static java.util.stream.Collectors.toMap;
 
