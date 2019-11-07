@@ -144,12 +144,13 @@ public class ParallelFetch {
                 if (thread.isInterrupted())
                     throw new InterruptedException("during lease()");
                 Client client = config.getHttpClient();
-                InputStream is = client.target(req)
+                try (InputStream is = client.target(req)
                         .request(MediaType.APPLICATION_XML_TYPE)
-                        .get(InputStream.class);
-                if (thread.isInterrupted())
-                    throw new InterruptedException("During get(url)");
-                return lease.get().parse(is);
+                        .get(InputStream.class)) {
+                    if (thread.isInterrupted())
+                        throw new InterruptedException("During get(url)");
+                    return lease.get().parse(is);
+                }
             } catch (SAXException | IOException ex) {
                 log.error("Cannot parse XML from formatter url: {}: {}", req, ex.getMessage());
                 log.debug("Cannot parse XML from formatter url: {}: ", req, ex);
