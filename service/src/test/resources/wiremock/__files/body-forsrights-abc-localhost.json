@@ -1,0 +1,1 @@
+{"forsRightsResponse":{"ressource":[{"name":{"$":"foo","@":"fr"},"right":[{"$":"500","@":"fr"},{"$":"550","@":"fr"},{"$":"551","@":"fr"},{"$":"552","@":"fr"}],"@":"fr"},{"name":{"$":"bar","@":"fr"},"right":[{"$":"500","@":"fr"}],"@":"fr"}],"@":"fr"},"@namespaces":{"fr":"http:\/\/oss.dbc.dk\/ns\/forsrights"}}

@@ -1,0 +1,17 @@
+{
+  "id" : "25e4a441-5f86-3ba1-bc2a-3a7866aa0b00",
+  "request" : {
+    "url" : "/forsrights/?action=forsRights&userIdAut=aaa&groupIdAut=bbb&passwordAut=ccc&ipAddress=127.0.0.1&outputType=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-forsrights-abc-localhost.json",
+    "headers" : {
+      "Date" : "Thu, 07 Nov 2019 07:29:39 GMT",
+      "Server" : "Apache",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "25e4a441-5f86-3ba1-bc2a-3a7866aa0b00"
+}
