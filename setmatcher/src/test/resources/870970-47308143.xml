@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>
+    <leader>00000n    2200000   4500</leader>
+    <datafield ind1='0' ind2='0' tag='001'>
+        <subfield code='a'>47308143</subfield>
+        <subfield code='b'>870970</subfield>
+        <subfield code='c'>20191108100041</subfield>
+        <subfield code='d'>20191028</subfield>
+        <subfield code='f'>a</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='004'>
+        <subfield code='r'>n</subfield>
+        <subfield code='a'>e</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='008'>
+        <subfield code='t'>m</subfield>
+        <subfield code='v'>7</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='009'>
+        <subfield code='a'>a</subfield>
+        <subfield code='g'>xx</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='021'>
+        <subfield code='e'>9788793772052</subfield>
+        <subfield code='c'>ib.</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='032'>
+        <subfield code='x'>ACC201944</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='245'>
+        <subfield code='a'>Den sidste grænse - rejser på kanten af Europa</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='260'>
+        <subfield code='b'>Information</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='300'>
+        <subfield code='a'>sider</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='652'>
+        <subfield code='m'>NY TITEL</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='990'>
+        <subfield code='b'>l</subfield>
+        <subfield code='b'>v</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='996'>
+        <subfield code='a'>DBC</subfield>
+    </datafield>
+</record>
