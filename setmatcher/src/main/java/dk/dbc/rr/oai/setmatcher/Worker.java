@@ -189,11 +189,14 @@ public class Worker {
      * @param rrConnection    connection behind dao (for transaction control)
      * @param rroaiConnection connection to OAI database
      * @throws InterruptedException If were shutting down
+     * @throws QueueException       If a job failed and cannot reported to the
+     *                              queue
      */
-    private void processLoop(RawRepoQueueDAO dao, Connection rrConnection, Connection rroaiConnection) throws InterruptedException {
+    private void processLoop(RawRepoQueueDAO dao, Connection rrConnection, Connection rroaiConnection) throws InterruptedException, QueueException {
+        QueueItem job = null;
         try {
             while (!inBadState) {
-                QueueItem job = throttle.fetchJob(dao);
+                job = throttle.fetchJob(dao);
                 if (job != null) {
                     int agencyId = job.getAgencyId();
                     String bibliographicRecordId = job.getBibliographicRecordId();
@@ -216,8 +219,10 @@ public class Worker {
         } catch (InterruptedException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("We got a: {}", ex.getMessage());
-            log.debug("We got a: ", ex);
+            log.error("We got a failing item: {}", ex.getMessage());
+            log.debug("We got a failing item: ", ex);
+            if (job != null)
+                dao.queueFail(job, ex.getMessage());
         }
     }
 
