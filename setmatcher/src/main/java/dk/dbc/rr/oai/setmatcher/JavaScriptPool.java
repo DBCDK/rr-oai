@@ -71,7 +71,7 @@ public class JavaScriptPool {
      * @param agencyId agency id
      * @param content  marcxchange content for record
      * @return collection of sets record is in
-     * @throws Exception
+     * @throws Exception If JavaScript fails
      */
     public Set<String> getOaiSets(int agencyId, byte[] content) throws Exception {
         try (Lease lease = new Lease()) {
