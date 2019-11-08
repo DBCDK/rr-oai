@@ -67,6 +67,14 @@ public class RawRepo {
         connector.close();
     }
 
+    /**
+     * Extract record content from service
+     *
+     * @param agencyId              Library Number
+     * @param bibliographicRecordId Record id
+     * @return content object (including deleted status)
+     * @throws RecordServiceConnectorException In case the communication fails
+     */
     public RecordData getContentFor(int agencyId, String bibliographicRecordId) throws RecordServiceConnectorException {
         return connector.getRecordData(agencyId, bibliographicRecordId, PARAMS);
     }

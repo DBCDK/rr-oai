@@ -85,6 +85,14 @@ public class JavaScriptSetMatcher {
         return moduleHandler;
     }
 
+    /**
+     * Call JavaScript function that determines which sets to include record in
+     *
+     * @param agencyId Library number
+     * @param content MarcXChange record as string
+     * @return Set of sets that include this record
+     * @throws Exception In case of JavaScript Errors
+     */
     public Set<String> getOaiSets(int agencyId, String content) throws Exception {
         if (agencyId == 870970 || agencyId == 870971) {
             return environment.getJavascriptObjectAsStringSet(

@@ -49,6 +49,17 @@ public class Throttle {
     private long sleep = 0;
     private long stepUpIn;
 
+    /**
+     * Extract a job from the queue
+     * <p>
+     * This will throttle if too many errors / empty queues encountered
+     *
+     * @param dao Queue access object
+     * @return Job item or null if queue is empty
+     * @throws QueueException       In case there's an error talking to the
+     *                              database
+     * @throws InterruptedException Is the system is shutting down
+     */
     public QueueItem fetchJob(RawRepoQueueDAO dao) throws QueueException, InterruptedException {
         lock.lockInterruptibly();
         try {
@@ -65,12 +76,22 @@ public class Throttle {
         return null;
     }
 
-    void success() {
+    /**
+     * Register a successful action
+     * <p>
+     * This will immediately reset the throttle delay
+     */
+    public void success() {
         log.debug("Got a job - throttle reset");
         sleep = 0;
     }
 
-    void failure() {
+    /**
+     * Register a failed action
+     * <p>
+     * This might increase the throttle delay
+     */
+    public void failure() {
         log.debug("Got no job - throttle activate");
         if (sleep == 0L) {
             throttleRules = config.getThrottle().iterator();
@@ -85,11 +106,21 @@ public class Throttle {
         }
     }
 
+    /**
+     * For unit testing
+     *
+     * @return how many ms to sleep for
+     */
     long getSleep() {
         return sleep;
     }
 
-    void throttle() throws InterruptedException {
+    /**
+     * Delay progress if last reported result was failure
+     *
+     * @throws InterruptedException Is the system is shutting down
+     */
+    public void throttle() throws InterruptedException {
         if (sleep != 0L) {
             log.debug("Sleeping for {}ms", sleep);
             Thread.sleep(sleep);

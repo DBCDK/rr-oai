@@ -90,19 +90,24 @@ public class Worker {
         this.threads = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Start n threads for harvesting
+     */
     @PostConstruct
     public void init() {
         log.info("init");
         int threadCount = config.getThreads();
-        log.debug("threadCount = {}", threadCount);
         es = Executors.newFixedThreadPool(threadCount);
-        log.debug("threadCount = {}", threadCount);
         for (int i = 0 ; i < threadCount ; i++) {
-            log.info("Adding runner: {}", i);
             es.submit(this::runner);
         }
     }
 
+    /**
+     * Interrupt the threads running
+     * <p>
+     * Then wait an adequate amount of time, for everything to complete
+     */
     @PreDestroy
     public void destroy() {
         try {
@@ -115,11 +120,22 @@ public class Worker {
         }
     }
 
+    /**
+     * Has anything reported we're in a state we cant quite understand
+     *
+     * @return is status is "not ok"
+     */
     public boolean isInBadState() {
         return inBadState;
     }
 
-    public void runner() {
+    /**
+     * The thread function
+     * <p>
+     * Registers thread for terminating
+     * and loops until {@link #connectLoop()} fails with an exception
+     */
+    private void runner() {
         Thread me = Thread.currentThread();
         log.debug("me = {} ({})", me, me.getId());
         threads.put(me.getId(), me);
@@ -143,6 +159,13 @@ public class Worker {
         }
     }
 
+    /**
+     * This connects to the databases and tries to process data
+     *
+     * @throws QueueException       In case the newly created connection to the
+     *                              RawRepo database is somehow bad
+     * @throws InterruptedException If were shutting down
+     */
     private void connectLoop() throws QueueException, InterruptedException {
         try (Connection rrConnection = rawRepo.getConnection() ;
              Connection rroaiConnection = rawRepoOai.getConnection()) {
@@ -159,6 +182,14 @@ public class Worker {
         }
     }
 
+    /**
+     * Tries to process as many records as possible
+     *
+     * @param dao             Queue interface
+     * @param rrConnection    connection behind dao (for transaction control)
+     * @param rroaiConnection connection to OAI database
+     * @throws InterruptedException If were shutting down
+     */
     private void processLoop(RawRepoQueueDAO dao, Connection rrConnection, Connection rroaiConnection) throws InterruptedException {
         try {
             while (!inBadState) {
@@ -190,6 +221,15 @@ public class Worker {
         }
     }
 
+    /**
+     * Update OAI database
+     *
+     * @param pid        identifier
+     * @param deleted    is the record is deleted
+     * @param sets       which sets it is contained in
+     * @param connection the database connection
+     * @throws SQLException If there's problems communicating with the database
+     */
     static void setPidInDatabase(String pid, boolean deleted, Collection<String> sets, Connection connection) throws SQLException {
         try (PreparedStatement setsGoneStmt = connection.prepareStatement(SETS_GONE) ;
              PreparedStatement recordsStmt = connection.prepareStatement(UPSERT_RECORD) ;
