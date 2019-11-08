@@ -18,9 +18,11 @@
  */
 package dk.dbc.rr.oai;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -33,6 +35,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.*;
 
 /**
  *
@@ -48,6 +51,8 @@ public class Config {
 
     private String exposedUrl;
     private UriBuilder formatServiceUri;
+    private Map<String, List<String>> forsRightsRules;
+    private UriBuilder forsRightsUrl;
     private Client httpClient;
     private Integer parallelFetch;
     private Integer poolMinIdle;
@@ -67,6 +72,19 @@ public class Config {
         log.info("Setting up config");
 
         this.exposedUrl = getenv("EXPOSED_URL").get();
+        this.fetchTimeoutInSeconds = getenv("FETCH_TIMEOUT_IN_SECONDS").asInt()
+                .min(1)
+                .get();
+        this.formatServiceUri = getenv("RAWREPO_OAI_FORMATTER_SERVICE_URL")
+                .isNot("not empty", String::isEmpty)
+                .convert(UriBuilder::fromUri)
+                .path("api/format");
+        this.forsRightsRules = getenv("FORS_RIGHTS_RULES")
+                .isNot("not empty", String::isEmpty)
+                .convert(Config::forsRights);
+        this.forsRightsUrl = getenv("FORS_RIGHTS_URL")
+                .isNot("not empty", String::isEmpty)
+                .convert(UriBuilder::fromUri);
         this.httpClient = getenv("USER_AGENT", "RawRepoOaiService/1.0")
                 .convert(userAgent -> ClientBuilder.newBuilder()
                         .register((ClientRequestFilter) (ClientRequestContext context) ->
@@ -74,9 +92,6 @@ public class Config {
                         )
                         .register(new JacksonFeature())
                         .build());
-        this.fetchTimeoutInSeconds = getenv("FETCH_TIMEOUT_IN_SECONDS").asInt()
-                .min(1)
-                .get();
         this.parallelFetch = getenv("PARALLEL_FETCH").asInt()
                 .min(1)
                 .get();
@@ -87,10 +102,6 @@ public class Config {
                 .min(1, "less that 1 whould create/destroy DOM Parser for every call")
                 .min(poolMinIdle + 1, "is should be more that POOL_MIN_IDLE")
                 .get();
-        this.formatServiceUri = getenv("RAWREPO_OAI_FORMATTER_SERVICE_URL")
-                .isNot("not empty", String::isEmpty)
-                .convert(UriBuilder::fromUri)
-                .path("api/format");
     }
 
     public String getExposedUrl() {
@@ -103,6 +114,14 @@ public class Config {
 
     public UriBuilder getFormatServiceUri() {
         return formatServiceUri.clone();
+    }
+
+    public Map<String, List<String>> getForsRightsRules() {
+        return forsRightsRules;
+    }
+
+    public UriBuilder getForsRightsUrl() {
+        return forsRightsUrl.clone();
     }
 
     public Client getHttpClient() {
@@ -119,6 +138,20 @@ public class Config {
 
     public Integer getPoolMinIdle() {
         return poolMinIdle;
+    }
+
+    //***********************************************************************
+    // Convert rule=e[,e][;rule=e[,e]] to map of rule to list of e
+    protected static Map<String, List<String>> forsRights(String rule) {
+        return Stream.of(rule.split(";"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(s -> s.split("=", 2))
+                .collect(toMap(a -> a[0].trim(),
+                               a -> Stream.of(a[1].split(","))
+                                       .map(String::trim)
+                                       .filter(s -> !s.isEmpty())
+                                       .collect(toList())));
     }
 
     private static class FromEnv {

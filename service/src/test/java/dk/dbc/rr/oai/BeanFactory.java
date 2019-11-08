@@ -20,15 +20,10 @@ package dk.dbc.rr.oai;
 
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
+import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
-import javax.ws.rs.core.MultivaluedHashMap;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -49,6 +44,8 @@ public class BeanFactory {
                 "ADMIN_EMAIL=user@example.com",
                 "DESCRIPTION=some text",
                 "EXPOSED_URL=http://foo/bar",
+                "FORS_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
+                "FORS_RIGHTS_URL=" + System.getenv().getOrDefault("FORS_RIGHTS_URL", "http://localhost/forsrights"),
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=5",
                 "FETCH_TIMEOUT_IN_SECONDS=30",
@@ -79,6 +76,12 @@ public class BeanFactory {
         documentBuilderPool.config = config;
         documentBuilderPool.init();
         return documentBuilderPool;
+    }
+
+    public static ForsRights newForsRights(Config config) {
+        ForsRights forsRights = new ForsRights();
+        forsRights.config = config;
+        return forsRights;
     }
 
     public static ParallelFetch newParallelFetch(Config config) {
