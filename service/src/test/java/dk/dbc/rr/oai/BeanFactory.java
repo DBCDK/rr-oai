@@ -24,6 +24,7 @@ import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
 import javax.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
@@ -100,6 +101,13 @@ public class BeanFactory {
         parallelFetch.config = config;
         parallelFetch.documentBuilders = documentBuilderPool;
         return parallelFetch;
+    }
+
+    public static RemoteIp remoteIp(Config config) {
+        RemoteIp remoteIp = new RemoteIp();
+        remoteIp.config = config;
+        remoteIp.init();
+        return remoteIp;
     }
 
     public static OaiBean newOaiBean() {
