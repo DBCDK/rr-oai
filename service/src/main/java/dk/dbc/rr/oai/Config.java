@@ -58,6 +58,7 @@ public class Config {
     private Integer poolMinIdle;
     private Integer poolMaxIdle;
     private int fetchTimeoutInSeconds;
+    private List<String> xForwardedFor;
 
     public Config() {
         this(System.getenv());
@@ -102,6 +103,11 @@ public class Config {
                 .min(1, "less that 1 whould create/destroy DOM Parser for every call")
                 .min(poolMinIdle + 1, "is should be more that POOL_MIN_IDLE")
                 .get();
+        this.xForwardedFor = getenv("X_FORWARDED_FOR", "10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, 127.0.0.0/8")
+                .convert(s -> Stream.of(s.split(","))
+                        .map(String::trim)
+                        .filter(x -> !x.isEmpty())
+                        .collect(toList()));
     }
 
     public String getExposedUrl() {
@@ -138,6 +144,10 @@ public class Config {
 
     public Integer getPoolMinIdle() {
         return poolMinIdle;
+    }
+
+    public List<String> getxForwardedFor() {
+        return xForwardedFor;
     }
 
     protected ClientBuilder clientBuilder() {
