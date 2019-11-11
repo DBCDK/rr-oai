@@ -21,6 +21,8 @@ package dk.dbc.rr.oai.fetch;
 import dk.dbc.rr.oai.Config;
 import java.io.StringReader;
 import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
@@ -43,6 +45,7 @@ import org.xml.sax.InputSource;
  */
 @Singleton
 @Startup
+@Lock(LockType.READ)
 public class DocumentBuilderPool {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentBuilderPool.class);

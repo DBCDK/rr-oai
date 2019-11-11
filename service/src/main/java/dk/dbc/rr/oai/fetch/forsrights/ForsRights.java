@@ -25,6 +25,8 @@ import java.net.URI;
 import java.util.Set;
 import javax.cache.annotation.CacheKey;
 import javax.cache.annotation.CacheResult;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
 import javax.ws.rs.ClientErrorException;
@@ -44,6 +46,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
  * @author Morten Bøgeskov (mb@dbc.dk)
  */
 @Singleton
+@Lock(LockType.READ)
 public class ForsRights {
 
     private static final Logger log = LoggerFactory.getLogger(ForsRights.class);
