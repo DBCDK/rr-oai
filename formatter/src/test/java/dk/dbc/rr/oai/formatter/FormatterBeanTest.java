@@ -37,6 +37,8 @@ public class FormatterBeanTest {
 
     private static final Logger log = LoggerFactory.getLogger(FormatterBeanTest.class);
 
+    private static final String MOCKED_FORMATTED_CONTENT = "<FORMATTED/>";
+
     @Test(timeout = 2_000L)
     public void testArguments() throws Exception {
         System.out.println("testArguments");
@@ -50,7 +52,7 @@ public class FormatterBeanTest {
         bean.jsPool = new JavaScriptPool() {
             @Override
             public String format(MarcXChangeWrapper[] records, String format, String sets) {
-                return "FORMATTED";
+                return MOCKED_FORMATTED_CONTENT;
             }
 
             @Override
@@ -79,8 +81,7 @@ public class FormatterBeanTest {
 
         Response resp = bean.format("123:abc", "marcx", "bkm");
         String xml = String.valueOf(resp.getEntity());
-        assertThat(xml, is("FORMATTED"));
-
+        assertThat(xml, is(MOCKED_FORMATTED_CONTENT));
     }
 
     private static <T extends RuntimeException> void expectException(String msg, Supplier<Response> sup, Class<T> e) {

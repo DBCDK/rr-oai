@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
+import static dk.dbc.rr.oai.formatter.BeanFactory.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -44,14 +45,11 @@ public class RawRepoIT {
 
     @Before
     public void setUp() {
-        Config config = Config.of("RAWREPO_RECORD_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_RECORD_SERVICE_URL", "http://localhost/rawrepo-record-service"),
+        Config config = newConfig("RAWREPO_RECORD_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_RECORD_SERVICE_URL", "http://localhost/rawrepo-record-service"),
                                   "POOL_MIN_IDLE=1",
                                   "POOL_MAX_IDLE=1",
                                   "USER_AGENT=fool-me/1.0");
-        config.init();
-        this.rawrepo = new RawRepo();
-        this.rawrepo.config = config;
-        this.rawrepo.init();
+        this.rawrepo = newRawRepo(config);
     }
 
     @After

@@ -18,7 +18,6 @@
  */
 package dk.dbc.rr.oai.formatter;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.PostConstruct;
@@ -31,8 +30,6 @@ import javax.ws.rs.client.ClientRequestFilter;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  *
@@ -55,28 +52,15 @@ public class Config {
         this(System.getenv());
     }
 
-    private Config(Map<String, String> env) {
+    public Config(Map<String, String> env) {
         this.env = env;
-    }
-
-    /**
-     * Used for unittesting
-     *
-     * @param envs list of strings (KEY=VALUE)
-     * @return configuration for testing
-     */
-    public static Config of(String... envs) {
-        Map<String, String> env = Arrays.stream(envs)
-                .map(s -> s.split("=", 2))
-                .collect(toMap(a -> a[0], a -> a[1]));
-        return new Config(env);
     }
 
     @PostConstruct
     public void init() {
         log.info("Setting up configuration");
         this.httpClient = getenv("USER_AGENT", "RawRepoOaiFormatter/1.0")
-                .convert(userAgent -> ClientBuilder.newBuilder()
+                .convert(userAgent -> clientBuilder()
                         .register((ClientRequestFilter) (ClientRequestContext context) ->
                                 context.getHeaders().putSingle("User-Agent", userAgent)
                         )
@@ -101,6 +85,10 @@ public class Config {
 
     public Integer getPoolMinIdle() {
         return poolMinIdle;
+    }
+
+    protected ClientBuilder clientBuilder() {
+        return ClientBuilder.newBuilder();
     }
 
     private static class FromEnv {
