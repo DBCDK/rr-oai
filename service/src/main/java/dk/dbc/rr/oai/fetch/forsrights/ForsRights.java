@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static dk.dbc.rr.oai.fetch.forsrights.BadgerFishReader.O;
+import static java.util.Collections.EMPTY_SET;
 import static java.util.stream.Collectors.toSet;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -57,8 +58,8 @@ public class ForsRights {
     /**
      * Get a set of authorized setnames for a given login
      *
-     * @param tripple username:group:password
-     * @param ip      remote-ip
+     * @param triple username:group:password
+     * @param ip     remote-ip
      * @return Set of rights - if empty no rights where found (bad login)
      * @throws IOException          if there's a problem parsing the ForsRights
      *                              response
@@ -69,16 +70,20 @@ public class ForsRights {
                  cachedExceptions = {ClientErrorException.class,
                                      ServerErrorException.class,
                                      IOException.class})
-    public Set<String> authorized(@CacheKey String tripple, @CacheKey String ip) throws IOException {
+    public Set<String> authorized(@CacheKey String triple, @CacheKey String ip) throws IOException {
         try {
-            URI uri = buildForsRightsURI(tripple, ip);
+            URI uri = buildForsRightsURI(triple, ip);
             log.info("Fetching forsrights from: {}", uri.toString().replaceFirst("&passwordAut=[^&]*", "&passwordAut=[REDACTED]"));
             DTO dto = getDTO(uri);
             log.debug("dto = {}", dto);
-            return config.getForsRightsRules().entrySet().stream()
-                    .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowd by DTO
-                    .flatMap(e -> e.getValue().stream())
-                    .collect(toSet());
+            if (dto.hasAnyRight()) {
+                return config.getForsRightsRules().entrySet().stream()
+                        .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowd by DTO
+                        .flatMap(e -> e.getValue().stream())
+                        .collect(toSet());
+            } else {
+                return EMPTY_SET;
+            }
         } catch (ServerErrorException | IOException ex) {
             log.error("Error getting rights: {}", ex.getMessage());
             log.debug("Error getting rights: ", ex);

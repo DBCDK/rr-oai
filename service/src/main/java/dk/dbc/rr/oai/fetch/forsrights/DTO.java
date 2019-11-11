@@ -56,6 +56,15 @@ class DTO {
                 .anyMatch(s -> parts[1].equals(s));
     }
 
+    /**
+     * If not an empty list of rights
+     *
+     * @return is any rights are present
+     */
+    boolean hasAnyRight() {
+        return !forsRightsResponse.ressource.isEmpty();
+    }
+
     @Override
     public String toString() {
         return "DTO{" + "forsRightsResponse=" + forsRightsResponse + '}';
