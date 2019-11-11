@@ -1,0 +1,17 @@
+{
+  "id" : "83533344-fb00-370d-a5e0-1ef800ee4ead",
+  "request" : {
+    "url" : "/rawrepo-record-service/api/v1/record/870970/47308143?mode=raw&use-parent-agency=false&expand=true&exclude-aut-records=true&exclude-dbc-fields=true&keep-aut-fields=false&allow-deleted=true",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-870970-47308143.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "83533344-fb00-370d-a5e0-1ef800ee4ead"
+}

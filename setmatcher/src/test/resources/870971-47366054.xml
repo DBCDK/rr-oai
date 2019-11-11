@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>
+    <leader>00000n    2200000   4500</leader>
+    <datafield ind1='0' ind2='0' tag='001'>
+        <subfield code='a'>47366054</subfield>
+        <subfield code='b'>870971</subfield>
+        <subfield code='c'>20191108100417</subfield>
+        <subfield code='d'>20191108</subfield>
+        <subfield code='f'>a</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='004'>
+        <subfield code='r'>n</subfield>
+        <subfield code='a'>i</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='008'>
+        <subfield code='t'>a</subfield>
+        <subfield code='u'>f</subfield>
+        <subfield code='a'>2019</subfield>
+        <subfield code='b'>dk</subfield>
+        <subfield code='d'>s</subfield>
+        <subfield code='l'>dan</subfield>
+        <subfield code='n'>b</subfield>
+        <subfield code='r'>an</subfield>
+        <subfield code='v'>0</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='009'>
+        <subfield code='a'>a</subfield>
+        <subfield code='g'>xx</subfield>
+        <subfield code='g'>xe</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='014'>
+        <subfield code='a'>47111536</subfield>
+        <subfield code='x'>ANM</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='016'>
+        <subfield code='a'>03361020</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='032'>
+        <subfield code='a'>DAN201946</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='245'>
+        <subfield code='a'>[Anmeldelse]</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='300'>
+        <subfield code='a'>Bøger, s. 7</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='557'>
+        <subfield code='a'>Weekendavisen</subfield>
+        <subfield code='j'>2019</subfield>
+        <subfield code='z'>0106-4142</subfield>
+        <subfield code='V'>2019-11-08</subfield>
+        <subfield code='v'>2019-11-08</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='700'>
+        <subfield code='5'>870979</subfield>
+        <subfield code='6'>69080596</subfield>
+        <subfield code='&amp;'>ANM</subfield>
+        <subfield code='4'>rev</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='996'>
+        <subfield code='a'>DBC</subfield>
+    </datafield>
+</record>

@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>
+    <leader>00000n    2200000   4500</leader>
+    <datafield ind1='0' ind2='0' tag='001'>
+        <subfield code='a'>54252625</subfield>
+        <subfield code='b'>870970</subfield>
+        <subfield code='c'>20191108085956</subfield>
+        <subfield code='d'>20180626</subfield>
+        <subfield code='f'>a</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='004'>
+        <subfield code='r'>n</subfield>
+        <subfield code='a'>e</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='008'>
+        <subfield code='t'>m</subfield>
+        <subfield code='u'>f</subfield>
+        <subfield code='a'>2018</subfield>
+        <subfield code='b'>dk</subfield>
+        <subfield code='d'>å</subfield>
+        <subfield code='d'>y</subfield>
+        <subfield code='l'>dan</subfield>
+        <subfield code='x'>06</subfield>
+        <subfield code='v'>0</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='009'>
+        <subfield code='a'>a</subfield>
+        <subfield code='g'>xx</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='021'>
+        <subfield code='e'>9788793569522</subfield>
+        <subfield code='c'>spiralryg</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='032'>
+        <subfield code='x'>ACC201826</subfield>
+        <subfield code='a'>DBF201830</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='100'>
+        <subfield code='5'>870979</subfield>
+        <subfield code='6'>68580463</subfield>
+        <subfield code='4'>aut</subfield>
+        <subfield code='4'>ccp</subfield>
+        <subfield code='4'>ill</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='245'>
+        <subfield code='a'>Ansigter - små og hæklede</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='260'>
+        <subfield code='&amp;'>1</subfield>
+        <subfield code='a'>[Køge]</subfield>
+        <subfield code='b'>[Erlian-Daknit]</subfield>
+        <subfield code='c'>2018</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='300'>
+        <subfield code='a'>42 spalter</subfield>
+        <subfield code='b'>ill. i farver</subfield>
+        <subfield code='c'>30 cm</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='521'>
+        <subfield code='b'>1. oplag</subfield>
+        <subfield code='c'>2018</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='652'>
+        <subfield code='m'>64.65</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='996'>
+        <subfield code='a'>DBC</subfield>
+    </datafield>
+</record>

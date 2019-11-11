@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>
+    <leader>00000n    2200000   4500</leader>
+    <datafield ind1='0' ind2='0' tag='001'>
+        <subfield code='a'>47366038</subfield>
+        <subfield code='b'>870971</subfield>
+        <subfield code='c'>20191108100343</subfield>
+        <subfield code='d'>20191108</subfield>
+        <subfield code='f'>a</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='004'>
+        <subfield code='r'>n</subfield>
+        <subfield code='a'>i</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='008'>
+        <subfield code='t'>a</subfield>
+        <subfield code='u'>f</subfield>
+        <subfield code='a'>2019</subfield>
+        <subfield code='b'>dk</subfield>
+        <subfield code='d'>y</subfield>
+        <subfield code='l'>dan</subfield>
+        <subfield code='n'>b</subfield>
+        <subfield code='r'>an</subfield>
+        <subfield code='x'>03</subfield>
+        <subfield code='x'>06</subfield>
+        <subfield code='v'>0</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='009'>
+        <subfield code='a'>a</subfield>
+        <subfield code='g'>xx</subfield>
+        <subfield code='g'>xe</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='016'>
+        <subfield code='a'>03361020</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='032'>
+        <subfield code='a'>DAR201946</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='245'>
+        <subfield code='a'>Skrivebordsrevolutionen</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='300'>
+        <subfield code='a'>S. 3</subfield>
+        <subfield code='b'>ill.</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='504'>
+        <subfield code='a'>Koordinatorer, kommunikatører og konsulenter af alle slags besætter administrationen på de danske universiteter og udgør nu hver syvende af alle ansatte. Er det pseudoarbejde og varm luft eller en nødvendig forandring, så universiteterne leverer mere til samfundet?</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='557'>
+        <subfield code='a'>Weekendavisen</subfield>
+        <subfield code='j'>2019</subfield>
+        <subfield code='z'>0106-4142</subfield>
+        <subfield code='V'>2019-11-08</subfield>
+        <subfield code='v'>2019-11-08</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='652'>
+        <subfield code='m'>37.6</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='666'>
+        <subfield code='0'></subfield>
+        <subfield code='f'>universiteter</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='666'>
+        <subfield code='0'></subfield>
+        <subfield code='f'>administration</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='666'>
+        <subfield code='0'></subfield>
+        <subfield code='f'>medarbejdere</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='666'>
+        <subfield code='0'></subfield>
+        <subfield code='f'>DJØF&apos;ere</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='700'>
+        <subfield code='5'>870979</subfield>
+        <subfield code='6'>68825989</subfield>
+        <subfield code='4'>aut</subfield>
+    </datafield>
+    <datafield ind1='0' ind2='0' tag='996'>
+        <subfield code='a'>DBC</subfield>
+    </datafield>
+</record>

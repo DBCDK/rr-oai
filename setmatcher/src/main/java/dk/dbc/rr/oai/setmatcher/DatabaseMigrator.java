@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.rr.oai;
+package dk.dbc.rr.oai.setmatcher;
 
 import dk.dbc.rr.oai.db.DatabaseMigrate;
 import java.sql.Connection;
