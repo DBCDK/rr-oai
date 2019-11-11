@@ -46,7 +46,7 @@ public class DatabaseMigrator {
     @PostConstruct
     public void init() {
         if (isReadOnly()) {
-            log.info("Not migrating database - databse is readonly");
+            log.info("Not migrating database - database is readonly");
             return;
         }
 
