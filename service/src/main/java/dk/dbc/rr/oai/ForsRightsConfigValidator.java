@@ -34,8 +34,9 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
+ * Test that all FORS_RIGHTS_RULES exposed sets are present in the database, and
+ * that all the sets in the database are exposed via FORS_RIGHTS_RULES.
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
  */
@@ -71,14 +72,12 @@ public class ForsRightsConfigValidator {
 
             log.trace("allSets = {}", allSets);
             if (!allSets.isEmpty())
-                throw new EJBException("Set `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");
+                throw new EJBException("Set(s) `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");
 
         } catch (SQLException ex) {
             log.error("Cannot read setspecs: {}", ex.getMessage());
             log.debug("Cannot read setspecs: ", ex);
             throw new EJBException("Cannot check FORS_RIGHTS_RULES");
         }
-
     }
-
 }

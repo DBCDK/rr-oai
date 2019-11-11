@@ -59,7 +59,7 @@ class DTO {
     /**
      * If not an empty list of rights
      *
-     * @return is any rights are present
+     * @return are there any rights present at all
      */
     boolean hasAnyRight() {
         return !forsRightsResponse.ressource.isEmpty();
