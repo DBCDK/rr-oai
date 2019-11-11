@@ -20,6 +20,7 @@ package dk.dbc.rr.oai;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -49,6 +50,7 @@ public class Config {
 
     private final Map<String, String> env;
 
+    private boolean authenticationDisabled;
     private String exposedUrl;
     private UriBuilder formatServiceUri;
     private Map<String, List<String>> forsRightsRules;
@@ -72,6 +74,8 @@ public class Config {
     public void init() {
         log.info("Setting up config");
 
+        this.authenticationDisabled = getenv("AUTHENTICATION_DISABLED", "false")
+                .convert(Boolean::parseBoolean);
         this.exposedUrl = getenv("EXPOSED_URL").get();
         this.fetchTimeoutInSeconds = getenv("FETCH_TIMEOUT_IN_SECONDS").asInt()
                 .min(1)
@@ -110,6 +114,10 @@ public class Config {
                         .collect(toList()));
     }
 
+    public boolean isAuthenticationDisabled() {
+        return authenticationDisabled;
+    }
+
     public String getExposedUrl() {
         return exposedUrl;
     }
@@ -124,6 +132,13 @@ public class Config {
 
     public Map<String, List<String>> getForsRightsRules() {
         return forsRightsRules;
+    }
+
+    public Set<String> getAllForsRightsSets() {
+        return forsRightsRules.values()
+                .stream()
+                .flatMap(List::stream)
+                .collect(toSet());
     }
 
     public UriBuilder getForsRightsUrl() {

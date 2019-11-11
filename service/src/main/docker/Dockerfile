@@ -1,6 +1,7 @@
 FROM docker.dbc.dk/payara5-micro:latest
 
 LABEL \
+    AUTHENTICATION_DISABLED="Disable authentication and have all sets allowed for everybody (boolean, default: false)" \
     CACHE_SUCCESS_MINUTES="Number of minutes a good result from forsRights is cached (required)"\
     CACHE_FAILURE_MINUTES="Number of minutes a bad result from forsRights is cached (required)"\
     EXPOSED_URL="Full external url of this service (required)" \
