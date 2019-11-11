@@ -86,7 +86,7 @@ public class Config {
                 .isNot("not empty", String::isEmpty)
                 .convert(UriBuilder::fromUri);
         this.httpClient = getenv("USER_AGENT", "RawRepoOaiService/1.0")
-                .convert(userAgent -> ClientBuilder.newBuilder()
+                .convert(userAgent -> clientBuilder()
                         .register((ClientRequestFilter) (ClientRequestContext context) ->
                                 context.getHeaders().putSingle("User-Agent", userAgent)
                         )
@@ -138,6 +138,10 @@ public class Config {
 
     public Integer getPoolMinIdle() {
         return poolMinIdle;
+    }
+
+    protected ClientBuilder clientBuilder() {
+        return ClientBuilder.newBuilder();
     }
 
     //***********************************************************************

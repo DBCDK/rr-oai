@@ -113,7 +113,6 @@ public class RawRepo {
         } catch (RecordServiceConnectorException ex) {
             return false;
         }
-
     }
 
     private MarcXChangeWrapper marcXChangeWrapper(RecordId id) {
