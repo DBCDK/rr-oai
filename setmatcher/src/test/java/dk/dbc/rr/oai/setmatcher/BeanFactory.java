@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
+import javax.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -32,7 +34,12 @@ import static java.util.stream.Collectors.toMap;
 public class BeanFactory {
 
     public static Config newConfig(String... envs) {
-        Config config = new Config(configMapWithDefaults(envs));
+        Config config = new Config(configMapWithDefaults(envs)) {
+            @Override
+            protected ClientBuilder clientBuilder() {
+                return JerseyClientBuilder.newBuilder();
+            }
+        };
         config.init();
         return config;
     }

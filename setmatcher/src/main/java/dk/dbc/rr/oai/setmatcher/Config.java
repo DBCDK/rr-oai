@@ -72,7 +72,7 @@ public class Config {
         log.info("Setting up config");
 
         this.httpClient = getenv("USER_AGENT", "RawRepoOaiSerMatcher/1.0")
-                .convert(userAgent -> ClientBuilder.newBuilder()
+                .convert(userAgent -> clientBuilder()
                         .register((ClientRequestFilter) (ClientRequestContext context) ->
                                 context.getHeaders().putSingle("User-Agent", userAgent)
                         )
@@ -117,6 +117,10 @@ public class Config {
 
     public List<ThrottleRule> getThrottle() {
         return throttle;
+    }
+
+    protected ClientBuilder clientBuilder() {
+        return ClientBuilder.newBuilder();
     }
 
     public static class ThrottleRule {
