@@ -43,6 +43,10 @@ import static org.junit.Assert.*;
  */
 public class OaiBeanIT {
 
+    private static final String ABNO_TRIPLE = "abno:xxx:yyy";
+    private static final String AN_TRIPLE = "an:xxx:yyy";
+    private static final String UNAUTHORIZED_TRIPLE = "unknown:xxx:yyy";
+
     private OaiBean oaiBean;
 
     @Before
@@ -53,13 +57,11 @@ public class OaiBeanIT {
     @Test(timeout = 2_000L)
     public void testGetAllowedSets() throws Exception {
         System.out.println("testGetAllowedSets");
-        Set<String> unknown = oaiBean.getAllowedSets(UNAUTHORIZED_TRIPPLET, "127.0.0.1");
+        Set<String> unknown = oaiBean.getAllowedSets(UNAUTHORIZED_TRIPLE, "127.0.0.1");
         assertThat(unknown.stream().sorted().collect(toList()), is(asList()));
-        Set<String> an = oaiBean.getAllowedSets(AN_TRIPLET, "127.0.0.1");
+        Set<String> an = oaiBean.getAllowedSets(AN_TRIPLE, "127.0.0.1");
         assertThat(an.stream().sorted().collect(toList()), is(asList("art", "nat")));
-        Set<String> abno = oaiBean.getAllowedSets("abno:xxx:yyy", "127.0.0.1");
+        Set<String> abno = oaiBean.getAllowedSets(ABNO_TRIPLE, "127.0.0.1");
         assertThat(abno.stream().sorted().collect(toList()), is(asList("art", "bkm", "nat", "onl")));
     }
-    private static final String AN_TRIPLET = "an:xxx:yyy";
-    private static final String UNAUTHORIZED_TRIPPLET = "unknown:xxx:yyy";
 }

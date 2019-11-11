@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -80,7 +81,7 @@ public class OaiBean {
             triple = headers.getHeaderString("Identity");
         String clientIp = remoteIp.clientIp(httpRequest.getRemoteAddr(),
                                             headers.getHeaderString("X-Forwarded-For"));
-        log.trace("tripplet = {}; clientIp = {}", triple, clientIp);
+        log.trace("triple = {}; clientIp = {}", triple, clientIp);
 
         return Response.ok()
                 .type(MediaType.APPLICATION_XML_TYPE)
@@ -104,7 +105,7 @@ public class OaiBean {
         } else {
             try {
                 allowedSets = forsRights.authorized(triple, clientIp);
-            } catch (IOException ex) {
+            } catch (IOException | WebApplicationException ex) {
                 log.error("Error validating user: {}", ex.getMessage());
                 log.debug("Error validating user: ", ex);
                 throw new ServerErrorException(INTERNAL_SERVER_ERROR);

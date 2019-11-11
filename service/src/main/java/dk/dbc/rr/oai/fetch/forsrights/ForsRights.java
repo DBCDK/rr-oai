@@ -78,7 +78,7 @@ public class ForsRights {
             log.debug("dto = {}", dto);
             if (dto.hasAnyRight()) {
                 return config.getForsRightsRules().entrySet().stream()
-                        .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowd by DTO
+                        .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowed by DTO
                         .flatMap(e -> e.getValue().stream())
                         .collect(toSet());
             } else {
