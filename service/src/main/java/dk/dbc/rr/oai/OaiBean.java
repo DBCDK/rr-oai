@@ -22,6 +22,7 @@ import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
+import dk.dbc.rr.oai.worker.OaiWorker;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -67,6 +68,9 @@ public class OaiBean {
     public OaiIOBean oaiIO;
 
     @Inject
+    public OaiWorker oaiWorker;
+
+    @Inject
     public RemoteIp remoteIp;
 
     @GET
@@ -107,6 +111,7 @@ public class OaiBean {
         if (request != null) {
             switch (request.getVerb()) {
                 case IDENTIFY:
+                    oaiWorker.identify(response);
                     break;
                 default:
                     throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);

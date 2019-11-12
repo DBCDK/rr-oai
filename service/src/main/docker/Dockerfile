@@ -1,6 +1,7 @@
 FROM docker.dbc.dk/payara5-micro:latest
 
 LABEL \
+    ADMIN_EMAIL="Official email used in Identify call (required)" \
     AUTHENTICATION_DISABLED="Disable authentication and have all sets allowed for everybody (boolean, default: false)" \
     CACHE_SUCCESS_MINUTES="Number of minutes a good result from forsRights is cached (required)"\
     CACHE_FAILURE_MINUTES="Number of minutes a bad result from forsRights is cached (required)"\
@@ -14,6 +15,7 @@ LABEL \
     POOL_MAX_IDLE="Maximum number of unused DOM Parsers (number, required)" \
     RAWREPO_OAI_FORMATTER_SERVICE_URL="Url of rawrepo format service (required)" \
     RAWREPO_OAI_POSTGRES_URL="Database url (user:pass@host:port/base) for the set descriptions, can be readonly (required)" \
+    REPOSITORY_NAME="Name of repository for Identify call (required)" \
     RESUMPTION_TOKEN_TIMEOUT="How long time-to-live for resumption token n{d|h|m|s} (required)" \
     SCOPE="Environment (test/stg/prod) for cache name (required)" \
     USER_AGENT="Name of client to set in http requests (optional)" \

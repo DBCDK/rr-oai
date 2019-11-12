@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.ejb.Startup;
@@ -54,8 +55,12 @@ public class Config {
 
     private static final Logger log = LoggerFactory.getLogger(Config.class);
 
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-z0-9](?:(?:\\.|-+)?[a-z0-9]+)*@[a-z0-9](?:-*[a-z0-9])*(?:\\.[a-z0-9](?:-*[a-z0-9])*)+$");
+    private static final Predicate<String> EMAIL = s -> EMAIL_PATTERN.matcher(s).matches();
+
     private final Map<String, String> env;
 
+    private String adminEmail;
     private boolean authenticationDisabled;
     private String exposedUrl;
     private int fetchTimeoutInSeconds;
@@ -66,6 +71,7 @@ public class Config {
     private Integer parallelFetch;
     private Integer poolMinIdle;
     private Integer poolMaxIdle;
+    private String repoName;
     private long resumptionTokenTimeout;
     private List<String> xForwardedFor;
     private byte[] xorBytes;
@@ -82,6 +88,9 @@ public class Config {
     public void init() {
         log.info("Setting up config");
 
+        this.adminEmail = getenv("ADMIN_EMAIL")
+                .is("not an email-address", EMAIL)
+                .get();
         this.authenticationDisabled = getenv("AUTHENTICATION_DISABLED", "false")
                 .convert(Boolean::parseBoolean);
         this.exposedUrl = getenv("EXPOSED_URL").get();
@@ -115,6 +124,9 @@ public class Config {
                 .min(1, "less that 1 whould create/destroy DOM Parser for every call")
                 .min(poolMinIdle + 1, "is should be more that POOL_MIN_IDLE")
                 .get();
+        this.repoName = getenv("REPOSITORY_NAME")
+                .isNot("not empty", String::isEmpty)
+                .get();
         this.resumptionTokenTimeout = getenv("RESUMPTION_TOKEN_TIMEOUT")
                 .convert(Config::seconds);
         this.xForwardedFor = getenv("X_FORWARDED_FOR", "10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, 127.0.0.0/8")
@@ -124,6 +136,10 @@ public class Config {
                         .collect(toList()));
         this.xorBytes = getenv("XOR_TEXT_ASCII")
                 .convert(Config::xorBytes);
+    }
+
+    public String getAdminEmail() {
+        return adminEmail;
     }
 
     public boolean isAuthenticationDisabled() {
@@ -171,6 +187,10 @@ public class Config {
 
     public Integer getPoolMinIdle() {
         return poolMinIdle;
+    }
+
+    public String getRepoName() {
+        return repoName;
     }
 
     public long getResumptionTokenTimeoutInSeconds() {
@@ -259,6 +279,14 @@ public class Config {
 
         private String get() {
             return value;
+        }
+
+        private FromEnv is(String test, Predicate<String> p) {
+            if (!p.test(value)) {
+                log.error("Variable: {} is {}", name, test);
+                throw new IllegalArgumentException("Variable: " + name + " is invalid");
+            }
+            return this;
         }
 
         private FromEnv isNot(String test, Predicate<String> p) {
