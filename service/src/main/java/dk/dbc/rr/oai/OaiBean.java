@@ -106,8 +106,8 @@ public class OaiBean {
             try {
                 allowedSets = forsRights.authorized(triple, clientIp);
             } catch (IOException | WebApplicationException ex) {
-                log.error("Error validating user: {}", ex.getMessage());
-                log.debug("Error validating user: ", ex);
+                log.error("Error communicating with ForsRights: {}", ex.getMessage());
+                log.debug("Error communicating with ForsRights: ", ex);
                 throw new ServerErrorException(INTERNAL_SERVER_ERROR);
             }
         }
