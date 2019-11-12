@@ -32,6 +32,7 @@ import dk.dbc.oai.pmh.RequestType;
 import dk.dbc.oai.pmh.VerbType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -90,23 +90,21 @@ public final class OaiResponse {
      * @return xml-timestamp as declared in OAIPMH
      */
     public static XMLGregorianCalendar xmlDate(Instant instant) {
-        ZonedDateTime zoned = instant.atZone(ZoneId.of("UTC"));
+        ZonedDateTime zoned = instant.atZone(ZoneId.of("Z"));
         GregorianCalendar calendar = GregorianCalendar.from(zoned);
         return D.newXMLGregorianCalendar(calendar);
     }
 
     /**
-     * Create an response prepared for sending to the client
+     * Create an UTC timestamp for xml output
      *
-     * @param baseUrl           The request URI
-     * @param requestParameters a multi valued map as provided by
-     *                          {@link UriInfo}
-     * @return Newly constructed OaiResponse
+     * @param timestamp time information
+     * @return xml-timestamp as declared in OAIPMH
      */
-    public static OaiResponse of(String baseUrl, MultivaluedMap<String, String> requestParameters) {
-        OAIPMH oaipmh = O.createOAIPMH();
-        OaiRequest request = OaiRequest.of(oaipmh, requestParameters);
-        return new OaiResponse(baseUrl, request, requestParameters, oaipmh);
+    public static XMLGregorianCalendar xmlDate(Timestamp timestamp) {
+        ZonedDateTime zoned = timestamp.toLocalDateTime().atZone(ZoneId.of("Z"));
+        GregorianCalendar calendar = GregorianCalendar.from(zoned);
+        return D.newXMLGregorianCalendar(calendar);
     }
 
     // For UNITTESTING
@@ -115,7 +113,7 @@ public final class OaiResponse {
         return new OaiResponse(baseUrl, null, requestParameters, oaipmh);
     }
 
-    private OaiResponse(String baseUrl, OaiRequest request, MultivaluedMap<String, String> requestParameters, OAIPMH oaipmh) {
+    OaiResponse(String baseUrl, OaiRequest request, MultivaluedMap<String, String> requestParameters, OAIPMH oaipmh) {
         this.baseUrl = baseUrl;
         this.request = request;
         this.requestParameters = requestParameters;

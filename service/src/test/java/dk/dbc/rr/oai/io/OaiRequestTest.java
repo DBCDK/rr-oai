@@ -1,23 +1,24 @@
 /*
  * Copyright (C) 2019 DBC A/S (http://dbc.dk/)
  *
- * This is part of rr-oai-service
+ * This is part oaiResponseOf rr-oai-service
  *
  * rr-oai-service is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * it under the terms oaiResponseOf the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 oaiResponseOf the License, or
  * (at your option) any later version.
  *
  * rr-oai-service is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty oaiResponseOf
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy oaiResponseOf the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package dk.dbc.rr.oai.io;
 
+import dk.dbc.rr.oai.Config;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.Instant;
@@ -30,8 +31,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static dk.dbc.rr.oai.BeanFactory.*;
+import static java.nio.charset.StandardCharsets.*;
 import static java.util.Arrays.asList;
+import static java.util.Collections.EMPTY_MAP;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -42,9 +45,19 @@ import static org.junit.Assert.*;
 @RunWith(Parameterized.class)
 public class OaiRequestTest {
 
+    private static final byte[] XOR = "ThisIsJustTestData".getBytes(ISO_8859_1);
+
+    private static final OaiIOBean BEAN = newOaiIOBean(new Config(EMPTY_MAP) {
+        @Override
+        public byte[] getXorBytes() {
+            return super.getXorBytes();
+        }
+    });
+
     @Parameters
     public static Collection<Object[]> tests() throws Exception {
-        String rt = new OaiResumptionToken("2019", "xx", "2020", null).toData(Instant.MAX);
+
+        String rt = new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR);
         return asList(
                 test("Invalid verb #1", "verb=Info",
                      "<error code=\"badVerb\">argument: verb contains an invalid value</error>"),
@@ -62,10 +75,10 @@ public class OaiRequestTest {
                      "<request verb=\"GetRecord\" identifier=\"ix\" metadataPrefix=\"dc\">http://foo/bar</request>"),
                 test("ListRecords - bad resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=xxx",
                      "<error code=\"badResumptionToken\">Invalid or expired resumptionToken</error>"),
-                test("ListRecords - ok resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=" + new OaiResumptionToken("2019", "xx", "2020", null).toData(Instant.MAX),
+                test("ListRecords - ok resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
                      "<request verb=\"ListRecords\" metadataPrefix=\"dc\" resumptionToken=\"",
                      "\">http://foo/bar</request>"),
-                test("ListRecords - resumption-token and from", "verb=ListRecords&metadataPrefix=dc&from=2019&resumptionToken=" + new OaiResumptionToken("2019", "xx", "2020", null).toData(Instant.MAX),
+                test("ListRecords - resumption-token and from", "verb=ListRecords&metadataPrefix=dc&from=2019&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
                      "<error code=\"badArgument\">argument: from is not allowed for verb: ListRecords when resumptionToken is set</error>"),
                 test("Identify", "verb=Identify&identifier=x&metadataPrefix=dc&from=2020&until=2020&set=x&resumptionToken=" + rt,
                      "<error code=\"badArgument\">argument: from is not allowed for verb: Identify</error>",
@@ -99,9 +112,9 @@ public class OaiRequestTest {
 
     /**
      *
-     * @param name     Name of test
+     * @param name     Name oaiResponseOf test
      * @param qs       query string
-     * @param expected list of expected strings in response
+     * @param expected list oaiResponseOf expected strings in response
      * @return test
      */
     private static Object[] test(String name, String qs, String... expected) {
@@ -134,7 +147,7 @@ public class OaiRequestTest {
     @Test(timeout = 2_000L)
     public void test() throws Exception {
         System.out.println("test - " + name);
-        OaiResponse oaiResponse = OaiResponse.of("http://foo/bar", request);
+        OaiResponse oaiResponse = BEAN.oaiResponseOf("http://foo/bar", request);
         String str = new String(oaiResponse.content(), UTF_8);
         System.out.println(str);
         for (String exp : expected) {

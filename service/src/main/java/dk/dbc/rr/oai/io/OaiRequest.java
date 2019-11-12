@@ -39,24 +39,17 @@ public class OaiRequest {
 
     private static final Logger log = LoggerFactory.getLogger(OaiRequest.class);
 
-    public static OaiRequest of(OAIPMH oaipmh, MultivaluedMap<String, String> map) {
-        return new Parser(oaipmh)
-                .parse(map)
-                .validateArguments()
-                .asOaiRequest();
-    }
-
     private final String identity;
 
-    private final String from;
+    private final OaiTimestamp from;
     private final String identifier;
     private final String nextIdentifier;
     private final String metadataPrefix;
     private final String set;
-    private final String until;
+    private final OaiTimestamp until;
     private final VerbType verb;
 
-    public OaiRequest(String identity, String from, String identifier, String nextIdentifier, String metadataPrefix, String set, String until, VerbType verb) {
+    public OaiRequest(String identity, OaiTimestamp from, String identifier, String nextIdentifier, String metadataPrefix, String set, OaiTimestamp until, VerbType verb) {
         this.identifier = identifier;
         this.identity = identity;
         this.from = from;
@@ -83,7 +76,7 @@ public class OaiRequest {
      *
      * @return request parameter or null if unset
      */
-    public String getFrom() {
+    public OaiTimestamp getFrom() {
         return from;
     }
 
@@ -138,7 +131,7 @@ public class OaiRequest {
      *
      * @return request parameter or null if unset
      */
-    public String getUntil() {
+    public OaiTimestamp getUntil() {
         return until;
     }
 
@@ -156,7 +149,7 @@ public class OaiRequest {
         return "OaiRequest{" + "identity=" + ( identity == null ? "UNSET" : "SET" ) + ", from=" + from + ", identifier=" + identifier + ", nextIdentifier=" + nextIdentifier + ", metadataPrefix=" + metadataPrefix + ", set=" + set + ", until=" + until + ", verb=" + verb + '}';
     }
 
-    private static class Parser {
+    static class Parser {
 
         private static final String IDENTITY = "identity";
 
@@ -173,16 +166,17 @@ public class OaiRequest {
         private boolean ok = true;
         private String identity = null;
 
-        private String from = null;
+        private OaiTimestamp from = null;
         private String identifier = null;
         private String nextIdentifier = null;
         private String metadataPrefix = null;
         private String resumptionToken = null;
+        private OaiResumptionToken parsedResumptionToken = null;
         private String set = null;
-        private String until = null;
+        private OaiTimestamp until = null;
         private VerbType verb = null;
 
-        public Parser(OAIPMH oaipmh) {
+        Parser(OAIPMH oaipmh) {
             this.oaipmh = oaipmh;
             this.ok = true;
             this.identity = null;
@@ -196,16 +190,14 @@ public class OaiRequest {
             this.verb = null;
         }
 
-        private Parser parse(MultivaluedMap<String, String> map) {
+        Parser parse(MultivaluedMap<String, String> map) {
             map.forEach((name, values) -> {
-                System.out.println("name = " + name);
-                System.out.println("values = " + values);
                 switch (name) {
                     case IDENTITY:
                         identity = getValue(name, values, s -> s, BAD_ARGUMENT);
                         break;
                     case FROM:
-                        from = getValue(name, values, OaiTimestamp::checkString, BAD_ARGUMENT);
+                        from = getValue(name, values, OaiTimestamp::of, BAD_ARGUMENT);
                         break;
                     case IDENTIFIER:
                         identifier = getValue(name, values, s -> s, BAD_ARGUMENT);
@@ -220,7 +212,7 @@ public class OaiRequest {
                         set = getValue(name, values, s -> s, BAD_ARGUMENT);
                         break;
                     case UNTIL:
-                        until = getValue(name, values, OaiTimestamp::checkString, BAD_ARGUMENT);
+                        until = getValue(name, values, OaiTimestamp::of, BAD_ARGUMENT);
                         break;
                     case VERB:
                         verb = getValue(name, values, VerbType::fromValue, BAD_VERB);
@@ -233,7 +225,13 @@ public class OaiRequest {
             return this;
         }
 
-        private Parser validateArguments() {
+        Parser parseResumptionToken(Function<String, OaiResumptionToken> mapper) {
+            if (resumptionToken != null)
+                parsedResumptionToken = mapper.apply(resumptionToken);
+            return this;
+        }
+
+        Parser validateArguments() {
             if (verb != null) {
                 switch (verb) {
                     case GET_RECORD:
@@ -286,16 +284,15 @@ public class OaiRequest {
                 ensureUnset(FROM, from, RESUMPTION_TOKEN_IS_SET);
                 ensureUnset(SET, set, RESUMPTION_TOKEN_IS_SET);
                 ensureUnset(UNTIL, until, RESUMPTION_TOKEN_IS_SET);
-                OaiResumptionToken parsed = OaiResumptionToken.of(resumptionToken);
-                if (parsed == null) {
+                if (parsedResumptionToken == null) {
                     error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
                     ok = false;
                     resumptionToken = null;
                 } else {
-                    this.from = parsed.getFrom();
-                    this.nextIdentifier = parsed.getNextIdentifier();
-                    this.until = parsed.getUntil();
-                    this.set = parsed.getSet();
+                    this.from = parsedResumptionToken.getFrom();
+                    this.nextIdentifier = parsedResumptionToken.getNextIdentifier();
+                    this.until = parsedResumptionToken.getUntil();
+                    this.set = parsedResumptionToken.getSet();
                 }
             }
         }
@@ -318,7 +315,7 @@ public class OaiRequest {
                 error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
         }
 
-        private OaiRequest asOaiRequest() {
+        OaiRequest asOaiRequest() {
             if (!ok)
                 return null;
             return new OaiRequest(identity, from, identifier, nextIdentifier, metadataPrefix, set, until, verb);

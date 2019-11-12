@@ -18,9 +18,13 @@
  */
 package dk.dbc.rr.oai;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -36,6 +40,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.util.stream.Collectors.*;
 
 /**
@@ -52,6 +57,7 @@ public class Config {
 
     private boolean authenticationDisabled;
     private String exposedUrl;
+    private int fetchTimeoutInSeconds;
     private UriBuilder formatServiceUri;
     private Map<String, List<String>> forsRightsRules;
     private UriBuilder forsRightsUrl;
@@ -59,8 +65,9 @@ public class Config {
     private Integer parallelFetch;
     private Integer poolMinIdle;
     private Integer poolMaxIdle;
-    private int fetchTimeoutInSeconds;
+    private long resumptionTokenTimeout;
     private List<String> xForwardedFor;
+    private byte[] xorBytes;
 
     public Config() {
         this(System.getenv());
@@ -107,11 +114,15 @@ public class Config {
                 .min(1, "less that 1 whould create/destroy DOM Parser for every call")
                 .min(poolMinIdle + 1, "is should be more that POOL_MIN_IDLE")
                 .get();
+        this.resumptionTokenTimeout = getenv("RESUMPTION_TOKEN_TIMEOUT")
+                .convert(Config::seconds);
         this.xForwardedFor = getenv("X_FORWARDED_FOR", "10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12, 127.0.0.0/8")
                 .convert(s -> Stream.of(s.split(","))
                         .map(String::trim)
                         .filter(x -> !x.isEmpty())
                         .collect(toList()));
+        this.xorBytes = getenv("XOR_TEXT_ASCII")
+                .convert(Config::xorBytes);
     }
 
     public boolean isAuthenticationDisabled() {
@@ -161,8 +172,16 @@ public class Config {
         return poolMinIdle;
     }
 
+    public long getResumptionTokenTimeoutInSeconds() {
+        return resumptionTokenTimeout;
+    }
+
     public List<String> getxForwardedFor() {
         return xForwardedFor;
+    }
+
+    public byte[] getXorBytes() {
+        return xorBytes;
     }
 
     protected ClientBuilder clientBuilder() {
@@ -181,6 +200,49 @@ public class Config {
                                        .map(String::trim)
                                        .filter(s -> !s.isEmpty())
                                        .collect(toList())));
+    }
+
+    /**
+     * Convert a string representation of a duration (number{d|h|m|s}) to
+     * seconds
+     *
+     * @param spec string representation
+     * @return number of seconds
+     */
+    private static long seconds(String spec) {
+        String[] split = spec.split("(?<=\\d)(?=\\D)");
+        if (split.length == 2) {
+            long units = Long.parseUnsignedLong(split[0]);
+            switch (split[1].toLowerCase(Locale.ROOT)) {
+                case "s":
+                    return TimeUnit.SECONDS.toSeconds(units);
+                case "m":
+                    return TimeUnit.MINUTES.toSeconds(units);
+                case "h":
+                    return TimeUnit.HOURS.toSeconds(units);
+                case "d":
+                    return TimeUnit.DAYS.toSeconds(units);
+                default:
+                    break;
+            }
+        }
+        throw new IllegalArgumentException("Invalid time spec: " + spec);
+    }
+
+    /**
+     * Extract a bunch of xor bytes from a variable
+     *
+     * @return xor bytes
+     */
+    private static byte[] xorBytes(String value) {
+        try {
+            if (value.length() < 8)
+                throw new IllegalArgumentException("Needs to be atleast 8 characters long");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(value.getBytes(ISO_8859_1));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static class FromEnv {

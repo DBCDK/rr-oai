@@ -24,21 +24,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.Base64;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.*;
-import static java.time.temporal.ChronoUnit.*;
 
 /**
  *
@@ -48,24 +40,21 @@ public class OaiResumptionToken {
 
     private static final Logger log = LoggerFactory.getLogger(OaiResumptionToken.class);
 
-    private static final byte[] XOR = makeXor();
-    private static final Supplier<Instant> DEFAULT_EXPIRES = makeDefaultValueUntil();
-
-    private final String from;
+    private final OaiTimestamp from;
     private final String nextIdentifier;
-    private final String until;
+    private final OaiTimestamp until;
     private final String set;
 
-    public static OaiResumptionToken of(String base64) {
+    static OaiResumptionToken of(String base64, byte[] xorBytes) {
         try {
             byte[] xored = Base64.getUrlDecoder().decode(base64);
-            byte[] checksummed = xor(xored);
+            byte[] checksummed = xor(xored, xorBytes);
             try (ByteArrayInputStream bis = checkChecksum(checksummed) ;
                  DataInputStream dis = new DataInputStream(bis)) {
                 Instant validUntil = readInstant(dis);
-                String from = readString(dis);
+                OaiTimestamp from = OaiTimestamp.from(dis);
                 String nextIdentifier = readString(dis);
-                String until = readString(dis);
+                OaiTimestamp until = OaiTimestamp.from(dis);
                 String set = readString(dis);
                 if (validUntil.isAfter(Instant.now()))
                     return new OaiResumptionToken(from, nextIdentifier, until, set);
@@ -78,14 +67,14 @@ public class OaiResumptionToken {
         }
     }
 
-    OaiResumptionToken(String from, String nextIdentifier, String until, String set) {
+    OaiResumptionToken(OaiTimestamp from, String nextIdentifier, OaiTimestamp until, String set) {
         this.from = from;
         this.nextIdentifier = nextIdentifier;
         this.until = until;
         this.set = set;
     }
 
-    public String getFrom() {
+    public OaiTimestamp getFrom() {
         return from;
     }
 
@@ -97,22 +86,21 @@ public class OaiResumptionToken {
         return set;
     }
 
-    public String getUntil() {
+    public OaiTimestamp getUntil() {
         return until;
     }
 
-    public ResumptionTokenType toXML() throws IOException {
+    public ResumptionTokenType toXML(Instant validUntil, byte[] xorBytes) throws IOException {
         ResumptionTokenType resumptionToken = OaiResponse.O.createResumptionTokenType();
-        Instant validUntil = DEFAULT_EXPIRES.get();
         resumptionToken.setExpirationDate(OaiResponse.xmlDate(validUntil));
-        resumptionToken.setValue(toData(validUntil));
+        resumptionToken.setValue(toData(validUntil, xorBytes));
         return resumptionToken;
     }
 
-    String toData(Instant expires) throws IOException {
+    String toData(Instant expires, byte[] xorBytes) throws IOException {
         byte[] bytes = asBytes(expires);
         byte[] checksummed = calcChecksum(bytes);
-        byte[] xored = xor(checksummed);
+        byte[] xored = xor(checksummed, xorBytes);
         byte[] base64 = Base64.getUrlEncoder().encode(xored);
         return new String(base64, ISO_8859_1);
     }
@@ -128,9 +116,9 @@ public class OaiResumptionToken {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             try (DataOutputStream oos = new DataOutputStream(bos)) {
                 writeInstant(oos, expires);
-                writeString(oos, from);
+                OaiTimestamp.to(oos, from);
                 writeString(oos, nextIdentifier);
-                writeString(oos, until);
+                OaiTimestamp.to(oos, until);
                 writeString(oos, set);
             }
             return bos.toByteArray();
@@ -248,13 +236,14 @@ public class OaiResumptionToken {
     /**
      * Simple obfuscation using XOR from an environment variable
      *
-     * @param in byte array
+     * @param in  byte array
+     * @param xor byte array to xor with
      * @return byte array xor'ed
      */
-    private static byte[] xor(byte[] in) {
+    private static byte[] xor(byte[] in, byte[] xor) {
         byte[] out = new byte[in.length];
         for (int i = 0 ; i < in.length ; i++) {
-            out[i] = (byte) ( in[i] ^ XOR[i % XOR.length] );
+            out[i] = (byte) ( in[i] ^ xor[i % xor.length] );
         }
         return out;
     }
@@ -298,72 +287,4 @@ public class OaiResumptionToken {
         return new ByteArrayInputStream(in, 4, in.length - 4);
     }
 
-    /**
-     * Extract a bunch of xor bytes from an environmwent variable
-     *
-     * @return xor bytes
-     */
-    private static byte[] makeXor() {
-        try {
-            String text = System.getenv("XOR_TEXT_ASCII");
-            if (text == null || text.length() < 2) {
-                log.error("XOR_TEXT_ASCII is unset or too short");
-                text = "This really needs to be set";
-            }
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(text.getBytes(ISO_8859_1));
-        } catch (NoSuchAlgorithmException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * Create a supplier of expiry timestamps eith a timeout taken from the
-     * environment
-     *
-     * @return supplier of Instant
-     */
-    private static Supplier<Instant> makeDefaultValueUntil() {
-        String text = System.getenv().getOrDefault("RESUMPTION_TOKEN_TIMEOUT", "3d");
-        Matcher matcher = Pattern.compile("^([1-9][0-9]*)\\s*(y(?:ears?)?|m(?:onths?)?|d(?:ays?)?|h(?:ours?)?|minutes?|s(?:econds?)?)$")
-                .matcher(text.toLowerCase(Locale.ROOT));
-        if (!matcher.matches())
-            throw new IllegalStateException("Cannot parse RESUMPTION_TOKEN_TIMEOUT (" + text + ")");
-        long amount = Long.parseLong(matcher.group(1));
-        TemporalUnit unit;
-        switch (matcher.group(2)) {
-            case "y":
-            case "year":
-            case "years":
-                unit = YEARS;
-                break;
-            case "m":
-            case "month":
-            case "months":
-                unit = MONTHS;
-                break;
-            case "d":
-            case "day":
-            case "days":
-                unit = DAYS;
-                break;
-            case "h":
-            case "hour":
-            case "hours":
-                unit = HOURS;
-                break;
-            case "minute":
-            case "minutes":
-                unit = MINUTES;
-                break;
-            case "s":
-            case "second":
-            case "seconds":
-                unit = SECONDS;
-                break;
-            default:
-                throw new AssertionError();
-        }
-        return () -> Instant.now().plus(amount, unit);
-    }
 }

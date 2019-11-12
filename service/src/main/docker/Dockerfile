@@ -14,8 +14,10 @@ LABEL \
     POOL_MAX_IDLE="Maximum number of unused DOM Parsers (number, required)" \
     RAWREPO_OAI_FORMATTER_SERVICE_URL="Url of rawrepo format service (required)" \
     RAWREPO_OAI_POSTGRES_URL="Database url (user:pass@host:port/base) for the set descriptions, can be readonly (required)" \
+    RESUMPTION_TOKEN_TIMEOUT="How long time-to-live for resumption token n{d|h|m|s} (required)" \
     SCOPE="Environment (test/stg/prod) for cache name (required)" \
     USER_AGENT="Name of client to set in http requests (optional)" \
-    X_FORWARDED_FOR="Ipranges of the nets where our own proxies can be located (default all private ipv4 nets)"
+    X_FORWARDED_FOR="Ipranges of the nets where our own proxies can be located (default all private ipv4 nets)" \
+    XOR_TEXT_ASCII="Atleast 8 characters of noise to obfuscate resumptionToken with (required)"
 
 COPY target/${project.build.finalName}.war target/docker/app.json deployments/
