@@ -24,6 +24,7 @@ import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
 import javax.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
@@ -48,6 +49,7 @@ public class BeanFactory {
 
     public static Map<String, String> configMapWithDefaults(String... envs) {
         Map<String, String> defaults = configMap(
+                "AUTHENTICATION_DISABLED=false",
                 "ADMIN_EMAIL=user@example.com",
                 "DESCRIPTION=some text",
                 "EXPOSED_URL=http://foo/bar",
@@ -102,14 +104,31 @@ public class BeanFactory {
         return parallelFetch;
     }
 
-    public static OaiBean newOaiBean() {
-        return newOaiBean(newIndexHtml());
+    public static RemoteIp newRemoteIp(Config config) {
+        RemoteIp remoteIp = new RemoteIp();
+        remoteIp.config = config;
+        remoteIp.init();
+        return remoteIp;
     }
 
-    public static OaiBean newOaiBean(IndexHtml indexHtml) {
+    public static OaiBean newOaiBean(Config config) {
+        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config));
+    }
+
+    public static OaiBean newOaiBean(Config config, ForsRights forsRights, IndexHtml indexHtml, RemoteIp remoteIp) {
         OaiBean oaiBean = new OaiBean();
+        oaiBean.config = config;
+        oaiBean.forsRights = forsRights;
         oaiBean.indexHtml = indexHtml;
+        oaiBean.remoteIp = remoteIp;
         return oaiBean;
     }
 
+    public static ForsRightsConfigValidator newForsRightsConfigValidator(Config config, DataSource rawRepoOaiDs) {
+        ForsRightsConfigValidator forsRightsConfigValidator = new ForsRightsConfigValidator();
+        forsRightsConfigValidator.config = config;
+        forsRightsConfigValidator.rawRepoOaiDs = rawRepoOaiDs;
+        forsRightsConfigValidator.init();
+        return forsRightsConfigValidator;
+    }
 }

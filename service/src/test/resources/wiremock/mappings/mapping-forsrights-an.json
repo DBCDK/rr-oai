@@ -1,0 +1,17 @@
+{
+  "id" : "da7cca32-e248-4b06-9210-6378b66e554b",
+  "request" : {
+    "url" : "/forsrights/?action=forsRights&userIdAut=an&groupIdAut=xxx&passwordAut=yyy&ipAddress=127.0.0.1&outputType=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-forsrights-an.json",
+    "headers" : {
+      "Date" : "Thu, 07 Nov 2019 07:29:39 GMT",
+      "Server" : "Apache",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "da7cca32-e248-4b06-9210-6378b66e554b"
+}
