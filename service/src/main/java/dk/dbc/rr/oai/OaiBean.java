@@ -18,7 +18,6 @@
  */
 package dk.dbc.rr.oai;
 
-import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiRequest;

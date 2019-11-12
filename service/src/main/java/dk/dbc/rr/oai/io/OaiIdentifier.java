@@ -20,7 +20,6 @@ package dk.dbc.rr.oai.io;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
