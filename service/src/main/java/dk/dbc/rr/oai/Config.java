@@ -18,6 +18,7 @@
  */
 package dk.dbc.rr.oai;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -180,6 +181,7 @@ public class Config {
         return xForwardedFor;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getXorBytes() {
         return xorBytes;
     }

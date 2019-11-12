@@ -18,6 +18,7 @@
  */
 package dk.dbc.rr.oai.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -36,7 +37,7 @@ public class OaiIdentifier {
     private final Timestamp vanished;
     private final HashSet<String> setspecs;
 
-    @SuppressWarnings("EI_EXPOSE_REP2")
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public OaiIdentifier(String identifier, boolean deleted, Timestamp changed, Timestamp vanished, String... setspecs) {
         this.identifier = identifier;
         this.deleted = deleted;
@@ -53,12 +54,12 @@ public class OaiIdentifier {
         return deleted;
     }
 
-    @SuppressWarnings("EI_EXPOSE_REP")
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Timestamp getChanged() {
         return changed;
     }
 
-    @SuppressWarnings("EI_EXPOSE_REP")
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Timestamp getVanished() {
         return vanished;
     }
