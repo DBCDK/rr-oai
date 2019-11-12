@@ -19,13 +19,20 @@
 package dk.dbc.rr.oai.io;
 
 import dk.dbc.oai.pmh.OAIPMH;
+import dk.dbc.oai.pmh.ResumptionTokenType;
 import dk.dbc.rr.oai.Config;
+import java.io.IOException;
+import java.time.Instant;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static dk.dbc.rr.oai.io.OaiResponse.O;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  *
@@ -33,6 +40,8 @@ import static dk.dbc.rr.oai.io.OaiResponse.O;
  */
 @Singleton
 public class OaiIOBean {
+
+    private static final Logger log = LoggerFactory.getLogger(OaiIOBean.class);
 
     @Inject
     public Config config;
@@ -61,6 +70,30 @@ public class OaiIOBean {
 
     public OaiResumptionToken resumptionTokenOf(String content) {
         return OaiResumptionToken.of(content, config.getXorBytes());
+    }
+
+    /**
+     * Build a new resumption token for adding to response
+     *
+     * @param identifier Identifier to continue from (first in response not
+     *                   supplied to user)
+     * @param until      When the harvesting should stop
+     * @param set        set to harvest from
+     * @return XmlNode
+     */
+    public ResumptionTokenType resumptionTokenFor(OaiIdentifier identifier, OaiTimestamp until, String set) {
+        try {
+            OaiTimestamp from = OaiTimestamp.from(identifier.getChanged());
+            String id = identifier.getIdentifier();
+            OaiResumptionToken token = new OaiResumptionToken(from, id, until, set);
+            long ttl = config.getResumptionTokenTimeoutInSeconds();
+            return token.toXML(Instant.now().plusSeconds(ttl),
+                               config.getXorBytes());
+        } catch (IOException ex) {
+            log.error("Error building resumption token: {}", ex.getMessage());
+            log.debug("Error building resumption token: ", ex);
+            throw new ServerErrorException("Cannot generate resumptionToken", INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

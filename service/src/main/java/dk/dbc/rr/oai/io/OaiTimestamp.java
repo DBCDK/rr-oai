@@ -115,6 +115,10 @@ public class OaiTimestamp {
         }
     }
 
+    public static OaiTimestamp from(Timestamp timestamp) {
+        return new OaiTimestamp(timestamp, Granuality.MICROSECONDS);
+    }
+
     private OaiTimestamp(Timestamp timestamp, Granuality granuality) {
         this.timestamp = timestamp;
         this.granuality = granuality;
