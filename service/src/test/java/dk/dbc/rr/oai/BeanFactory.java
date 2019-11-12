@@ -115,15 +115,16 @@ public class BeanFactory {
     }
 
     public static OaiBean newOaiBean(Config config) {
-        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config));
+        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config), newOaiIOBean(config));
     }
 
-    public static OaiBean newOaiBean(Config config, ForsRights forsRights, IndexHtml indexHtml, RemoteIp remoteIp) {
+    public static OaiBean newOaiBean(Config config, ForsRights forsRights, IndexHtml indexHtml, RemoteIp remoteIp, OaiIOBean oiIOBean) {
         OaiBean oaiBean = new OaiBean();
         oaiBean.config = config;
         oaiBean.forsRights = forsRights;
         oaiBean.indexHtml = indexHtml;
         oaiBean.remoteIp = remoteIp;
+        oaiBean.oaiIO = oiIOBean;
         return oaiBean;
     }
 

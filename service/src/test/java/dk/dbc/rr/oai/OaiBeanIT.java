@@ -18,17 +18,8 @@
  */
 package dk.dbc.rr.oai;
 
-import java.util.List;
 import java.util.Set;
-import javax.ejb.embeddable.EJBContainer;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static dk.dbc.rr.oai.BeanFactory.*;
@@ -63,5 +54,7 @@ public class OaiBeanIT {
         assertThat(an.stream().sorted().collect(toList()), is(asList("art", "nat")));
         Set<String> abno = oaiBean.getAllowedSets(ABNO_TRIPLE, "127.0.0.1");
         assertThat(abno.stream().sorted().collect(toList()), is(asList("art", "bkm", "nat", "onl")));
+        Set<String> anonymous = oaiBean.getAllowedSets(null, "8.8.8.8");
+        assertThat(anonymous.stream().sorted().collect(toList()), is(asList("art", "nat")));
     }
 }

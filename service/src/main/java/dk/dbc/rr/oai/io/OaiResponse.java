@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -62,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * Response structure for an OAI request
@@ -216,28 +218,29 @@ public final class OaiResponse {
      * Ensure declared (from metadata formats) prefixes are used
      *
      * @return bytes to send to the user
-     * @throws JAXBException      in case of object to xml fails
-     * @throws XMLStreamException is case that reformatting with namespaces
-     *                            fails
-     * @throws IOException        on internal error of
-     *                            {@link ByteArrayOutputStream}
      */
-    public byte[] content() throws JAXBException, XMLStreamException, IOException {
-        oaipmh.setResponseDate(xmlDate(Instant.now()));
-        RequestType reqType = O.createRequestType();
-        if (requiresRequestParameters())
-            fillInRequestParameters(reqType);
-        reqType.setValue(baseUrl);
-        oaipmh.setRequest(reqType);
+    public byte[] content() {
+        try {
+            oaipmh.setResponseDate(xmlDate(Instant.now()));
+            RequestType reqType = O.createRequestType();
+            if (requiresRequestParameters())
+                fillInRequestParameters(reqType);
+            reqType.setValue(baseUrl);
+            oaipmh.setRequest(reqType);
 
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            Marshaller marshaller = C.createMarshaller();
-            XMLEventWriter writer = OF.createXMLEventWriter(bos);
-            XMLEventWriterWithNamespaces nsWriter = new XMLEventWriterWithNamespaces(writer);
-            marshaller.marshal(oaipmh, nsWriter);
-            nsWriter.close(); // outputs to writer
-            writer.close();
-            return bos.toByteArray();
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                Marshaller marshaller = C.createMarshaller();
+                XMLEventWriter writer = OF.createXMLEventWriter(bos);
+                XMLEventWriterWithNamespaces nsWriter = new XMLEventWriterWithNamespaces(writer);
+                marshaller.marshal(oaipmh, nsWriter);
+                nsWriter.close(); // outputs to writer
+                writer.close();
+                return bos.toByteArray();
+            }
+        } catch (IOException | JAXBException | XMLStreamException ex) {
+            log.error("Error writing response data: {}", ex.getMessage());
+            log.debug("Error writing response data: ", ex);
+            throw new ServerErrorException("Cannot build response", INTERNAL_SERVER_ERROR);
         }
     }
 

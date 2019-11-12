@@ -18,8 +18,13 @@
  */
 package dk.dbc.rr.oai;
 
+import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
+import dk.dbc.rr.oai.io.OaiIOBean;
+import dk.dbc.rr.oai.io.OaiRequest;
+import dk.dbc.rr.oai.io.OaiResponse;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -37,7 +42,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Collections.EMPTY_SET;
+import static java.util.Collections.*;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -54,13 +59,16 @@ public class OaiBean {
     public Config config;
 
     @Inject
-    public RemoteIp remoteIp;
-
-    @Inject
     public ForsRights forsRights;
 
     @Inject
     public IndexHtml indexHtml;
+
+    @Inject
+    public OaiIOBean oaiIO;
+
+    @Inject
+    public RemoteIp remoteIp;
 
     @GET
     public Response oai(@Context UriInfo uriInfo,
@@ -95,7 +103,17 @@ public class OaiBean {
         if (allowedSets.isEmpty())
             throw new ServerErrorException(UNAUTHORIZED);
 
-        throw new ServerErrorException("Not implemented yet!", INTERNAL_SERVER_ERROR);
+        OaiResponse response = oaiIO.oaiResponseOf(config.getExposedUrl(), params);
+        OaiRequest request = response.getRequest();
+        if (request != null) {
+            switch (request.getVerb()) {
+                case IDENTIFY:
+                    break;
+                default:
+                    throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);
+            }
+        }
+        return response.content();
     }
 
     Set<String> getAllowedSets(String triple, String clientIp) throws ServerErrorException {
@@ -104,13 +122,18 @@ public class OaiBean {
             allowedSets = config.getAllForsRightsSets();
         } else {
             try {
+                // This is returns empty if invalid login and no ip-based access
                 allowedSets = forsRights.authorized(triple, clientIp);
             } catch (IOException | WebApplicationException ex) {
                 log.error("Error validating user: {}", ex.getMessage());
                 log.debug("Error validating user: ", ex);
-                throw new ServerErrorException(INTERNAL_SERVER_ERROR);
+                throw new ServerErrorException("Error validating user", INTERNAL_SERVER_ERROR);
             }
         }
+        // Anonymous access (no login/ip-based access)
+        if (allowedSets.isEmpty() && triple == null)
+            allowedSets = new HashSet<>(config.getForsRightsRules()
+                    .getOrDefault("*", EMPTY_LIST));
         return allowedSets;
     }
 }

@@ -66,23 +66,27 @@ public class ForsRightsTest {
         this.json = "{\"forsRightsResponse\":{\"ressource\":[{\"name\":{\"$\":\"foo\",\"@\":\"fr\"},\"right\":[{\"$\":\"500\",\"@\":\"fr\"}]}],\"@\":\"fr\"},\"@namespaces\":{\"fr\":\"http:\\/\\/oss.dbc.dk\\/ns\\/forsrights\"}}";
     }
 
-    @Test(timeout = 2_000L, expected = IllegalArgumentException.class)
+    @Test(timeout = 2_000L)
     public void testNoAuthorization() throws Exception {
         System.out.println("testNoAuthorization");
-        forsRights.buildForsRightsURI(null, null);
+        String uri = forsRights.buildForsRightsURI(null, null).toString();
+        assertThat(uri, containsString("userIdAut=&"));
+        assertThat(uri, not(containsString("ipAddress")));
     }
 
-    @Test(timeout = 2_000L, expected = IllegalArgumentException.class)
+    @Test(timeout = 2_000L)
     public void testInvalidTrippleNoIp() throws Exception {
         System.out.println("testInvalidTrippleNoIp");
-        forsRights.buildForsRightsURI("a:b", null);
+        String uri = forsRights.buildForsRightsURI("a:b", null).toString();
+        assertThat(uri, containsString("userIdAut=&"));
+        assertThat(uri, not(containsString("ipAddress")));
     }
 
     @Test(timeout = 2_000L)
     public void testIpAddress() throws Exception {
         System.out.println("testIpAddress");
         String uri = forsRights.buildForsRightsURI(null, "127.0.0.1").toString();
-        assertThat(uri, not(containsString("userIdAut")));
+        assertThat(uri, containsString("userIdAut=&"));
         assertThat(uri, containsString("ipAddress"));
     }
 
@@ -90,7 +94,7 @@ public class ForsRightsTest {
     public void testInvalidTrippleIpAddress() throws Exception {
         System.out.println("testInvalidTrippleIpAddress");
         String uri = forsRights.buildForsRightsURI("", "127.0.0.1").toString();
-        assertThat(uri, not(containsString("userIdAut")));
+        assertThat(uri, containsString("userIdAut=&"));
         assertThat(uri, containsString("ipAddress"));
     }
 
