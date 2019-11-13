@@ -55,4 +55,18 @@ public class OaiTimestampTest {
             assertThat(a[0], actual.getTruncate(), is(a[2]));
         });
     }
+
+    @Test(timeout = 2_000L)
+    public void testSql() throws Exception {
+        System.out.println("testSql");
+        Arrays.asList(
+                "2019       DATE_TRUNC('year', XXX) <= DATE_TRUNC('year', ?::TIMESTAMP)",
+                "2019-01    DATE_TRUNC('month', XXX) <= DATE_TRUNC('month', ?::TIMESTAMP)",
+                "2019-01-11 DATE_TRUNC('day', XXX) <= DATE_TRUNC('day', ?::TIMESTAMP)"
+        ).forEach(l -> {
+            String[] a = l.split("\\s+", 2);
+            String actual = OaiTimestamp.of(a[0]).sql("XXX", "<=");
+            assertThat(actual, is(a[1]));
+        });
+    }
 }

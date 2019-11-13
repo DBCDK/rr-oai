@@ -133,6 +133,36 @@ public class OaiTimestamp {
         return granuality.getText();
     }
 
+    public void sqlFrom(StringBuilder sql, String column) {
+        sql(sql, column, ">=");
+    }
+
+    public void sqlTo(StringBuilder sql, String column) {
+        sql(sql, column, "<=");
+    }
+
+    String sql(String column, String op) {
+        StringBuilder sql = new StringBuilder();
+        sql(sql, column, op);
+        return sql.toString();
+    }
+
+    void sql(StringBuilder sql, String column, String op) {
+        sqlString(sql, column);
+        sql.append(" ")
+                .append(op)
+                .append(" ");
+        sqlString(sql, "?::TIMESTAMP");
+    }
+
+    private void sqlString(StringBuilder stringBuilder, String column) {
+        stringBuilder.append("DATE_TRUNC('")
+                .append(getTruncate())
+                .append("', ")
+                .append(column)
+                .append(")");
+    }
+
     @Override
     public int hashCode() {
         int hash = 3;
