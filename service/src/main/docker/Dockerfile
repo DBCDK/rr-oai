@@ -9,7 +9,8 @@ LABEL \
     FETCH_TIMEOUT_IN_SECONDS="Max number of seconds (walltime) to use to parallel fetch records (number, required)" \
     FORS_RIGHTS_RULES=";-seperated list of rule{name,right or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \
     FORS_RIGHTS_URL="Url of forsrights service (required)" \
-    MAX_POOL_SIZE="Database pool size  (required)" \
+    MAX_POOL_SIZE="Database pool size  (number, required)" \
+    MAX_ROWS_PR_REQUEST="Max numbre of rows in ListIdentifers/ListRecords (number, required)" \
     PARALLEL_FETCH="How many records to format in parallel (number, required)" \
     POOL_MIN_IDLE="Minimum number of unused DOM Parsers (number, required)" \
     POOL_MAX_IDLE="Maximum number of unused DOM Parsers (number, required)" \

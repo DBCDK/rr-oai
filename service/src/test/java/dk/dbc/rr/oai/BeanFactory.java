@@ -61,6 +61,7 @@ public class BeanFactory {
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=5",
                 "FETCH_TIMEOUT_IN_SECONDS=30",
+                "MAX_ROWS_PR_REQUEST=10",
                 "POOL_MIN_IDLE=5",
                 "POOL_MAX_IDLE=10",
                 "REPOSITORY_NAME=some text",

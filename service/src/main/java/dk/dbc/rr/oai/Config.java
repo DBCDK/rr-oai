@@ -68,6 +68,7 @@ public class Config {
     private Map<String, List<String>> forsRightsRules;
     private UriBuilder forsRightsUrl;
     private Client httpClient;
+    private int maxRowsPrRequest;
     private Integer parallelFetch;
     private Integer poolMinIdle;
     private Integer poolMaxIdle;
@@ -114,6 +115,9 @@ public class Config {
                         )
                         .register(new JacksonFeature())
                         .build());
+        this.maxRowsPrRequest = getenv("MAX_ROWS_PR_REQUEST").asInt()
+                .min(1, "should be able to fetch something")
+                .get();
         this.parallelFetch = getenv("PARALLEL_FETCH").asInt()
                 .min(1)
                 .get();
@@ -175,6 +179,10 @@ public class Config {
 
     public Client getHttpClient() {
         return httpClient;
+    }
+
+    public int getMaxRowsPrRequest() {
+        return maxRowsPrRequest;
     }
 
     public Integer getParallelFetch() {
