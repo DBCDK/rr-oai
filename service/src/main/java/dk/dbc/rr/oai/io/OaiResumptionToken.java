@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Objects;
@@ -41,7 +42,8 @@ public class OaiResumptionToken {
     private static final Logger log = LoggerFactory.getLogger(OaiResumptionToken.class);
 
     private final OaiTimestamp from;
-    private final String nextIdentifier;
+    private final Timestamp segmentStart;
+    private final String segmentId;
     private final OaiTimestamp until;
     private final String set;
 
@@ -53,11 +55,12 @@ public class OaiResumptionToken {
                  DataInputStream dis = new DataInputStream(bis)) {
                 Instant validUntil = readInstant(dis);
                 OaiTimestamp from = OaiTimestamp.from(dis);
-                String nextIdentifier = readString(dis);
+                Timestamp segmentStart = readTimestamp(dis);
+                String segmentId = readString(dis);
                 OaiTimestamp until = OaiTimestamp.from(dis);
                 String set = readString(dis);
                 if (validUntil.isAfter(Instant.now()))
-                    return new OaiResumptionToken(from, nextIdentifier, until, set);
+                    return new OaiResumptionToken(from, segmentStart, segmentId, until, set);
                 return null;
             }
         } catch (IOException | RuntimeException ex) {
@@ -67,9 +70,14 @@ public class OaiResumptionToken {
         }
     }
 
-    OaiResumptionToken(OaiTimestamp from, String nextIdentifier, OaiTimestamp until, String set) {
+    OaiResumptionToken(OaiTimestamp from, OaiIdentifier identifier, OaiTimestamp until, String set) {
+        this(from, identifier.getChanged(), identifier.getIdentifier(), until, set);
+    }
+
+    OaiResumptionToken(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, String set) {
         this.from = from;
-        this.nextIdentifier = nextIdentifier;
+        this.segmentStart = segmentStart;
+        this.segmentId = segmentId;
         this.until = until;
         this.set = set;
     }
@@ -78,8 +86,12 @@ public class OaiResumptionToken {
         return from;
     }
 
-    public String getNextIdentifier() {
-        return nextIdentifier;
+    public Timestamp getSegmentStart() {
+        return segmentStart;
+    }
+
+    public String getSegmentId() {
+        return segmentId;
     }
 
     public String getSet() {
@@ -117,7 +129,8 @@ public class OaiResumptionToken {
             try (DataOutputStream oos = new DataOutputStream(bos)) {
                 writeInstant(oos, expires);
                 OaiTimestamp.to(oos, from);
-                writeString(oos, nextIdentifier);
+                writeTimestamp(oos, segmentStart);
+                writeString(oos, segmentId);
                 OaiTimestamp.to(oos, until);
                 writeString(oos, set);
             }
@@ -141,6 +154,25 @@ public class OaiResumptionToken {
         } else {
             dos.writeInt(instant.getNano());
             dos.writeLong(instant.getEpochSecond());
+        }
+    }
+
+    /**
+     * Write an instant as nanos and seconds
+     * <p>
+     * if instant is null: nanos is written as Integer.MIN_VALUE and seconds
+     * aren't written
+     *
+     * @param dos       output stream
+     * @param timestamp timestamp
+     * @throws IOException in case of IO errors in java.io.*
+     */
+    private static void writeTimestamp(DataOutputStream dos, Timestamp timestamp) throws IOException {
+        if (timestamp == null) {
+            dos.writeInt(Integer.MIN_VALUE); // Magic null value
+        } else {
+            dos.writeInt(timestamp.getNanos());
+            dos.writeLong(timestamp.getTime());
         }
     }
 
@@ -183,6 +215,26 @@ public class OaiResumptionToken {
     }
 
     /**
+     * Read an Instant from a datastream
+     * <p>
+     * read nanos and seconds. If nanos is Integer.MIN_VALUE then null is
+     * returned and seconds aren't read
+     *
+     * @param dis input stream
+     * @return instant or null
+     * @throws IOException in case of IO errors in java.io.*
+     */
+    private static Timestamp readTimestamp(DataInputStream dis) throws IOException {
+        int nano = dis.readInt();
+        if (nano == Integer.MIN_VALUE)
+            return null;
+        long seconds = dis.readLong();
+        Timestamp timestamp = new Timestamp(seconds);
+        timestamp.setNanos(nano);
+        return timestamp;
+    }
+
+    /**
      * Read a String from a datastream
      * <p>
      * read length and UTF-8 bytes. If length is Integer.MIN_VALUE then null is
@@ -209,7 +261,8 @@ public class OaiResumptionToken {
     public int hashCode() {
         int hash = 5;
         hash = 79 * hash + Objects.hashCode(this.from);
-        hash = 79 * hash + Objects.hashCode(this.nextIdentifier);
+        hash = 79 * hash + Objects.hashCode(this.segmentStart);
+        hash = 79 * hash + Objects.hashCode(this.segmentId);
         hash = 79 * hash + Objects.hashCode(this.until);
         hash = 79 * hash + Objects.hashCode(this.set);
         return hash;
@@ -223,14 +276,15 @@ public class OaiResumptionToken {
             return false;
         final OaiResumptionToken other = (OaiResumptionToken) obj;
         return Objects.equals(this.from, other.from) &&
-               Objects.equals(this.nextIdentifier, other.nextIdentifier) &&
+               Objects.equals(this.segmentStart, other.segmentStart) &&
+               Objects.equals(this.segmentId, other.segmentId) &&
                Objects.equals(this.set, other.set) &&
                Objects.equals(this.until, other.until);
     }
 
     @Override
     public String toString() {
-        return "OaiResumptionToken{" + "from=" + from + ", nextId=" + nextIdentifier + ", until=" + until + ", set=" + set + '}';
+        return "OaiResumptionToken{" + "from=" + from + ", segmentStart=" + segmentStart + ", segmentId=" + segmentId + ", until=" + until + ", set=" + set + '}';
     }
 
     /**

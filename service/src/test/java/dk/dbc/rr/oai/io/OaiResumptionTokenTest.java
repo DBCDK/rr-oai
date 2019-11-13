@@ -18,6 +18,7 @@
  */
 package dk.dbc.rr.oai.io;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ public class OaiResumptionTokenTest {
     @Test(timeout = 2_000L)
     public void resumptionTokenOk() throws Exception {
         System.out.println("resumptionTokenOk");
-        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), null, OaiTimestamp.of("2134-12-31T23:59:59.999Z"), "foo");
+        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), ts("1970-01-01T12:34:56Z"), null, OaiTimestamp.of("2134-12-31T23:59:59.999Z"), "foo");
         String data = before.toData(Instant.MAX, XOR);
         System.out.println("data = " + data);
         OaiResumptionToken after = OaiResumptionToken.of(data, XOR);
@@ -46,7 +47,7 @@ public class OaiResumptionTokenTest {
     @Test(timeout = 2_000L)
     public void resumptionTokenOkWithNull1() throws Exception {
         System.out.println("resumptionTokenOkWithNull1");
-        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), null, null, "");
+        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), ts("1970-01-01T12:34:56Z"), "id:0", null, "");
         String data = before.toData(Instant.MAX, XOR);
         System.out.println("data = " + data);
         OaiResumptionToken after = OaiResumptionToken.of(data, XOR);
@@ -56,7 +57,7 @@ public class OaiResumptionTokenTest {
     @Test(timeout = 2_000L)
     public void resumptionTokenOkWithNull2() throws Exception {
         System.out.println("resumptionTokenOkWithNull2");
-        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), null, OaiTimestamp.of("2134-12-31T23:59:59.999Z"), null);
+        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), ts("1970-01-01T12:34:56Z"), "id:0", OaiTimestamp.of("2134-12-31T23:59:59.999Z"), null);
         String data = before.toData(Instant.MAX, XOR);
         System.out.println("data = " + data);
         OaiResumptionToken after = OaiResumptionToken.of(data, XOR);
@@ -66,7 +67,7 @@ public class OaiResumptionTokenTest {
     @Test(timeout = 2_000L)
     public void resumptionTokenExpired() throws Exception {
         System.out.println("resumptionTokenExpired");
-        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), null, OaiTimestamp.of("2134-12-31T23:59:59.999Z"), "foo");
+        OaiResumptionToken before = new OaiResumptionToken(OaiTimestamp.of("1970-01-01T00:00:00Z"), ts("1970-01-01T12:34:56Z"), "id:0", OaiTimestamp.of("2134-12-31T23:59:59.999Z"), "foo");
         String data = before.toData(Instant.now().minusMillis(1), XOR);
         System.out.println("data = " + data);
         OaiResumptionToken after = OaiResumptionToken.of(data, XOR);
@@ -94,4 +95,7 @@ public class OaiResumptionTokenTest {
         assertThat(token, nullValue());
     }
 
+    private static Timestamp ts(String text) {
+        return OaiTimestamp.of(text).getTimestamp();
+    }
 }

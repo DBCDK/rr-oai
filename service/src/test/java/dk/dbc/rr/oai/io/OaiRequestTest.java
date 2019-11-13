@@ -57,7 +57,7 @@ public class OaiRequestTest {
     @Parameters
     public static Collection<Object[]> tests() throws Exception {
 
-        String rt = new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR);
+        String rt = new OaiResumptionToken(OaiTimestamp.of("2019"), OaiTimestamp.of("2019").getTimestamp(), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR);
         return asList(
                 test("Invalid verb #1", "verb=Info",
                      "<error code=\"badVerb\">argument: verb contains an invalid value</error>"),
@@ -75,10 +75,10 @@ public class OaiRequestTest {
                      "<request verb=\"GetRecord\" identifier=\"ix\" metadataPrefix=\"dc\">http://foo/bar</request>"),
                 test("ListRecords - bad resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=xxx",
                      "<error code=\"badResumptionToken\">Invalid or expired resumptionToken</error>"),
-                test("ListRecords - ok resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
+                test("ListRecords - ok resumption-token", "verb=ListRecords&metadataPrefix=dc&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), OaiTimestamp.of("2019").getTimestamp(), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
                      "<request verb=\"ListRecords\" metadataPrefix=\"dc\" resumptionToken=\"",
                      "\">http://foo/bar</request>"),
-                test("ListRecords - resumption-token and from", "verb=ListRecords&metadataPrefix=dc&from=2019&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
+                test("ListRecords - resumption-token and from", "verb=ListRecords&metadataPrefix=dc&from=2019&resumptionToken=" + new OaiResumptionToken(OaiTimestamp.of("2019"), OaiTimestamp.of("2019").getTimestamp(), "xx", OaiTimestamp.of("2020"), null).toData(Instant.MAX, XOR),
                      "<error code=\"badArgument\">argument: from is not allowed for verb: ListRecords when resumptionToken is set</error>"),
                 test("Identify", "verb=Identify&identifier=x&metadataPrefix=dc&from=2020&until=2020&set=x&resumptionToken=" + rt,
                      "<error code=\"badArgument\">argument: from is not allowed for verb: Identify</error>",

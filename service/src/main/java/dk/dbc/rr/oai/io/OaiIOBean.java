@@ -81,11 +81,9 @@ public class OaiIOBean {
      * @param set        set to harvest from
      * @return XmlNode
      */
-    public ResumptionTokenType resumptionTokenFor(OaiIdentifier identifier, OaiTimestamp until, String set) {
+    public ResumptionTokenType resumptionTokenFor(OaiTimestamp from, OaiIdentifier identifier, OaiTimestamp until, String set) {
         try {
-            OaiTimestamp from = OaiTimestamp.from(identifier.getChanged());
-            String id = identifier.getIdentifier();
-            OaiResumptionToken token = new OaiResumptionToken(from, id, until, set);
+            OaiResumptionToken token = new OaiResumptionToken(from, identifier, until, set);
             long ttl = config.getResumptionTokenTimeoutInSeconds();
             return token.toXML(Instant.now().plusSeconds(ttl),
                                config.getXorBytes());

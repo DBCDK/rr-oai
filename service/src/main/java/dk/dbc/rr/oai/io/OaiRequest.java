@@ -22,6 +22,7 @@ import dk.dbc.oai.pmh.OAIPMH;
 import dk.dbc.oai.pmh.OAIPMHerrorType;
 import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.oai.pmh.VerbType;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.function.Function;
 import javax.ws.rs.core.MultivaluedMap;
@@ -43,18 +44,18 @@ public class OaiRequest {
 
     private final OaiTimestamp from;
     private final String identifier;
-    private final String nextIdentifier;
     private final String metadataPrefix;
+    private final OaiResumptionToken resumptionToken;
     private final String set;
     private final OaiTimestamp until;
     private final VerbType verb;
 
-    public OaiRequest(String identity, OaiTimestamp from, String identifier, String nextIdentifier, String metadataPrefix, String set, OaiTimestamp until, VerbType verb) {
+    public OaiRequest(String identity, OaiTimestamp from, String identifier, String metadataPrefix, OaiResumptionToken resumptionToken, String set, OaiTimestamp until, VerbType verb) {
         this.identifier = identifier;
         this.identity = identity;
         this.from = from;
-        this.nextIdentifier = nextIdentifier;
         this.metadataPrefix = metadataPrefix;
+        this.resumptionToken = resumptionToken;
         this.set = set;
         this.until = until;
         this.verb = verb;
@@ -90,18 +91,12 @@ public class OaiRequest {
     }
 
     /**
-     * Non standard request value - Next Idenfifier with the from timestamp
-     * <p>
-     * This value comes fron the resumption token and is intended to be used
-     * like this:
-     * {@code
-     * SELECT ... WHERE timestamp == {from} AND idenitfier >= {identifier} OR timestamp > {from}
-     * }
+     * Request parameter (parsed)
      *
-     * @return Net identifier
+     * @return request parameter or null if unset
      */
-    public String getNextIdentifier() {
-        return nextIdentifier;
+    public OaiResumptionToken getResumptionToken() {
+        return resumptionToken;
     }
 
     /**
@@ -146,7 +141,7 @@ public class OaiRequest {
 
     @Override
     public String toString() {
-        return "OaiRequest{" + "identity=" + ( identity == null ? "UNSET" : "SET" ) + ", from=" + from + ", identifier=" + identifier + ", nextIdentifier=" + nextIdentifier + ", metadataPrefix=" + metadataPrefix + ", set=" + set + ", until=" + until + ", verb=" + verb + '}';
+        return "OaiRequest{" + "identity=" + ( identity == null ? "UNSET" : "SET" ) + ", from=" + from + ", identifier=" + identifier + ", resumptionToken=" + resumptionToken + ", metadataPrefix=" + metadataPrefix + ", set=" + set + ", until=" + until + ", verb=" + verb + '}';
     }
 
     static class Parser {
@@ -168,7 +163,6 @@ public class OaiRequest {
 
         private OaiTimestamp from = null;
         private String identifier = null;
-        private String nextIdentifier = null;
         private String metadataPrefix = null;
         private String resumptionToken = null;
         private OaiResumptionToken parsedResumptionToken = null;
@@ -178,16 +172,6 @@ public class OaiRequest {
 
         Parser(OAIPMH oaipmh) {
             this.oaipmh = oaipmh;
-            this.ok = true;
-            this.identity = null;
-
-            this.from = null;
-            this.identifier = null;
-            this.metadataPrefix = null;
-            this.resumptionToken = null;
-            this.set = null;
-            this.until = null;
-            this.verb = null;
         }
 
         Parser parse(MultivaluedMap<String, String> map) {
@@ -288,11 +272,6 @@ public class OaiRequest {
                     error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
                     ok = false;
                     resumptionToken = null;
-                } else {
-                    this.from = parsedResumptionToken.getFrom();
-                    this.nextIdentifier = parsedResumptionToken.getNextIdentifier();
-                    this.until = parsedResumptionToken.getUntil();
-                    this.set = parsedResumptionToken.getSet();
                 }
             }
         }
@@ -318,7 +297,7 @@ public class OaiRequest {
         OaiRequest asOaiRequest() {
             if (!ok)
                 return null;
-            return new OaiRequest(identity, from, identifier, nextIdentifier, metadataPrefix, set, until, verb);
+            return new OaiRequest(identity, from, identifier, metadataPrefix, parsedResumptionToken, set, until, verb);
         }
 
         private <T> T getValue(String name, List<String> values, Function<String, T> op, OAIPMHerrorcodeType errorCode) {
