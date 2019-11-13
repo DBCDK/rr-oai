@@ -18,9 +18,12 @@
  */
 package dk.dbc.rr.oai;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -143,10 +146,18 @@ public class OaiBeanIT extends DB {
         Stream.of(qs.split("&"))
                 .filter(s -> !s.isEmpty())
                 .map(s -> s.split("=", 2))
-                .forEach(a -> map.computeIfAbsent(URLDecoder.decode(a[0], UTF_8),
+                .forEach(a -> map.computeIfAbsent(decode(a[0]),
                                                     x -> new ArrayList<>())
-                        .add(URLDecoder.decode(a[1], UTF_8)));
+                        .add(decode(a[1])));
         return map;
+    }
+
+    private static String decode(String s) {
+        try {
+            return URLDecoder.decode(s, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public static Matcher<String> containsInOrder(String... parts) {
