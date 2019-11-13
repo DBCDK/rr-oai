@@ -41,6 +41,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -73,7 +75,17 @@ public class DB {
             host = env.getOrDefault("PGHOST", "localhost");
             base = env.getOrDefault("PGDATABASE", username);
         }
-        ds = new PGSimpleDataSource();
+        ds = new PGSimpleDataSource() {
+            @Override
+            public Connection getConnection() throws SQLException {
+                Connection connection = super.getConnection();
+                try(Statement stmt = connection.createStatement()) {
+                    stmt.execute("SET TIMEZONE='UTC'");
+                }
+                return connection;
+            }
+
+        };
         ds.setUser(user);
         ds.setPassword(pass);
         ds.setServerName(host);
@@ -108,9 +120,8 @@ public class DB {
             loadData(input);
         }
     }
-
+    private static final Logger log = LoggerFactory.getLogger(DB.class);
     private void loadData(DatabaseInput input) throws SQLException {
-
         try (Connection connection = ds.getConnection() ;
              PreparedStatement deleteSets = connection.prepareStatement("DELETE FROM oairecordsets WHERE pid=?") ;
              PreparedStatement deleteRecords = connection.prepareStatement("DELETE FROM oairecords WHERE pid=?") ;

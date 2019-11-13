@@ -60,7 +60,7 @@ public class OaiIOBean {
         return new OaiResponse(baseUrl, request, requestParameters, oaipmh);
     }
 
-    private  OaiRequest oaiRequestOf(OAIPMH oaipmh, MultivaluedMap<String, String> map) {
+    private OaiRequest oaiRequestOf(OAIPMH oaipmh, MultivaluedMap<String, String> map) {
         return new OaiRequest.Parser(oaipmh)
                 .parse(map)
                 .parseResumptionToken(this::resumptionTokenOf)
@@ -68,7 +68,7 @@ public class OaiIOBean {
                 .asOaiRequest();
     }
 
-    private  OaiResumptionToken resumptionTokenOf(String content) {
+    public OaiResumptionToken resumptionTokenOf(String content) {
         return OaiResumptionToken.of(content, config.getXorBytes());
     }
 

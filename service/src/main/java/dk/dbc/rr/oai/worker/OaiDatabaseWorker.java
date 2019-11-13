@@ -19,19 +19,24 @@
 package dk.dbc.rr.oai.worker;
 
 import dk.dbc.rr.oai.Config;
+import dk.dbc.rr.oai.io.OaiIdentifier;
+import dk.dbc.rr.oai.io.OaiResumptionToken;
+import dk.dbc.rr.oai.io.OaiTimestamp;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
+import java.sql.Timestamp;
+import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.EMPTY_SET;
 
@@ -41,6 +46,19 @@ import static java.util.Collections.EMPTY_SET;
  */
 @Stateless
 public class OaiDatabaseWorker {
+
+    private static final Logger log = LoggerFactory.getLogger(OaiDatabaseWorker.class);
+
+    private static final String COMMA_LIST_OF_SETSPECS =
+            "(SELECT STRING_AGG(sets.setspec, ',')" +
+            " FROM oairecordsets AS sets" +
+            " WHERE pid = oairecords.pid" +
+            " AND vanished IS NULL)";
+    private static final String SELECT_OAI_RECORDS =
+            "SELECT pid, deleted, changed, vanished, " + COMMA_LIST_OF_SETSPECS +
+            " FROM oairecords";
+    private static final String SELECT_OAI_RECORDS_JOIN_SETS =
+            SELECT_OAI_RECORDS + " JOIN oairecordsets USING (pid)";
 
     @Inject
     public Config config;
@@ -63,6 +81,95 @@ public class OaiDatabaseWorker {
             }
             return set;
         }
+    }
+
+    public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token) throws SQLException {
+        return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), token.getSet());
+    }
+
+    public LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, OaiTimestamp until, String set) throws SQLException {
+        return listIdentifiers(from, null, null, until, set);
+    }
+
+    private LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, String set) throws SQLException {
+        Object[] values = new Object[7];
+        values[0] = set;
+        String sql = listRecordsSql(values, from, segmentStart, segmentId, until);
+        log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
+        try (Connection connection = dataSource.getConnection() ;
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0 ; i < values.length ; i++) {
+                Object value = values[i];
+                if (value == null)
+                    break;
+                if (value instanceof String) {
+                    stmt.setString(i + 1, (String) value);
+                } else if (value instanceof Timestamp) {
+                    stmt.setTimestamp(i + 1, (Timestamp) value);
+                } else {
+                    throw new AssertionError();
+                }
+            }
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                LinkedList<OaiIdentifier> identifiers = new LinkedList<>();
+                while (resultSet.next()) {
+                    identifiers.add(identifierFromStatement(resultSet));
+                }
+                return identifiers;
+            }
+        }
+    }
+
+    private static OaiIdentifier identifierFromStatement(ResultSet resultSet) throws SQLException {
+        String identifier = resultSet.getString(1).replaceFirst(":", "-");
+        boolean deleted = resultSet.getBoolean(2);
+        Timestamp changed = resultSet.getTimestamp(3);
+        Timestamp vanished = resultSet.getTimestamp(4);
+        String setspecs = resultSet.getString(5);
+        if (setspecs.isEmpty()) {
+            return new OaiIdentifier(identifier, deleted, changed, vanished);
+        } else {
+            return new OaiIdentifier(identifier, deleted, changed, vanished, setspecs.split(","));
+        }
+    }
+
+    private String listRecordsSql(Object[] values, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
+        int i = 1;
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_OAI_RECORDS_JOIN_SETS + " WHERE setspec=?");
+        if (segmentStart != null && segmentId != null) {
+            sql.append(" AND (changed > ? OR changed = ? AND pid >= ?)");
+            values[i++] = segmentStart;
+            values[i++] = segmentStart;
+            values[i++] = segmentId;
+        } else if (from != null) {
+            sql.append(" AND ");
+            from.sqlFrom(sql, "changed");
+            values[i++] = from.getTimestamp();
+        }
+        if (until != null) {
+            sql.append(" AND ");
+            until.sqlTo(sql, "changed");
+            values[i++] = until.getTimestamp();
+        }
+        sql.append(" AND (vanished IS NULL");
+        if (from != null || until != null) {
+            sql.append(" OR (");
+            if (from != null) {
+                from.sqlFrom(sql, "vanished");
+                values[i++] = from.getTimestamp();
+                if (until != null)
+                    sql.append(" AND ");
+            }
+            if (until != null) {
+                until.sqlTo(sql, "vanished");
+                values[i++] = until.getTimestamp();
+            }
+            sql.append(")");
+        }
+        sql.append(") ORDER BY changed, pid LIMIT ")
+                .append(config.getMaxRowsPrRequest() + 1);
+        return sql.toString();
     }
 
 }
