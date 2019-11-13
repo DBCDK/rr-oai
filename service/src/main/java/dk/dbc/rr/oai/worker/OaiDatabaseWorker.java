@@ -19,10 +19,21 @@
 package dk.dbc.rr.oai.worker;
 
 import dk.dbc.rr.oai.Config;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
+
+import static java.util.Collections.EMPTY_SET;
 
 /**
  *
@@ -37,5 +48,21 @@ public class OaiDatabaseWorker {
     @Resource(lookup = "jdbc/rawrepo-oai")
     public DataSource dataSource;
 
+    public Set<String> getSetsForId(String identifier) throws SQLException {
+        String[] parts = identifier.split("[-:]", 2);
+        if (parts.length != 2)
+            return EMPTY_SET;
+        try (Connection connection = dataSource.getConnection() ;
+             PreparedStatement stmt = connection.prepareStatement("SELECT setspec FROM oairecordsets WHERE pid=?")) {
+            stmt.setString(1, parts[0] + ":" + parts[1]);
+            HashSet<String> set = new HashSet<>();
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                while (resultSet.next()) {
+                    set.add(resultSet.getString(1));
+                }
+            }
+            return set;
+        }
+    }
 
 }

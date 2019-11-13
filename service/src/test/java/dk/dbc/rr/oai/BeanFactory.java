@@ -22,6 +22,7 @@ import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
 import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
+import dk.dbc.rr.oai.worker.OaiDatabaseFormats;
 import dk.dbc.rr.oai.worker.OaiDatabaseWorker;
 import dk.dbc.rr.oai.worker.OaiWorker;
 import java.util.HashMap;
@@ -141,6 +142,7 @@ public class BeanFactory {
         OaiWorker oaiWorker = new OaiWorker();
         oaiWorker.config = config;
         oaiWorker.oaiDatabaseWorker = newOaiDatabaseWorker(config, dataSource);
+        oaiWorker.oaiDatabaseFormats = newDatabaseFormats(dataSource);
         return oaiWorker;
     }
 
@@ -149,6 +151,13 @@ public class BeanFactory {
         oaiDatabaseWorker.config = config;
         oaiDatabaseWorker.dataSource = dataSource;
         return oaiDatabaseWorker;
+    }
+
+    public static OaiDatabaseFormats newDatabaseFormats(DataSource dataSource) {
+        OaiDatabaseFormats oaiDatabaseFormats = new OaiDatabaseFormats();
+        oaiDatabaseFormats.dataSource = dataSource;
+        oaiDatabaseFormats.init();
+        return oaiDatabaseFormats;
     }
 
     public static ForsRightsConfigValidator newForsRightsConfigValidator(Config config, DataSource rawRepoOaiDs) {

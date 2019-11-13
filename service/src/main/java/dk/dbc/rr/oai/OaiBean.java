@@ -24,6 +24,7 @@ import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
 import dk.dbc.rr.oai.worker.OaiWorker;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ejb.Stateless;
@@ -108,14 +109,23 @@ public class OaiBean {
 
         OaiResponse response = oaiIO.oaiResponseOf(config.getExposedUrl(), params);
         OaiRequest request = response.getRequest();
-        if (request != null) {
-            switch (request.getVerb()) {
-                case IDENTIFY:
-                    oaiWorker.identify(response);
-                    break;
-                default:
-                    throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);
+        try {
+            if (request != null) {
+                switch (request.getVerb()) {
+                    case IDENTIFY:
+                        oaiWorker.identify(response);
+                        break;
+                    case LIST_METADATA_FORMATS:
+                        oaiWorker.listMetadataFormats(response, request, allowedSets);
+                        break;
+                    default:
+                        throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);
+                }
             }
+        } catch (SQLException ex) {
+            log.error("Error communicating with the database: {}", ex.getMessage());
+            log.debug("Error communicating with the database: ", ex);
+            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
         }
         return response.content();
     }

@@ -21,10 +21,20 @@ package dk.dbc.rr.oai.worker;
 import dk.dbc.oai.pmh.DeletedRecordType;
 import dk.dbc.oai.pmh.GranularityType;
 import dk.dbc.oai.pmh.IdentifyType;
+import dk.dbc.oai.pmh.MetadataFormatType;
+import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.rr.oai.Config;
+import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static dk.dbc.rr.oai.io.OaiResponse.O;
 
 /**
  *
@@ -33,8 +43,13 @@ import javax.inject.Inject;
 @Stateless
 public class OaiWorker {
 
+    private static final Logger log = LoggerFactory.getLogger(OaiWorker.class);
+
     @Inject
     public Config config;
+
+    @Inject
+    public OaiDatabaseFormats oaiDatabaseFormats;
 
     @Inject
     public OaiDatabaseWorker oaiDatabaseWorker;
@@ -50,6 +65,28 @@ public class OaiWorker {
         identify.setDeletedRecord(DeletedRecordType.TRANSIENT); // Cannot guarantee against database wipes
         identify.setGranularity(GranularityType.YYYY_MM_DD_THH_MM_SS_Z);
 
+    }
+
+    public void listMetadataFormats(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+        log.info("listMetadataFormats");
+        if (request.getIdentifier() != null) {
+            Set<String> sets = oaiDatabaseWorker.getSetsForId(request.getIdentifier());
+            sets.retainAll(allowedSets);
+            if (sets.isEmpty()) {
+                response.error(OAIPMHerrorcodeType.ID_DOES_NOT_EXIST, "No such record");
+                return;
+            }
+        }
+        List<MetadataFormatType> metadataFormats = response.listMetadataFormats()
+                .getMetadataFormats();
+        oaiDatabaseFormats.getFormats()
+                .forEach(format -> {
+                    MetadataFormatType xml = O.createMetadataFormatType();
+                    xml.setMetadataPrefix(format.getPrefix());
+                    xml.setSchema(format.getSchema());
+                    xml.setMetadataNamespace(format.getNamespace());
+                    metadataFormats.add(xml);
+                });
     }
 
 }

@@ -87,9 +87,61 @@ public class OaiBeanIT extends DB {
                    "</Identify>"));
     }
 
-    private MultivaluedMap<String, String> queryString(String... strings) {
+    @Test(timeout = 2_000L)
+    public void testListMetadataFormats() throws Exception {
+        System.out.println("testListMetadataFormats");
+        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats"));
+        String content = new String(bytes, UTF_8);
+        System.out.println("content = " + content);
+        assertThat(content, containsInOrder(
+                   "<request verb=\"ListMetadataFormats\">http://foo/bar</request>",
+                   "<ListMetadataFormats>",
+                   "<metadataFormat>",
+                   "<metadataPrefix>marcx</metadataPrefix>",
+                   "<schema>https://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd</schema>",
+                   "<metadataNamespace>info:lc/xmlns/marcxchange-v1</metadataNamespace>",
+                   "</metadataFormat>",
+                   "<metadataFormat>",
+                   "<metadataPrefix>oai_dc</metadataPrefix>",
+                   "<schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema>",
+                   "<metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace>",
+                   "</metadataFormat>",
+                   "</ListMetadataFormats>"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testListMetadataFormatsUnknownIdenitifier() throws Exception {
+        System.out.println("testListMetadataFormatsUnknownIdenitifier");
+        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx"));
+        String content = new String(bytes, UTF_8);
+        System.out.println("content = " + content);
+        assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testListMetadataFormatsKnownIdenitifier() throws Exception {
+        System.out.println("testListMetadataFormatsKnownIdenitifier");
+        insert("xxx:yyy").deleted().set("nat").commit();
+        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx-yyy"));
+        String content = new String(bytes, UTF_8);
+        System.out.println("content = " + content);
+        assertThat(content, not(containsString("<error code=\"idDoesNotExist\">No such record</error>")));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testListMetadataFormatsKnownIdenitifierNotInOurSet() throws Exception {
+        System.out.println("testListMetadataFormatsKnownIdenitifierNotInOurSet");
+        insert("xxx:yyy").deleted().set("bkm").commit();
+        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx-yyy"));
+        String content = new String(bytes, UTF_8);
+        System.out.println("content = " + content);
+        assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
+    }
+
+    private MultivaluedMap<String, String> queryString(String qs) {
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-        Stream.of(strings)
+        Stream.of(qs.split("&"))
+                .filter(s -> !s.isEmpty())
                 .map(s -> s.split("=", 2))
                 .forEach(a -> map.computeIfAbsent(URLDecoder.decode(a[0], UTF_8),
                                                     x -> new ArrayList<>())
