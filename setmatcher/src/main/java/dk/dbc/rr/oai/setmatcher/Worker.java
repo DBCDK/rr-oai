@@ -52,17 +52,17 @@ public class Worker {
 
     private static final Logger log = LoggerFactory.getLogger(Worker.class);
 
-    private static final String SETS_GONE = "UPDATE oairecordsets SET gone=TRUE WHERE pid=?";
+    private static final String SETS_GONE = "UPDATE oairecordsets SET gone=TRUE, changed=CURRENT_TIMESTAMP WHERE pid=? AND NOT gone";
     private static final String UPSERT_RECORD =
-            "INSERT INTO oairecords(pid, deleted, changed)" +
-            " values(?, ?, current_timestamp)" +
+            "INSERT INTO oairecords(pid, deleted)" +
+            " values(?, ?)" +
             " ON CONFLICT (pid)" +
-            " DO UPDATE SET deleted = EXCLUDED.deleted, changed = EXCLUDED.changed";
+            " DO UPDATE SET deleted = EXCLUDED.deleted";
     private static final String UPSERT_SETS =
-            "INSERT INTO oairecordsets(pid, setspec, gone)" +
-            " values(?, ?, FALSE)" +
+            "INSERT INTO oairecordsets(pid, setspec, changed, gone)" +
+            " values(?, ?, CURRENT_TIMESTAMP, FALSE)" +
             " ON CONFLICT (pid, setspec)" +
-            " DO UPDATE SET setspec = EXCLUDED.setspec, gone = EXCLUDED.gone";
+            " DO UPDATE SET changed = EXCLUDED.changed, setspec = EXCLUDED.setspec, gone = EXCLUDED.gone";
 
     @Inject
     public Config config;

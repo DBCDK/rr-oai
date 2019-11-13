@@ -18,9 +18,14 @@
  */
 package dk.dbc.rr.oai.db;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.junit.Test;
@@ -41,16 +46,29 @@ public class DatabaseMigrateIT {
         DataSource ds = makeDataSource();
         DatabaseMigrate.migrate(ds);
 
+        int expected = countMigrations();
+
         try (Connection connection = ds.getConnection() ;
              Statement stmt = connection.createStatement() ;
              ResultSet resultSet = stmt.executeQuery("SELECT COUNT(*) AS count FROM flyway_schema_history")) {
             if (resultSet.next()) {
                 int count = resultSet.getInt(1);
-                assertThat(count, is(2));
+                assertThat(count, is(expected));
                 return; // Everything is OK!
             }
         }
         fail("Cound not apply migrations or count applied migrations");
+    }
+
+    private int countMigrations() throws IOException {
+        File directory = new File("src/main/resources/" + DatabaseMigrate.MIGRATION_LOCATION);
+        System.out.println("directory = " + directory);
+        if (directory.isDirectory()) {
+            String[] sqlFiles = directory.list((f, s) -> s.contains("__") && s.endsWith(".sql")); // All migrations
+            System.out.println("sqlFiles = " + Arrays.toString(sqlFiles));
+            return sqlFiles.length;
+        }
+        throw new IllegalArgumentException("Cannot find migration directory");
     }
 
     private static DataSource makeDataSource() {
