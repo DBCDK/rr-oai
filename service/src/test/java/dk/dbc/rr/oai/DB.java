@@ -35,6 +35,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckReturnValue;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -140,6 +144,68 @@ public class DB {
         }
     }
 
+    protected Map<String, Entry> databaseDump() throws SQLException {
+        HashMap<String, Entry> map = new HashMap<>();
+        try (Connection connection = ds.getConnection() ;
+             Statement stmt = connection.createStatement() ;
+             ResultSet resultSet = stmt.executeQuery("SELECT pid, deleted, changed, setspec, vanished FROM oairecords JOIN oairecordsets USING (pid)")) {
+            while (resultSet.next()) {
+                String id = resultSet.getString(1);
+                boolean deleted = resultSet.getBoolean(2);
+                Timestamp changed = resultSet.getTimestamp(3);
+                String setspec = resultSet.getString(4);
+                Timestamp vanished = resultSet.getTimestamp(5);
+                map.computeIfAbsent(id, i -> new Entry(id, deleted, changed))
+                        .getSetspecs()
+                        .put(setspec, vanished);
+            }
+        }
+        return map;
+    }
+
+    private static final ZoneId Z = ZoneId.of("Z");
+
+    public static Matcher<Timestamp> approxNow(long giveOrTakeMs) {
+        return approx(Instant.now(), giveOrTakeMs);
+    }
+
+    public static Matcher<Timestamp> approx(Instant expected, long giveOrTakeMs) {
+        return approx(expected.atZone(ZoneId.systemDefault()).withZoneSameInstant(Z), giveOrTakeMs);
+    }
+
+    public static Matcher<Timestamp> approx(ZonedDateTime expected, long giveOrTakeMs) {
+        return new BaseMatcher<Timestamp>() {
+            ZonedDateTime actual = null;
+
+            @Override
+            public boolean matches(Object item) {
+                if (item instanceof Timestamp) {
+                    actual = ( (Timestamp) item ).toLocalDateTime()
+                            .atZone(ZoneId.systemDefault())
+                            .withZoneSameInstant(Z);
+                    return !actual.isBefore(expected.minus(giveOrTakeMs, MILLIS)) &&
+                           !actual.isAfter(expected.plus(giveOrTakeMs, MILLIS));
+                }
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendValue(expected)
+                        .appendText(" give or take ")
+                        .appendText(String.valueOf(giveOrTakeMs))
+                        .appendText("ms (was: ")
+                        .appendValue(expected)
+                        .appendText(")");
+            }
+        };
+    }
+
+    public static Matcher<Timestamp> approx(String timespec, long giveOrTakeMs) {
+        return approx(ZonedDateTime.parse(timespec), giveOrTakeMs);
+    }
+
+    @CheckReturnValue
     protected DatabaseInputBuilder insert(String pid) {
         return new DatabaseInputBuilder(pid);
     }
@@ -156,11 +222,13 @@ public class DB {
             this.sets = new ArrayList<>();
         }
 
+        @CheckReturnValue
         public DatabaseInputBuilder deleted() {
             this.deleted = true;
             return this;
         }
 
+        @CheckReturnValue
         public DatabaseInputBuilder set(String... sets) {
             this.sets.addAll(Arrays.asList(sets));
             return this;
