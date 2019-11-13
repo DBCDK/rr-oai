@@ -35,9 +35,11 @@ public class DatabaseMigrate {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseMigrate.class);
 
+    static final String MIGRATION_LOCATION = "migrate/db/rr-oai";
+
     public static void migrate(DataSource ds) {
         Flyway flyway = Flyway.configure()
-                .locations("migrate/db/rr-oai")
+                .locations(MIGRATION_LOCATION)
                 .baselineOnMigrate(true)
                 .baselineVersion(MigrationVersion.fromVersion("1"))
                 .dataSource(ds)

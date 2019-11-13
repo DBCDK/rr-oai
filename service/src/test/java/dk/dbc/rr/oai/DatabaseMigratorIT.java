@@ -37,11 +37,11 @@ public class DatabaseMigratorIT extends DB {
     public void testCase() throws Exception {
         System.out.println("testCase");
 
-        loadData("[{\"pid\":\"a\",\"sets\":[\"bkm\",\"!nat\"]}," +
+        loadData("[{\"pid\":\"a\",\"sets\":[\"bkm\",\"nat=\"]}," +
                  "{\"pid\":\"b\",\"deleted\":true}]");
 
         insert("c").changed("2020-01-01T12:34:56.543210Z").deleted().set("bkm").commit();
-        insert("c").changed("2020-01-01T12:34:56.543210Z").deleted().set("!bkm").commit(); // overwrite
+        insert("c").changed("2020-01-01T12:34:56.543210Z").deleted().set("bkm=now").commit(); // overwrite
 
         try (Connection connection = ds.getConnection() ;
              Statement stmtRecords = connection.createStatement() ;

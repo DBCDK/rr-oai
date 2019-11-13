@@ -77,7 +77,7 @@ public class WorkerIT extends DB {
     /**
      * setsFor matcher
      *
-     * @param strings list of setname={gone?}
+     * @param strings list of setname={alive?}
      * @return matcher
      */
     private Matcher<Map<String, Boolean>> expects(String... strings) {
@@ -97,7 +97,7 @@ public class WorkerIT extends DB {
     }
 
     private Map<String, Boolean> setsFor(String pid, Connection connection) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT setspec, gone FROM oairecordsets WHERE pid = ?")) {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT setspec, vanished IS NOT NULL FROM oairecordsets WHERE pid = ?")) {
             stmt.setString(1, pid);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 HashMap<String, Boolean> ret = new HashMap<>();

@@ -27,18 +27,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.sql.Types.TIMESTAMP;
+import static java.time.temporal.ChronoUnit.MILLIS;
 
 /**
  *
@@ -123,7 +132,7 @@ public class DB {
              PreparedStatement deleteSets = connection.prepareStatement("DELETE FROM oairecordsets WHERE pid=?") ;
              PreparedStatement deleteRecords = connection.prepareStatement("DELETE FROM oairecords WHERE pid=?") ;
              PreparedStatement records = connection.prepareStatement(recordsSql.toString()) ;
-             PreparedStatement sets = connection.prepareStatement("INSERT INTO oairecordsets(pid, setspec, gone) VALUES(?, ?, ?)")) {
+             PreparedStatement sets = connection.prepareStatement("INSERT INTO oairecordsets(pid, setspec, vanished) VALUES(?, ?, ?)")) {
             deleteSets.setString(1, input.getPid());
             deleteSets.executeUpdate();
             deleteRecords.setString(1, input.getPid());
@@ -139,14 +148,82 @@ public class DB {
 
             sets.setString(1, input.getPid());
             for (String set : input.getSets()) {
-                boolean gone = set.startsWith("!");
-                if (gone)
-                    set = set.substring(1);
-                sets.setString(2, set);
-                sets.setBoolean(3, gone);
+                String[] parts = set.split("=", 2);
+                if (parts.length == 2) {
+                    sets.setString(2, parts[0]);
+                    if (parts[1].isEmpty() || parts[1].equalsIgnoreCase("now")) {
+                        sets.setTimestamp(3, Timestamp.from(Instant.now()));
+                    } else {
+                        sets.setTimestamp(3, Timestamp.from(Instant.parse(parts[1])));
+                    }
+                } else {
+                    sets.setString(2, set);
+                    sets.setNull(3, TIMESTAMP);
+                }
                 sets.executeUpdate();
             }
         }
+    }
+
+    protected Map<String, Entry> databaseDump() throws SQLException {
+        HashMap<String, Entry> map = new HashMap<>();
+        try (Connection connection = ds.getConnection() ;
+             Statement stmt = connection.createStatement() ;
+             ResultSet resultSet = stmt.executeQuery("SELECT pid, deleted, changed, setspec, vanished FROM oairecords JOIN oairecordsets USING (pid)")) {
+            while (resultSet.next()) {
+                String id = resultSet.getString(1);
+                boolean deleted = resultSet.getBoolean(2);
+                Timestamp changed = resultSet.getTimestamp(3);
+                String setspec = resultSet.getString(4);
+                Timestamp vanished = resultSet.getTimestamp(5);
+                map.computeIfAbsent(id, i -> new Entry(id, deleted, changed))
+                        .getSetspecs()
+                        .put(setspec, vanished);
+            }
+        }
+        return map;
+    }
+
+    private static final ZoneId Z = ZoneId.of("Z");
+
+    public static Matcher<Timestamp> approxNow(long giveOrTakeMs) {
+        return approx(Instant.now(), giveOrTakeMs);
+    }
+
+    public static Matcher<Timestamp> approx(Instant expected, long giveOrTakeMs) {
+        return approx(expected.atZone(ZoneId.systemDefault()).withZoneSameInstant(Z), giveOrTakeMs);
+    }
+
+    public static Matcher<Timestamp> approx(ZonedDateTime expected, long giveOrTakeMs) {
+        return new BaseMatcher<Timestamp>() {
+            ZonedDateTime actual = null;
+
+            @Override
+            public boolean matches(Object item) {
+                if (item instanceof Timestamp) {
+                    actual = ( (Timestamp) item ).toLocalDateTime()
+                            .atZone(ZoneId.systemDefault())
+                            .withZoneSameInstant(Z);
+                    return !actual.isBefore(expected.minus(giveOrTakeMs, MILLIS)) &&
+                           !actual.isAfter(expected.plus(giveOrTakeMs, MILLIS));
+                }
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendValue(expected)
+                        .appendText(" give or take ")
+                        .appendText(String.valueOf(giveOrTakeMs))
+                        .appendText("ms (was: ")
+                        .appendValue(expected)
+                        .appendText(")");
+            }
+        };
+    }
+
+    public static Matcher<Timestamp> approx(String timespec, long giveOrTakeMs) {
+        return approx(ZonedDateTime.parse(timespec), giveOrTakeMs);
     }
 
     protected DatabaseInputBuilder insert(String pid) {
@@ -228,6 +305,50 @@ public class DB {
         public String toString() {
             return "DatabaseInput{" + "pid=" + pid + ", changed=" + changed + ", deleted=" + deleted + ", sets=" + sets + '}';
         }
+    }
 
+    protected static class Entry {
+
+        private final String id;
+        private final boolean deleted;
+        private final Timestamp changed;
+        private final Map<String, Timestamp> setspecs = new HashMap<>();
+
+        public Entry(String id, boolean deleted, Timestamp changed) {
+            this.id = id;
+            this.deleted = deleted;
+            this.changed = changed;
+        }
+
+        public Timestamp getChanged() {
+            return changed;
+        }
+
+        public boolean isDeleted() {
+            return deleted;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public Map<String, Timestamp> getSetspecs() {
+            return setspecs;
+        }
+
+        /**
+         * returns timestamp of setspec
+         *
+         * @param setspec name of set
+         * @return null if exists but null, Instant.EPOCH if it does not exist
+         */
+        public Timestamp get(String setspec) {
+            return setspecs.containsKey(setspec) ? setspecs.get(setspec) : Timestamp.from(Instant.EPOCH);
+        }
+
+        @Override
+        public String toString() {
+            return "Entry{" + "id=" + id + ", deleted=" + deleted + ", changed=" + changed + ", setspecs=" + setspecs + '}';
+        }
     }
 }

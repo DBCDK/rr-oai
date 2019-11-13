@@ -34,7 +34,7 @@ pipeline {
         stage("build") {
             steps {
                 script {
-                    def status = sh returnStatus: true, script:  """
+                    def statusBuild = sh returnStatus: true, script:  """
                         rm -rf \$WORKSPACE/.repo
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null 2>&1 || true
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo clean
@@ -43,7 +43,7 @@ pipeline {
                     """
 
                     // We want code-coverage and pmd/findbugs even if unittests fails
-                    status += sh returnStatus: true, script:  """
+                    def statusAnalysis = sh returnStatus: true, script:  """
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd findbugs:findbugs javadoc:aggregate
                     """
 
@@ -75,8 +75,11 @@ pipeline {
                          unstableTotalAll: "0",
                          failedTotalAll: "0"
 
-                    if ( status != 0 ) {
-                        currentBuild.result = Result.FAILURE
+                    if ( statusBuild != 0 ) {
+                        error("Build error");
+                    }
+                    if ( statusAnalysis != 0 ) {
+                        error("Analysis error");
                     }
                 }
             }
