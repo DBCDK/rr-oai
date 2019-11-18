@@ -75,6 +75,7 @@ public class OaiIOBean {
     /**
      * Build a new resumption token for adding to response
      *
+     * @param from       When the harvesting should start
      * @param identifier Identifier to continue from (first in response not
      *                   supplied to user)
      * @param until      When the harvesting should stop
