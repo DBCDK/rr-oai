@@ -94,29 +94,49 @@ public class OaiBean {
         String clientIp = remoteIp.clientIp(httpRequest.getRemoteAddr(),
                                             headers.getHeaderString("X-Forwarded-For"));
         log.trace("triple = {}; clientIp = {}", triple, clientIp);
-
-        return Response.ok()
-                .type(MediaType.APPLICATION_XML_TYPE)
-                .entity(processOaiRequest(triple, clientIp, params))
-                .build();
-    }
-
-    byte[] processOaiRequest(String triple, String clientIp, MultivaluedMap<String, String> params) {
         Set<String> allowedSets = getAllowedSets(triple, clientIp);
 
         if (allowedSets.isEmpty())
             throw new ServerErrorException(UNAUTHORIZED);
 
+        return Response.ok()
+                .type(MediaType.APPLICATION_XML_TYPE)
+                .entity(processOaiRequest(allowedSets, params))
+                .build();
+    }
+
+    /**
+     * Create xml document from request parameters
+     *
+     * @param allowedSets This sets the user has access to
+     * @param params      The request params
+     * @return XML bytes
+     */
+    byte[] processOaiRequest(Set<String> allowedSets, MultivaluedMap<String, String> params) {
+
         OaiResponse response = oaiIO.oaiResponseOf(config.getExposedUrl(), params);
         OaiRequest request = response.getRequest();
         try {
             if (request != null) {
+                log.debug("request.getVerb = {}", request.getVerb());
                 switch (request.getVerb()) {
+                    case GET_RECORD:
+                        oaiWorker.getRecord(response, request, allowedSets);
+                        break;
                     case IDENTIFY:
                         oaiWorker.identify(response);
                         break;
+                    case LIST_IDENTIFIERS:
+                        oaiWorker.listIdentifiers(response, request, allowedSets);
+                        break;
                     case LIST_METADATA_FORMATS:
                         oaiWorker.listMetadataFormats(response, request, allowedSets);
+                        break;
+                    case LIST_RECORDS:
+                        oaiWorker.listRecords(response, request, allowedSets);
+                        break;
+                    case LIST_SETS:
+                        oaiWorker.listSets(response);
                         break;
                     default:
                         throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);
@@ -130,6 +150,17 @@ public class OaiBean {
         return response.content();
     }
 
+    /**
+     * Look up using ForsRights the allowed sets for the current user
+     * <p>
+     * This returns an empty set if a login has been presented, but fails.
+     * If no triple has ben supplied then the default set will be returned.
+     *
+     * @param triple   optional user:group:password
+     * @param clientIp remote ip
+     * @return collection of setspec names
+     * @throws ServerErrorException If ForsRights could not be contacted
+     */
     Set<String> getAllowedSets(String triple, String clientIp) throws ServerErrorException {
         Set<String> allowedSets = EMPTY_SET;
         if (config.isAuthenticationDisabled()) {
