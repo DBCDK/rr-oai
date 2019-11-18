@@ -19,6 +19,7 @@
 package dk.dbc.rr.oai.io;
 
 import dk.dbc.oai.pmh.ResumptionTokenType;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -86,6 +87,7 @@ public class OaiResumptionToken {
         return from;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Timestamp getSegmentStart() {
         return segmentStart;
     }

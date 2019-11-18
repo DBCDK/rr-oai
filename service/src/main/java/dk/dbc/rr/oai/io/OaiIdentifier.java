@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -34,15 +35,14 @@ public class OaiIdentifier {
     private final String identifier;
     private final boolean deleted;
     private final Timestamp changed;
-    private final Timestamp vanished;
     private final HashSet<String> setspecs;
+    private Element xml;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OaiIdentifier(String identifier, boolean deleted, Timestamp changed, Timestamp vanished, String... setspecs) {
+    public OaiIdentifier(String identifier, boolean deleted, Timestamp changed, String... setspecs) {
         this.identifier = identifier;
         this.deleted = deleted;
         this.changed = changed;
-        this.vanished = vanished;
         this.setspecs = new HashSet<>(Arrays.asList(setspecs));
     }
 
@@ -59,13 +59,16 @@ public class OaiIdentifier {
         return changed;
     }
 
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Timestamp getVanished() {
-        return vanished;
-    }
-
     public HashSet<String> getSetspecs() {
         return setspecs;
+    }
+
+    public Element getXml() {
+        return xml;
+    }
+
+    public void setXml(Element xml) {
+        this.xml = xml;
     }
 
     public void add(String setspec) {
@@ -84,7 +87,6 @@ public class OaiIdentifier {
         hash = 79 * hash + Objects.hashCode(this.identifier);
         hash = 79 * hash + ( this.deleted ? 1 : 0 );
         hash = 79 * hash + Objects.hashCode(this.changed);
-        hash = 79 * hash + Objects.hashCode(this.vanished);
         hash = 79 * hash + Objects.hashCode(this.setspecs);
         return hash;
     }
@@ -99,12 +101,11 @@ public class OaiIdentifier {
         return this.deleted == other.deleted &&
                Objects.equals(this.identifier, other.identifier) &&
                Objects.equals(this.changed, other.changed) &&
-               Objects.equals(this.vanished, other.vanished) &&
                Objects.equals(this.setspecs, other.setspecs);
     }
 
     @Override
     public String toString() {
-        return "OaiIdentifier{" + "identifier=" + identifier + ", deleted=" + deleted + ", changed=" + changed + ", vanished=" + vanished + ", setspecs=" + setspecs + '}';
+        return "OaiIdentifier{" + "identifier=" + identifier + ", deleted=" + deleted + ", changed=" + changed + ", setspecs=" + setspecs + '}';
     }
 }

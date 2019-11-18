@@ -22,7 +22,6 @@ import dk.dbc.oai.pmh.OAIPMH;
 import dk.dbc.oai.pmh.OAIPMHerrorType;
 import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.oai.pmh.VerbType;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.function.Function;
 import javax.ws.rs.core.MultivaluedMap;
@@ -273,6 +272,8 @@ public class OaiRequest {
                     ok = false;
                     resumptionToken = null;
                 }
+            } else {
+                ensureSet(SET, set);
             }
         }
 
