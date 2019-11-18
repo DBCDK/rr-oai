@@ -134,6 +134,7 @@ pipeline {
     post {
         success {
             step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
+            archiveArtifacts artifacts: '**/target/*-jar-with-dependencies.jar', fingerprint: true
         }
     }
 }
