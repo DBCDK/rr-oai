@@ -27,12 +27,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
@@ -45,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.temporal.ChronoUnit.MILLIS;
 
 /**
  *
@@ -79,7 +84,7 @@ public class DB {
             @Override
             public Connection getConnection() throws SQLException {
                 Connection connection = super.getConnection();
-                try(Statement stmt = connection.createStatement()) {
+                try (Statement stmt = connection.createStatement()) {
                     stmt.execute("SET TIMEZONE='UTC'");
                 }
                 return connection;
@@ -121,6 +126,7 @@ public class DB {
         }
     }
     private static final Logger log = LoggerFactory.getLogger(DB.class);
+
     private void loadData(DatabaseInput input) throws SQLException {
         try (Connection connection = ds.getConnection() ;
              PreparedStatement deleteSets = connection.prepareStatement("DELETE FROM oairecordsets WHERE pid=?") ;
@@ -155,23 +161,47 @@ public class DB {
         }
     }
 
-    protected Map<String, Entry> databaseDump() throws SQLException {
-        HashMap<String, Entry> map = new HashMap<>();
+    protected Map<String, Map<String, Entry>> databaseDump() throws SQLException {
+        Map<String, Map<String, Entry>> map = new HashMap<>();
         try (Connection connection = ds.getConnection() ;
              Statement stmt = connection.createStatement() ;
-             ResultSet resultSet = stmt.executeQuery("SELECT pid, deleted, changed, setspec, vanished FROM oairecords JOIN oairecordsets USING (pid)")) {
+             ResultSet resultSet = stmt.executeQuery("SELECT pid, deleted, changed, setspec, gone FROM oairecords JOIN oairecordsets USING (pid)")) {
             while (resultSet.next()) {
                 String id = resultSet.getString(1);
                 boolean deleted = resultSet.getBoolean(2);
                 Timestamp changed = resultSet.getTimestamp(3);
                 String setspec = resultSet.getString(4);
-                Timestamp vanished = resultSet.getTimestamp(5);
-                map.computeIfAbsent(id, i -> new Entry(id, deleted, changed))
-                        .getSetspecs()
-                        .put(setspec, vanished);
+                boolean gone = resultSet.getBoolean(5);
+                map.computeIfAbsent(id, i -> new HashMap<>())
+                        .put(setspec, new Entry(deleted, gone, changed));
             }
         }
         return map;
+    }
+
+    public static class Entry {
+
+        private final boolean deleted;
+        private final boolean gone;
+        private final Timestamp changed;
+
+        public Entry(boolean deleted, boolean gone, Timestamp changed) {
+            this.deleted = deleted;
+            this.gone = gone;
+            this.changed = changed;
+        }
+
+        public boolean isDeleted() {
+            return deleted;
+        }
+
+        public boolean isGone() {
+            return gone;
+        }
+
+        public Timestamp getChanged() {
+            return changed;
+        }
     }
 
     private static final ZoneId Z = ZoneId.of("Z");

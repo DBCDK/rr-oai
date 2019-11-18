@@ -18,12 +18,14 @@
  */
 package dk.dbc.rr.oai;
 
+import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -71,12 +73,41 @@ public class OaiBeanIT extends DB {
     }
 
     @Test(timeout = 2_000L)
+    public void testGetRecord() throws Exception {
+        System.out.println("testGetRecord");
+        insert("870970-00020389").set("nat=").commit();
+        String content = requestAnonumous("verb=GetRecord&identifier=870970-00020389&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<GetRecord>",
+                   "<record>",
+                   "<header>",
+                   "<identifier>870970-00020389</identifier>",
+                   "<metadata>",
+                   "<marcx:"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testGetRecordDeleted() throws Exception {
+        System.out.println("testGetRecordDeleted");
+        insert("870970-00020389").deleted().set("!nat=").commit();
+        String content = requestAuthorized("verb=GetRecord&identifier=870970-00020389&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<error code=\"idDoesNotExist\">"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testGetRecordNoSet() throws Exception {
+        System.out.println("testGetRecordNoSet");
+        insert("870970-00020389").set("bkm=").commit();
+        String content = requestAnonumous("verb=GetRecord&identifier=870970-00020389&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<error code=\"idDoesNotExist\">"));
+    }
+
+    @Test(timeout = 2_000L)
     public void testIdentify() throws Exception {
         System.out.println("testIdentify");
-
-        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=Identify"));
-        String content = new String(bytes, UTF_8);
-        System.out.println("content = " + content);
+        String content = requestAnonumous("verb=Identify");
         assertThat(content, containsInOrder(
                    "<request verb=\"Identify\">http://foo/bar</request>",
                    "<Identify>",
@@ -91,11 +122,65 @@ public class OaiBeanIT extends DB {
     }
 
     @Test(timeout = 2_000L)
+    public void testListIdentifiersEmptySet() throws Exception {
+        System.out.println("testListIdentifiersEmptySet");
+        String content = requestAnonumous("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        assertThat(content, containsInOrder(
+                   "<ListIdentifiers>",
+                   "</ListIdentifiers>",
+                   "<error code=\"noRecordsMatch\">"
+           ));
+    }
+
+    @Test(timeout = 2_000L)
+    public void listIdentifiers() throws Exception {
+        System.out.println("listIdentifiers");
+        loadResource("records-15-same-timestamp.json");
+        String firstPid = "870970-00010480";
+        String content = requestAnonumous("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        assertThat(content, containsInOrder(
+                   "<ListIdentifiers>",
+                   "<header>",
+                   "<identifier>",
+                   "<datestamp>",
+                   "<setSpec>nat</setSpec>",
+                   "<resumptionToken",
+                   "</ListIdentifiers>"
+           ));
+        content = requestAuthorized("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        assertThat(content, containsInOrder(
+                   "<ListIdentifiers>",
+                   "<header>",
+                   "<identifier>",
+                   "<datestamp>",
+                   "<setSpec>nat</setSpec>",
+                   "<resumptionToken",
+                   "</ListIdentifiers>"
+           ));
+        String resumptionToken = content.replaceFirst(".*<resumptionToken[^>]*>", "").replaceFirst("<.*", "");
+        System.out.println("resumptionToken = " + resumptionToken);
+
+        insert(firstPid).deleted()
+                .set("!nat").set("!bkm").commit();
+        content = requestAuthorized("verb=ListIdentifiers&metadataPrefix=oai_dc&resumptionToken=" + resumptionToken);
+        assertThat(content, containsInOrder(
+                   "<ListIdentifiers>",
+                   "<header>",
+                   "<identifier>",
+                   "<datestamp>",
+                   "<setSpec>nat</setSpec>",
+                   "<header status=\"deleted\">", // FirstPid was deleted
+                   "<identifier>",
+                   firstPid,
+                   "</ListIdentifiers>"
+           ));
+        assertThat(content, not(containsString("<resumptionToken")));
+    }
+
+    @Test(timeout = 2_000L)
     public void testListMetadataFormats() throws Exception {
         System.out.println("testListMetadataFormats");
-        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats"));
-        String content = new String(bytes, UTF_8);
-        System.out.println("content = " + content);
+        String content = requestAnonumous("verb=ListMetadataFormats");
         assertThat(content, containsInOrder(
                    "<request verb=\"ListMetadataFormats\">http://foo/bar</request>",
                    "<ListMetadataFormats>",
@@ -112,33 +197,128 @@ public class OaiBeanIT extends DB {
                    "</ListMetadataFormats>"));
     }
 
+    @Test(timeout = 15_000L)
+    public void listRecords() throws Exception {
+        System.out.println("listRecords");
+        loadResource("records-15-same-timestamp.json");
+        String content = requestAuthorized("verb=ListRecords&from=2019&until=2019&set=nat&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<ListRecords>",
+                   "<record>",
+                   "<header>",
+                   "<identifier>",
+                   "<datestamp>",
+                   "<setSpec>nat</setSpec>",
+                   "</header>",
+                   "<metadata>",
+                   "<marcx:",
+                   "</ListRecords>"
+           ));
+    }
+
+    @Test(timeout = 15_000L)
+    public void listRecordsDeleted() throws Exception {
+        System.out.println("listRecordsDeleted");
+        insert("870970-00010480").deleted()
+                .set("!nat=now").commit();
+        String content = requestAnonumous("verb=ListRecords&from=2019&set=nat&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<ListRecords>",
+                   "<record>",
+                   "<header status=\"deleted\">",
+                   "<identifier>",
+                   "<datestamp>",
+                   "</header>",
+                   "</ListRecords>"
+           ));
+        assertThat(content, not(containsString("<metadata>"))); // record does not contain metadata
+        assertThat(content, not(containsString("<setSpec>"))); // Not in any set
+    }
+
+    @Test(timeout = 15_000L)
+    public void listRecordsVanished() throws Exception {
+        System.out.println("listRecordsVanished");
+        insert("870970-00010480")
+                .set("!nat=now").commit();
+        String content = requestAuthorized("verb=ListRecords&from=2019&until=2019&set=nat&metadataPrefix=marcx");
+        assertThat(content, containsInOrder(
+                   "<ListRecords>",
+                   "<record>",
+                   "<header",
+                   "<identifier>",
+                   "<datestamp>",
+                   "</header>",
+                   "</ListRecords>"
+           ));
+        assertThat(content, not(containsString("<metadata>"))); // record does not contain metadata
+        assertThat(content, not(containsString("<setSpec>"))); // Not in any set
+    }
+
+    @Test(timeout = 2_000L)
+    public void testListSets() throws Exception {
+        System.out.println("testListSets");
+        String content = requestAnonumous("verb=ListSets");
+        assertThat(content, containsInOrder(
+                   "<ListSets>",
+                   "<set>",
+                   "<setSpec>art</setSpec>",
+                   "<setName>", "</setName>",
+                   "<dc:description>",
+                   "</set>",
+                   "<set>",
+                   "<setSpec>bkm</setSpec>",
+                   "<setName>", "</setName>",
+                   "<dc:description>",
+                   "</set>",
+                   "<set>",
+                   "<setSpec>nat</setSpec>",
+                   "<setName>", "</setName>",
+                   "<dc:description>",
+                   "</set>",
+                   "<set>",
+                   "<setSpec>onl</setSpec>",
+                   "<setName>", "</setName>",
+                   "<dc:description>",
+                   "</set>",
+                   "</ListSets>"
+           ));
+    }
+
     @Test(timeout = 2_000L)
     public void testListMetadataFormatsUnknownIdenitifier() throws Exception {
         System.out.println("testListMetadataFormatsUnknownIdenitifier");
-        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx"));
-        String content = new String(bytes, UTF_8);
-        System.out.println("content = " + content);
+        String content = requestAnonumous("verb=ListMetadataFormats&identifier=xxx");
         assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
     }
 
     @Test(timeout = 2_000L)
     public void testListMetadataFormatsKnownIdenitifier() throws Exception {
         System.out.println("testListMetadataFormatsKnownIdenitifier");
-        insert("xxx:yyy").deleted().set("nat").commit();
-        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx-yyy"));
-        String content = new String(bytes, UTF_8);
-        System.out.println("content = " + content);
+        insert("xxx-yyy").deleted().set("nat").commit();
+        String content = requestAnonumous("verb=ListMetadataFormats&identifier=xxx-yyy");
         assertThat(content, not(containsString("<error code=\"idDoesNotExist\">No such record</error>")));
     }
 
     @Test(timeout = 2_000L)
     public void testListMetadataFormatsKnownIdenitifierNotInOurSet() throws Exception {
         System.out.println("testListMetadataFormatsKnownIdenitifierNotInOurSet");
-        insert("xxx:yyy").deleted().set("bkm").commit();
-        byte[] bytes = oaiBean.processOaiRequest(null, null, queryString("verb=ListMetadataFormats&identifier=xxx-yyy"));
+        insert("xxx-yyy").deleted().set("bkm").commit();
+        String content = requestAnonumous("verb=ListMetadataFormats&identifier=xxx-yyy");
+        assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
+    }
+
+    private String requestAnonumous(String queryString) {
+        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("nat")), queryString(queryString));
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
-        assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
+        return content;
+    }
+
+    private String requestAuthorized(String queryString) {
+        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString));
+        String content = new String(bytes, UTF_8);
+        System.out.println("content = " + content);
+        return content;
     }
 
     private MultivaluedMap<String, String> queryString(String qs) {

@@ -18,7 +18,6 @@
  */
 package dk.dbc.rr.oai.worker;
 
-import dk.dbc.oai.pmh.ResumptionTokenType;
 import dk.dbc.rr.oai.Config;
 import dk.dbc.rr.oai.DB;
 import dk.dbc.rr.oai.io.OaiIOBean;
@@ -57,7 +56,7 @@ public class OaiDatabaseWorkerIT extends DB {
         loadResource("records-25-same-timestamp.json");
         OaiTimestamp from = OaiTimestamp.of("2019");
         OaiTimestamp to = OaiTimestamp.of("2019");
-        String set = "bkm";
+        String set = "nat";
         LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
         OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
         assertThat(identifiers.size(), is(10));
@@ -74,7 +73,7 @@ public class OaiDatabaseWorkerIT extends DB {
         loadResource("records-15-same-timestamp.json");
         OaiTimestamp from = OaiTimestamp.of("2019");
         OaiTimestamp to = OaiTimestamp.of("2019");
-        String set = "bkm";
+        String set = "nat";
         LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
         OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
         assertThat(identifiers.size(), is(10));
@@ -82,8 +81,7 @@ public class OaiDatabaseWorkerIT extends DB {
         String id = identifier.getIdentifier().replaceFirst("-", ":");
         System.out.println("id = " + id);
         insert(id)
-                .changed("2019-02-02T20:59:59Z")
-                .set("bkm")
+                .set("nat=2019-02-02T20:59:59Z")
                 .commit();
         identifiers = bean.listIdentifiers(token);
         assertThat(identifiers.size(), is(6));
@@ -92,10 +90,27 @@ public class OaiDatabaseWorkerIT extends DB {
     @Test(timeout = 2_000L)
     public void testRemovedDuringHarvest() throws Exception {
         System.out.println("testRemovedDuringHarvest");
-        
-        assertThat("", is("The test case is a prototype."));
-    }
+        loadResource("records-15-same-timestamp.json");
+        OaiTimestamp from = OaiTimestamp.of("2019");
+        OaiTimestamp to = OaiTimestamp.of("2019");
+        String set = "nat";
+        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
+        OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
+        System.out.println("token = " + token);
+        assertThat(identifiers.size(), is(10));
+        OaiIdentifier identifier = identifiers.pop();
+        String id = identifier.getIdentifier();
+        System.out.println("id = " + id);
+        insert(id)
+                .set("!nat=2019-02-02T20:59:59Z")
+                .commit();
+        identifiers = bean.listIdentifiers(token);
+        assertThat(identifiers.size(), is(6));
 
+        OaiIdentifier removedId = identifiers.getLast();
+        System.out.println("identifier = " + removedId);
+        assertThat(removedId.getSetspecs().isEmpty(), is(true));
+    }
 
     private OaiResumptionToken takeLastAsResumptionToken(OaiTimestamp from, LinkedList<OaiIdentifier> identifiers, OaiTimestamp to, String set) {
         return ioBean.resumptionTokenOf(ioBean.resumptionTokenFor(from, identifiers.removeLast(), to, set).getValue());

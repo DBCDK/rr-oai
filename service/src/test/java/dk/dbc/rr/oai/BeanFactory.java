@@ -22,7 +22,7 @@ import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
 import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
-import dk.dbc.rr.oai.worker.OaiDatabaseFormats;
+import dk.dbc.rr.oai.worker.OaiDatabaseMetadata;
 import dk.dbc.rr.oai.worker.OaiDatabaseWorker;
 import dk.dbc.rr.oai.worker.OaiWorker;
 import java.util.HashMap;
@@ -57,9 +57,9 @@ public class BeanFactory {
                 "ADMIN_EMAIL=user@example.com",
                 "EXPOSED_URL=http://foo/bar",
                 "FORS_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
-                "FORS_RIGHTS_URL=" + System.getenv().getOrDefault("FORS_RIGHTS_URL", "http://localhost/forsrights"),
-                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost/rawrepo-oai-formatter-service"),
-                "PARALLEL_FETCH=5",
+                "FORS_RIGHTS_URL=" + System.getenv().getOrDefault("FORS_RIGHTS_URL", "http://localhost:8008/forsrights"),
+                "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost:8008/rawrepo-oai-formatter-service"),
+                "PARALLEL_FETCH=8",
                 "FETCH_TIMEOUT_IN_SECONDS=30",
                 "MAX_ROWS_PR_REQUEST=10",
                 "POOL_MIN_IDLE=5",
@@ -119,7 +119,8 @@ public class BeanFactory {
     }
 
     public static OaiBean newOaiBean(Config config, DataSource dataSource) {
-        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config), newOaiIOBean(config), newOaiWorker(config, dataSource));
+        OaiIOBean ioBean = newOaiIOBean(config);
+        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config), ioBean, newOaiWorker(config, dataSource, ioBean));
     }
 
     public static OaiBean newOaiBean(Config config, ForsRights forsRights, IndexHtml indexHtml, RemoteIp remoteIp, OaiIOBean oiIOBean, OaiWorker oaiWorker) {
@@ -139,11 +140,14 @@ public class BeanFactory {
         return oaiIOBean;
     }
 
-    public static OaiWorker newOaiWorker(Config config, DataSource dataSource) {
+    public static OaiWorker newOaiWorker(Config config, DataSource dataSource, OaiIOBean ioBean) {
         OaiWorker oaiWorker = new OaiWorker();
         oaiWorker.config = config;
-        oaiWorker.oaiDatabaseWorker = newOaiDatabaseWorker(config, dataSource);
-        oaiWorker.oaiDatabaseFormats = newDatabaseFormats(dataSource);
+        oaiWorker.databaseWorker = newOaiDatabaseWorker(config, dataSource);
+        oaiWorker.databaseMetadata = newDatabaseMetadata(dataSource);
+        oaiWorker.documentBuilders = newDocumentBuilderPool(config);
+        oaiWorker.ioBean = ioBean;
+        oaiWorker.parallelFetch = newParallelFetch(config, oaiWorker.documentBuilders);
         return oaiWorker;
     }
 
@@ -154,11 +158,11 @@ public class BeanFactory {
         return oaiDatabaseWorker;
     }
 
-    public static OaiDatabaseFormats newDatabaseFormats(DataSource dataSource) {
-        OaiDatabaseFormats oaiDatabaseFormats = new OaiDatabaseFormats();
-        oaiDatabaseFormats.dataSource = dataSource;
-        oaiDatabaseFormats.init();
-        return oaiDatabaseFormats;
+    public static OaiDatabaseMetadata newDatabaseMetadata(DataSource dataSource) {
+        OaiDatabaseMetadata oaiDatabaseMetadata = new OaiDatabaseMetadata();
+        oaiDatabaseMetadata.dataSource = dataSource;
+        oaiDatabaseMetadata.init();
+        return oaiDatabaseMetadata;
     }
 
     public static ForsRightsConfigValidator newForsRightsConfigValidator(Config config, DataSource rawRepoOaiDs) {
