@@ -63,7 +63,7 @@ public class FormatterBean {
         int agencyId;
         String recordId;
         try {
-            String[] parts = id.split(":", 2);
+            String[] parts = id.split("[-:]", 2);
             if (parts.length != 2)
                 throw new IllegalArgumentException("Bad format");
             agencyId = Integer.parseUnsignedInt(parts[0]);
