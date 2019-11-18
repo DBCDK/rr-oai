@@ -22,6 +22,7 @@ import dk.dbc.rr.oai.Config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +32,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
@@ -65,8 +67,13 @@ public class ParallelFetch {
         this.threads = new ConcurrentHashMap<>();
     }
 
+    public URI buildUri(String id, String format, Collection<String> sets) {
+        return buildUri(id, format, String.join(",", sets));
+    }
+
     public URI buildUri(String id, String format, String sets) {
         return config.getFormatServiceUri()
+                .path("api/format")
                 .queryParam("id", id)
                 .queryParam("format", format)
                 .queryParam("sets", sets)
@@ -90,7 +97,7 @@ public class ParallelFetch {
         ExecutorService executor;
         executor = Executors.newFixedThreadPool(config.getParallelFetch());
         List<Future<Document>> requests = uris.stream()
-                .map(u -> executor.submit(() -> fetcher(u)))
+                .map(u -> executor.submit(() -> fetchASingleDocument(u)))
                 .collect(toList());
         executor.shutdown();
         try {
@@ -115,10 +122,19 @@ public class ParallelFetch {
                         if (!f.isDone())
                             return null;
                         return f.get().getDocumentElement();
-                    } catch (InterruptedException | ExecutionException ex) {
-                        log.error("Error fetching document: {}", ex.getMessage());
-                        log.debug("Error fetching document: ", ex);
-                        return null;
+                    } catch (ExecutionException ex) {
+                        Throwable cause = ex.getCause();
+                        if (cause != null &&
+                            cause instanceof ServerErrorException) {
+                            throw (ServerErrorException) cause;
+                        }
+                        log.error("Error executong parrallel fetch: {}", ex.getMessage());
+                        log.debug("Error executong parrallel fetch: ", ex);
+                        throw new ServerErrorException("Error executong parrallel fetch", Response.Status.INTERNAL_SERVER_ERROR);
+                    } catch (InterruptedException ex) {
+                        log.error("Interrupted durign parallel fetch: {}", ex.getMessage());
+                        log.debug("Interrupted durign parallel fetch: ", ex);
+                        throw new ServerErrorException("Interrupted during parallel fetch", Response.Status.INTERNAL_SERVER_ERROR);
                     }
                 })
                 .collect(toList());
@@ -134,7 +150,7 @@ public class ParallelFetch {
      * @param req uri to fetch
      * @return xml element or runtime exception
      */
-    private Document fetcher(URI req) {
+    public Document fetchASingleDocument(URI req) {
         log.debug("Fetching {}", req);
         Thread thread = Thread.currentThread();
         long me = thread.getId();
@@ -151,7 +167,7 @@ public class ParallelFetch {
                         throw new InterruptedException("During get(url)");
                     return lease.get().parse(is);
                 }
-            } catch (SAXException | IOException ex) {
+            } catch (ProcessingException | SAXException | IOException ex) {
                 log.error("Cannot parse XML from formatter url: {}: {}", req, ex.getMessage());
                 log.debug("Cannot parse XML from formatter url: {}: ", req, ex);
                 throw new ServerErrorException("Cannot format record (parse xml)", Response.Status.INTERNAL_SERVER_ERROR);

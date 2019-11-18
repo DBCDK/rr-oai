@@ -100,8 +100,7 @@ public class Config {
                 .get();
         this.formatServiceUri = getenv("RAWREPO_OAI_FORMATTER_SERVICE_URL")
                 .isNot("not empty", String::isEmpty)
-                .convert(UriBuilder::fromUri)
-                .path("api/format");
+                .convert(UriBuilder::fromUri);
         this.forsRightsRules = getenv("FORS_RIGHTS_RULES")
                 .isNot("not empty", String::isEmpty)
                 .convert(Config::forsRights);
