@@ -53,12 +53,15 @@ public class OaiDatabaseWorker {
             "(SELECT STRING_AGG(sets.setspec, ',')" +
             " FROM oairecordsets AS sets" +
             " WHERE pid = oairecords.pid" +
-            " AND vanished IS NULL)";
+            " AND NOT GONE)";
     private static final String SELECT_OAI_RECORDS =
-            "SELECT pid, deleted, changed, vanished, " + COMMA_LIST_OF_SETSPECS +
-            " FROM oairecords";
+            "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
+            " FROM oairecords" +
+            " JOIN oairecordsets USING (pid)";
     private static final String SELECT_OAI_RECORDS_JOIN_SETS =
-            SELECT_OAI_RECORDS + " JOIN oairecordsets USING (pid)";
+            "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
+            " FROM oairecords" +
+            " JOIN oairecordsets USING (pid)";
 
     @Inject
     public Config config;
@@ -83,6 +86,27 @@ public class OaiDatabaseWorker {
         }
     }
 
+    /**
+     * Returns an identifier or null is no record is available
+     *
+     * @param id id of record
+     * @return identifier or null
+     * @throws SQLException Is the recoed cannot be fetched
+     */
+    public OaiIdentifier getIdentifier(String id) throws SQLException {
+        String sql = SELECT_OAI_RECORDS + " WHERE pid = ? ORDER BY changed DESC LIMIT 1";
+        log.debug("sql = {}", sql);
+        try (Connection connection = dataSource.getConnection() ;
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next())
+                    return identifierFromStatement(resultSet);
+                return null;
+            }
+        }
+    }
+
     public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token) throws SQLException {
         return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), token.getSet());
     }
@@ -92,7 +116,7 @@ public class OaiDatabaseWorker {
     }
 
     private LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, String set) throws SQLException {
-        Object[] values = new Object[7];
+        Object[] values = new Object[5];
         values[0] = set;
         String sql = listRecordsSql(values, from, segmentStart, segmentId, until);
         log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
@@ -121,15 +145,14 @@ public class OaiDatabaseWorker {
     }
 
     private static OaiIdentifier identifierFromStatement(ResultSet resultSet) throws SQLException {
-        String identifier = resultSet.getString(1).replaceFirst(":", "-");
+        String identifier = resultSet.getString(1);
         boolean deleted = resultSet.getBoolean(2);
         Timestamp changed = resultSet.getTimestamp(3);
-        Timestamp vanished = resultSet.getTimestamp(4);
-        String setspecs = resultSet.getString(5);
-        if (setspecs.isEmpty()) {
-            return new OaiIdentifier(identifier, deleted, changed, vanished);
+        String setspecs = resultSet.getString(4);
+        if (setspecs == null || setspecs.isEmpty()) {
+            return new OaiIdentifier(identifier, deleted, changed);
         } else {
-            return new OaiIdentifier(identifier, deleted, changed, vanished, setspecs.split(","));
+            return new OaiIdentifier(identifier, deleted, changed, setspecs.split(","));
         }
     }
 
@@ -152,22 +175,7 @@ public class OaiDatabaseWorker {
             until.sqlTo(sql, "changed");
             values[i++] = until.getTimestamp();
         }
-        sql.append(" AND (vanished IS NULL");
-        if (from != null || until != null) {
-            sql.append(" OR (");
-            if (from != null) {
-                from.sqlFrom(sql, "vanished");
-                values[i++] = from.getTimestamp();
-                if (until != null)
-                    sql.append(" AND ");
-            }
-            if (until != null) {
-                until.sqlTo(sql, "vanished");
-                values[i++] = until.getTimestamp();
-            }
-            sql.append(")");
-        }
-        sql.append(") ORDER BY changed, pid LIMIT ")
+        sql.append("ORDER BY changed, pid LIMIT ")
                 .append(config.getMaxRowsPrRequest() + 1);
         return sql.toString();
     }

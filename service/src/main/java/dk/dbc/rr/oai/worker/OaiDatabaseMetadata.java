@@ -46,15 +46,16 @@ import static java.util.stream.Collectors.*;
 @Singleton
 @Startup
 @Lock(LockType.READ)
-public class OaiDatabaseFormats {
+public class OaiDatabaseMetadata {
 
-    private static final Logger log = LoggerFactory.getLogger(OaiDatabaseFormats.class);
+    private static final Logger log = LoggerFactory.getLogger(OaiDatabaseMetadata.class);
 
     @Resource(lookup = "jdbc/rawrepo-oai")
     public DataSource dataSource;
 
     private List<Format> formats;
     private Set<String> prefixes;
+    private List<OaiSet> sets;
 
     @PostConstruct
     public void init() {
@@ -63,6 +64,7 @@ public class OaiDatabaseFormats {
             this.prefixes = this.formats.stream()
                     .map(Format::getPrefix)
                     .collect(toSet());
+            this.sets = unmodifiableList(listSet());
         } catch (SQLException ex) {
             log.error("Error building formats lists: {}", ex.getMessage());
             log.debug("Error building formats lists: ", ex);
@@ -78,6 +80,10 @@ public class OaiDatabaseFormats {
         return prefixes.contains(prefix);
     }
 
+    public List<OaiSet> getSets() {
+        return sets;
+    }
+
     private List<Format> listFormats() throws SQLException {
         try (Connection connection = dataSource.getConnection() ;
              Statement stmt = connection.createStatement() ;
@@ -87,10 +93,24 @@ public class OaiDatabaseFormats {
                 list.add(new Format(resultSet.getString(1),
                                     resultSet.getString(2),
                                     resultSet.getString(3)));
-
             }
             return list;
         }
+    }
+
+    private List<OaiSet> listSet() throws SQLException {
+        try (Connection connection = dataSource.getConnection() ;
+             Statement stmt = connection.createStatement() ;
+             ResultSet resultSet = stmt.executeQuery("SELECT setspec, setname, description FROM oaisets ORDER BY setspec")) {
+            ArrayList<OaiSet> list = new ArrayList<>();
+            while (resultSet.next()) {
+                list.add(new OaiSet(resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3)));
+            }
+            return list;
+        }
+
     }
 
 }
