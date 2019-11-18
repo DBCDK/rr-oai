@@ -27,5 +27,6 @@
         <module>formatter-js</module>
         <module>formatter</module>
         <module>setmatcher</module>
+        <module>database-migrate-tool</module>
     </modules>
 </project>
