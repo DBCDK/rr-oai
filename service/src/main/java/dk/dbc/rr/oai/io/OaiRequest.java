@@ -114,8 +114,8 @@ public class OaiRequest {
      *
      * @return request parameter or null if unset
      */
-    public String getSet() {
-        return set;
+    public String getSetOrDefault(String defaultSet) {
+        return set == null ? defaultSet : set;
     }
 
     /**
@@ -272,8 +272,6 @@ public class OaiRequest {
                     ok = false;
                     resumptionToken = null;
                 }
-            } else {
-                ensureSet(SET, set);
             }
         }
 

@@ -3,8 +3,9 @@ FROM docker.dbc.dk/payara5-micro:latest
 LABEL \
     ADMIN_EMAIL="Official email used in Identify call (required)" \
     AUTHENTICATION_DISABLED="Disable authentication and have all sets allowed for everybody (boolean, default: false)" \
-    CACHE_SUCCESS_MINUTES="Number of minutes a good result from forsRights is cached (required)"\
-    CACHE_FAILURE_MINUTES="Number of minutes a bad result from forsRights is cached (required)"\
+    CACHE_SUCCESS_MINUTES="Number of minutes a good result from forsRights is cached (required)" \
+    CACHE_FAILURE_MINUTES="Number of minutes a bad result from forsRights is cached (required)" \
+    DEFAULT_SET="Name of set to use when non is declared in ListIdentifiers/Records - needs to be in database (required)" \
     EXPOSED_URL="Full external url of this service (required)" \
     FETCH_TIMEOUT_IN_SECONDS="Max number of seconds (walltime) to use to parallel fetch records (number, required)" \
     FORS_RIGHTS_RULES=";-seperated list of rule{name,right or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \

@@ -350,7 +350,7 @@ public class OaiWorker {
         } else {
             from = request.getFrom();
             until = request.getUntil();
-            set = request.getSet();
+            set = request.getSetOrDefault(config.getDefaultSet());
             identifiers = databaseWorker.listIdentifiers(from, until, set);
         }
         log.debug("identifiers.size() = {}", identifiers.size());

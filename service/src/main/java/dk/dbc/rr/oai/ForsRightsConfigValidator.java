@@ -57,6 +57,7 @@ public class ForsRightsConfigValidator {
         log.info("Checking forsrights configuration");
 
         Set<String> allSets = new HashSet<>(config.getAllForsRightsSets());
+        HashSet<String> databaseSets = new HashSet<>();
         log.trace("allSets = {}", allSets);
 
         try (Connection connection = rawRepoOaiDs.getConnection() ;
@@ -68,11 +69,15 @@ public class ForsRightsConfigValidator {
                 log.trace("setSpec = {}", setSpec);
                 if (!allSets.remove(setSpec))
                     throw new EJBException("Set `" + setSpec + "` is declared in database but not allowed for anybody");
+                databaseSets.add(setSpec);
             }
-
             log.trace("allSets = {}", allSets);
             if (!allSets.isEmpty())
                 throw new EJBException("Set(s) `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");
+
+            String defaultSet = config.getDefaultSet();
+            if (!databaseSets.contains(defaultSet))
+                throw new EJBException("DefaultSet `" + defaultSet + "` is not listed in database");
 
         } catch (SQLException ex) {
             log.error("Cannot read setspecs: {}", ex.getMessage());

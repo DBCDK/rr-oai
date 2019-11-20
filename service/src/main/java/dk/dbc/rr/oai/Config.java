@@ -62,6 +62,7 @@ public class Config {
 
     private String adminEmail;
     private boolean authenticationDisabled;
+    private String defaultSet;
     private String exposedUrl;
     private int fetchTimeoutInSeconds;
     private UriBuilder formatServiceUri;
@@ -95,6 +96,9 @@ public class Config {
         this.authenticationDisabled = getenv("AUTHENTICATION_DISABLED", "false")
                 .convert(Boolean::parseBoolean);
         this.exposedUrl = getenv("EXPOSED_URL").get();
+        this.defaultSet = getenv("DEFAULT_SET")
+                .isNot("Needs to be a word", String::isEmpty)
+               .get();
         this.fetchTimeoutInSeconds = getenv("FETCH_TIMEOUT_IN_SECONDS").asInt()
                 .min(1)
                 .get();
@@ -147,6 +151,10 @@ public class Config {
 
     public boolean isAuthenticationDisabled() {
         return authenticationDisabled;
+    }
+
+    public String getDefaultSet() {
+        return defaultSet;
     }
 
     public String getExposedUrl() {

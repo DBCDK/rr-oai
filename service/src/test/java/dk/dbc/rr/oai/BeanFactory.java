@@ -55,6 +55,7 @@ public class BeanFactory {
         Map<String, String> defaults = configMap(
                 "AUTHENTICATION_DISABLED=false",
                 "ADMIN_EMAIL=user@example.com",
+                "DEFAULT_SET=nat",
                 "EXPOSED_URL=http://foo/bar",
                 "FORS_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
                 "FORS_RIGHTS_URL=" + System.getenv().getOrDefault("FORS_RIGHTS_URL", "http://localhost:8008/forsrights"),
