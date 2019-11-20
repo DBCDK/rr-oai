@@ -106,24 +106,12 @@ public class DB {
     }
 
     private void loadData(DatabaseInput input) throws SQLException {
-        StringBuilder recordsSql = new StringBuilder();
-        recordsSql.append("INSERT INTO oairecords(pid");
-        if (input.getChanged() != null)
-            recordsSql.append(", changed");
-        if (input.getDeleted() != null)
-            recordsSql.append(", deleted");
-        recordsSql.append(") VALUES(?");
-        if (input.getChanged() != null)
-            recordsSql.append(", ?");
-        if (input.getDeleted() != null)
-            recordsSql.append(", ?");
-        recordsSql.append(")");
 
         try (Connection connection = ds.getConnection() ;
              PreparedStatement deleteSets = connection.prepareStatement("DELETE FROM oairecordsets WHERE pid=?") ;
              PreparedStatement deleteRecords = connection.prepareStatement("DELETE FROM oairecords WHERE pid=?") ;
-             PreparedStatement records = connection.prepareStatement(recordsSql.toString()) ;
-             PreparedStatement sets = connection.prepareStatement("INSERT INTO oairecordsets(pid, setspec, gone) VALUES(?, ?, ?)")) {
+             PreparedStatement records = connection.prepareStatement("INSERT INTO oairecords(pid, deleted) VALUES(?, ?)") ;
+             PreparedStatement sets = connection.prepareStatement("INSERT INTO oairecordsets(pid, setspec, gone, changed) VALUES(?, ?, ?, ?)")) {
             deleteSets.setString(1, input.getPid());
             deleteSets.executeUpdate();
             deleteRecords.setString(1, input.getPid());
@@ -131,10 +119,7 @@ public class DB {
 
             int p = 0;
             records.setString(++p, input.getPid());
-            if (input.getChanged() != null)
-                records.setTimestamp(++p, Timestamp.from(Instant.parse(input.getChanged())));
-            if (input.getDeleted() != null)
-                records.setBoolean(++p, input.isDeleted());
+            records.setBoolean(++p, input.isDeleted());
             records.executeUpdate();
 
             sets.setString(1, input.getPid());
@@ -142,8 +127,14 @@ public class DB {
                 boolean gone = set.startsWith("!");
                 if (gone)
                     set = set.substring(1);
-                sets.setString(2, set);
+                String[] parts = set.split("=", 2);
+                sets.setString(2, parts[0]);
                 sets.setBoolean(3, gone);
+                if (parts.length == 1 || parts[1].isEmpty() || parts[1].equalsIgnoreCase("now")) {
+                    sets.setTimestamp(4, Timestamp.from(Instant.now()));
+                } else {
+                    sets.setTimestamp(4, Timestamp.from(Instant.parse(parts[1])));
+                }
                 sets.executeUpdate();
             }
         }
@@ -156,18 +147,13 @@ public class DB {
     protected class DatabaseInputBuilder {
 
         private final String pid;
-        private String changed;
-        private Boolean deleted;
+        private boolean deleted;
         private final List<String> sets;
 
         public DatabaseInputBuilder(String pid) {
             this.pid = pid;
+            this.deleted = false;
             this.sets = new ArrayList<>();
-        }
-
-        public DatabaseInputBuilder changed(String changed) {
-            this.changed = changed;
-            return this;
         }
 
         public DatabaseInputBuilder deleted() {
@@ -181,7 +167,7 @@ public class DB {
         }
 
         public void commit() throws SQLException {
-            DatabaseInput input = new DatabaseInput(pid, changed, deleted);
+            DatabaseInput input = new DatabaseInput(pid, deleted);
             input.getSets().addAll(sets);
             loadData(input);
         }
@@ -190,16 +176,15 @@ public class DB {
     private static class DatabaseInput {
 
         private final String pid;
-        private final String changed;
-        private final Boolean deleted;
+        private final boolean deleted;
         private final List<String> sets;
 
         @JsonCreator
         private DatabaseInput(@JsonProperty(value = "pid", required = true) String pid,
-                              @JsonProperty(value = "changed", required = false) String changed,
                               @JsonProperty(value = "deleted", required = false) Boolean deleted) {
             this.pid = pid;
-            this.changed = changed;
+            if (deleted == null)
+                deleted = false;
             this.deleted = deleted;
             this.sets = new ArrayList<>();
         }
@@ -208,11 +193,7 @@ public class DB {
             return pid;
         }
 
-        public String getChanged() {
-            return changed;
-        }
-
-        public Boolean getDeleted() {
+        public boolean getDeleted() {
             return deleted;
         }
 
@@ -226,7 +207,7 @@ public class DB {
 
         @Override
         public String toString() {
-            return "DatabaseInput{" + "pid=" + pid + ", changed=" + changed + ", deleted=" + deleted + ", sets=" + sets + '}';
+            return "DatabaseInput{" + "pid=" + pid + ", deleted=" + deleted + ", sets=" + sets + '}';
         }
 
     }

@@ -34,7 +34,7 @@ pipeline {
         stage("build") {
             steps {
                 script {
-                    def status = sh returnStatus: true, script:  """
+                    def statusBuild = sh returnStatus: true, script:  """
                         rm -rf \$WORKSPACE/.repo
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null 2>&1 || true
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo clean
@@ -43,7 +43,7 @@ pipeline {
                     """
 
                     // We want code-coverage and pmd/findbugs even if unittests fails
-                    status += sh returnStatus: true, script:  """
+                    def statusAnalysis = sh returnStatus: true, script:  """
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd findbugs:findbugs javadoc:aggregate
                     """
 
@@ -75,58 +75,61 @@ pipeline {
                          unstableTotalAll: "0",
                          failedTotalAll: "0"
 
-                    if ( status != 0 ) {
-                        currentBuild.result = Result.FAILURE
+                    if ( statusBuild != 0 ) {
+                        error("Build error");
+                    }
+                    if ( statusAnalysis != 0 ) {
+                        error("Analysis error");
                     }
                 }
             }
         }
 
-        stage("docker") {
-            steps {
-                script {
-                    def allDockerFiles = findFiles glob: '**/Dockerfile'
-                    def dockerFiles = allDockerFiles.findAll { f -> f.path.endsWith("target/docker/Dockerfile") }
-                    def version = readMavenPom().version
-
-                    for (def f : dockerFiles) {
-                        def dirName = f.path.take(f.path.length() - "target/docker/Dockerfile".length())
-                        if ( dirName == '' )
-                            dirName = '.'
-                        dir(dirName) {
-                            modulePom = readMavenPom file: 'pom.xml'
-                            def projectArtifactId = modulePom.getArtifactId()
-                            def imageName = "${projectArtifactId}-${version}".toLowerCase()
-                            if (! env.CHANGE_BRANCH) {
-                                imageLabel = env.BRANCH_NAME.toLowerCase()
-                            } else {
-                                imageLabel = env.CHANGE_BRANCH.toLowerCase()
-                            }
-                            if ( ! (imageLabel ==~ /master|trunk/) ) {
-                                println("Using branch_name ${imageLabel}")
-                                imageLabel = imageLabel.split(/\//)[-1]
-                            } else {
-                                println(" Using Master branch ${BRANCH_NAME}")
-                                imageLabel = env.BUILD_NUMBER
-                            }
-
-                            println("In ${dirName} build ${projectArtifactId} as ${imageName}:$imageLabel")
-
-                            def app = docker.build("$imageName:${imageLabel}", '--pull --no-cache --file target/docker/Dockerfile .')
-
-                            if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
-                                docker.withRegistry(dockerRepository, 'docker') {
-                                    app.push()
-                                    if (env.BRANCH_NAME ==~ /master|trunk/) {
-                                        app.push "latest"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        stage("docker") {
+//            steps {
+//                script {
+//                    def allDockerFiles = findFiles glob: '**/Dockerfile'
+//                    def dockerFiles = allDockerFiles.findAll { f -> f.path.endsWith("target/docker/Dockerfile") }
+//                    def version = readMavenPom().version
+//
+//                    for (def f : dockerFiles) {
+//                        def dirName = f.path.take(f.path.length() - "target/docker/Dockerfile".length())
+//                        if ( dirName == '' )
+//                            dirName = '.'
+//                        dir(dirName) {
+//                            modulePom = readMavenPom file: 'pom.xml'
+//                            def projectArtifactId = modulePom.getArtifactId()
+//                            def imageName = "${projectArtifactId}-${version}".toLowerCase()
+//                            if (! env.CHANGE_BRANCH) {
+//                                imageLabel = env.BRANCH_NAME.toLowerCase()
+//                            } else {
+//                                imageLabel = env.CHANGE_BRANCH.toLowerCase()
+//                            }
+//                            if ( ! (imageLabel ==~ /master|trunk/) ) {
+//                                println("Using branch_name ${imageLabel}")
+//                                imageLabel = imageLabel.split(/\//)[-1]
+//                            } else {
+//                                println(" Using Master branch ${BRANCH_NAME}")
+//                                imageLabel = env.BUILD_NUMBER
+//                            }
+//
+//                            println("In ${dirName} build ${projectArtifactId} as ${imageName}:$imageLabel")
+//
+//                            def app = docker.build("$imageName:${imageLabel}", '--pull --no-cache --file target/docker/Dockerfile .')
+//
+//                            if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
+//                                docker.withRegistry(dockerRepository, 'docker') {
+//                                    app.push()
+//                                    if (env.BRANCH_NAME ==~ /master|trunk/) {
+//                                        app.push "latest"
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
     post {
         success {
