@@ -18,21 +18,6 @@
  */
 package dk.dbc.rr.oai.worker;
 
-import dk.dbc.oai.pmh.DeletedRecordType;
-import dk.dbc.oai.pmh.DescriptionType;
-import dk.dbc.oai.pmh.GetRecordType;
-import dk.dbc.oai.pmh.GranularityType;
-import dk.dbc.oai.pmh.HeaderType;
-import dk.dbc.oai.pmh.IdentifyType;
-import dk.dbc.oai.pmh.ListIdentifiersType;
-import dk.dbc.oai.pmh.ListRecordsType;
-import dk.dbc.oai.pmh.MetadataFormatType;
-import dk.dbc.oai.pmh.MetadataType;
-import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
-import dk.dbc.oai.pmh.RecordType;
-import dk.dbc.oai.pmh.ResumptionTokenType;
-import dk.dbc.oai.pmh.SetType;
-import dk.dbc.oai.pmh.StatusType;
 import dk.dbc.rr.oai.Config;
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
@@ -65,6 +50,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import dk.dbc.oai.pmh.*;
+
 import static dk.dbc.rr.oai.io.OaiResponse.O;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -96,7 +83,22 @@ public class OaiWorker {
     @Inject
     public ParallelFetch parallelFetch;
 
+    /**
+     * Extract a single record from the database / formatter service
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#GetRecord
+     * <p>
+     * Validates metadataPrefix, identifier. Returns no metadata if record is
+     * deleted
+     *
+     * @param response    Where to write data
+     * @param request     The request parameters (validated)
+     * @param allowedSets Which sets user has access to
+     * @throws SQLException In case of database communication problems
+     */
     public void getRecord(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+        log.info("getRecord");
         GetRecordType record = response.getRecord();
         String metadataPrefix = request.getMetadataPrefix();
         if (!databaseMetadata.knownPrefix(metadataPrefix)) {
@@ -109,16 +111,28 @@ public class OaiWorker {
             return;
         }
         RecordType rec = O.createRecordType();
-        rec.setHeader(headerFromIdentifierWithLimitedSets(allowedSets).apply(identifier));
-        MetadataType metadata = O.createMetadataType();
-        URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets));
-        metadata.setAny(parallelFetch.fetchASingleDocument(uri).getDocumentElement());
-        rec.setMetadata(metadata);
+        rec.setHeader(makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets).apply(identifier));
+        if (!identifier.isDeleted()) {
+            MetadataType metadata = O.createMetadataType();
+            URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets));
+            metadata.setAny(parallelFetch.fetchASingleDocument(uri).getDocumentElement());
+            rec.setMetadata(metadata);
+        }
         record.setRecord(rec);
     }
 
+    /**
+     * Identify repository
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#Identify
+     * <p>
+     * Takes data from database and from configuration
+     *
+     * @param response Where to write data
+     */
     public void identify(OaiResponse response) {
-
+        log.info("identify");
         IdentifyType identify = response.identify();
         identify.setRepositoryName(config.getRepoName());
         identify.setBaseURL(config.getExposedUrl());
@@ -130,7 +144,24 @@ public class OaiWorker {
 
     }
 
+    /**
+     * List identifiers from a given set within an optional range
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#ListIdentifiers
+     * <p>
+     * Takes parameters from either resumptionToken or from/until/set...
+     * <p>
+     * It is possible to get a header with an empty setSpecs list, if the record
+     * used to be in the set, but has been moved out of it, but not deleted
+     *
+     * @param response    Where to write data
+     * @param request     The request parameters (validated)
+     * @param allowedSets Which sets user has access to
+     * @throws SQLException In case of database communication problems
+     */
     public void listIdentifiers(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+        log.info("listIdentifiers");
         ListIdentifiersType list = response.listIdentifiers();
         List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken);
 
@@ -138,11 +169,26 @@ public class OaiWorker {
             return;
 
         List<HeaderType> headers = list.getHeaders();
+        Function<OaiIdentifier, HeaderType> headerBuilder =
+                makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets);
         identifiers.stream()
-                .map(headerFromIdentifierWithLimitedSets(allowedSets))
+                .map(headerBuilder)
                 .forEach(headers::add);
     }
 
+    /**
+     * List all metadata formats from the database
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#ListMetadataFormats
+     * <p>
+     * Validates that the user has access to the optional identifier
+     *
+     * @param response    Where to write data
+     * @param request     The request parameters (validated)
+     * @param allowedSets Which sets user has access to
+     * @throws SQLException In case of database communication problems
+     */
     public void listMetadataFormats(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listMetadataFormats");
         if (request.getIdentifier() != null) {
@@ -164,7 +210,23 @@ public class OaiWorker {
                 });
     }
 
+    /**
+     * List identifiers and metadata from a given set within an optional range
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#ListRecords
+     * <p>
+     * a lot like
+     * {@link #listIdentifiers(dk.dbc.rr.oai.io.OaiResponse, dk.dbc.rr.oai.io.OaiRequest, java.util.Set)}
+     * except the metadata is fetched too.
+     *
+     * @param response    Where to write data
+     * @param request     The request parameters (validated)
+     * @param allowedSets Which sets user has access to
+     * @throws SQLException In case of database communication problems
+     */
     public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+        log.info("listRecords");
         ListRecordsType list = response.listRecords();
         List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken);
 
@@ -184,7 +246,8 @@ public class OaiWorker {
             throw new ServerErrorException("Error formatting records", INTERNAL_SERVER_ERROR);
         }
 
-        Function<OaiIdentifier, HeaderType> headerBuilder = headerFromIdentifierWithLimitedSets(allowedSets);
+        Function<OaiIdentifier, HeaderType> headerBuilder =
+                makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets);
         List<RecordType> records = list.getRecords();
         Iterator<OaiIdentifier> ids = identifiers.iterator();
         Iterator<Element> elems = elements.iterator();
@@ -204,7 +267,16 @@ public class OaiWorker {
         }
     }
 
+    /**
+     * List set specifications
+     * <p>
+     * As described in:
+     * http://www.openarchives.org/OAI/openarchivesprotocol.html#ListSets
+     *
+     * @param response Where to write data
+     */
     public void listSets(OaiResponse response) {
+        log.info("listSets");
         List<SetType> sets = response.listSets().getSets();
         databaseMetadata.getSets()
                 .forEach(s -> {
@@ -218,14 +290,15 @@ public class OaiWorker {
                 });
     }
 
-    private static final byte[] DC_DESCRIPTION_BYTES = ( "<oai_dc:dc" +
-                                                         " xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"" +
-                                                         " xmlns:dc=\"http://purl.org/dc/elements/1.1/\"" +
-                                                         " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
-                                                         " xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/" +
-                                                         " http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">" +
-                                                         "<dc:description/>" +
-                                                         "</oai_dc:dc>" ).getBytes(UTF_8);
+    private static final byte[] DC_DESCRIPTION_BYTES =
+            ( "<oai_dc:dc" +
+              " xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\"" +
+              " xmlns:dc=\"http://purl.org/dc/elements/1.1/\"" +
+              " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+              " xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai_dc/" +
+              " http://www.openarchives.org/OAI/2.0/oai_dc.xsd\">" +
+              "<dc:description/>" +
+              "</oai_dc:dc>" ).getBytes(UTF_8);
 
     private Element makeSetDescription(String desc) {
         try (DocumentBuilderPool.Lease lease = documentBuilders.lease() ;
@@ -300,7 +373,7 @@ public class OaiWorker {
      * @param allowedSets filter for setspec
      * @return method
      */
-    private Function<OaiIdentifier, HeaderType> headerFromIdentifierWithLimitedSets(Set<String> allowedSets) {
+    private Function<OaiIdentifier, HeaderType> makeHeaderFromIdentifierWithLimitedSetsFunction(Set<String> allowedSets) {
         return identifier -> {
             HeaderType header = O.createHeaderType();
             header.setDatestamp(identifier.getChanged().toInstant().toString());

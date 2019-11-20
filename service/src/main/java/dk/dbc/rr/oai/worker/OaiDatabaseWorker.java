@@ -29,16 +29,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Collections.EMPTY_SET;
 
 /**
  *
@@ -69,29 +65,12 @@ public class OaiDatabaseWorker {
     @Resource(lookup = "jdbc/rawrepo-oai")
     public DataSource dataSource;
 
-    public Set<String> getSetsForId(String identifier) throws SQLException {
-        String[] parts = identifier.split("[-:]", 2);
-        if (parts.length != 2)
-            return EMPTY_SET;
-        try (Connection connection = dataSource.getConnection() ;
-             PreparedStatement stmt = connection.prepareStatement("SELECT setspec FROM oairecordsets WHERE pid=?")) {
-            stmt.setString(1, parts[0] + ":" + parts[1]);
-            HashSet<String> set = new HashSet<>();
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                while (resultSet.next()) {
-                    set.add(resultSet.getString(1));
-                }
-            }
-            return set;
-        }
-    }
-
     /**
      * Returns an identifier or null is no record is available
      *
      * @param id id of record
      * @return identifier or null
-     * @throws SQLException Is the recoed cannot be fetched
+     * @throws SQLException Is the record cannot be fetched
      */
     public OaiIdentifier getIdentifier(String id) throws SQLException {
         String sql = SELECT_OAI_RECORDS + " WHERE pid = ? ORDER BY changed DESC LIMIT 1";
@@ -107,16 +86,40 @@ public class OaiDatabaseWorker {
         }
     }
 
+    /**
+     * List identifiers starting with the one in the token
+     * <p>
+     * Resulting list is up to {@link Config#getMaxRowsPrRequest()} + 1 long
+     * If it is longer than configured, then the last should be removed and
+     * converted into a new resumption token
+     *
+     * @param token resumptionToken as supplied from uaser
+     * @return List of identifiers
+     * @throws SQLException if identifiers couldn't be fetched from the database
+     */
     public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token) throws SQLException {
         return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), token.getSet());
     }
 
+    /**
+     * List identifiers starting with the specification supplied bu the user
+     * <p>
+     * Resulting list is up to {@link Config#getMaxRowsPrRequest()} + 1 long
+     * If it is longer than configured, then the last should be removed and
+     * converted into a new resumption token
+     *
+     * @param from  Timestamp to start from (inclusive)
+     * @param until Timestamp to end at (inclusive)
+     * @param set   dataset to take identifiers from
+     * @return List of identifiers
+     * @throws SQLException if identifiers couldn't be fetched from the database
+     */
     public LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, OaiTimestamp until, String set) throws SQLException {
         return listIdentifiers(from, null, null, until, set);
     }
 
     private LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, String set) throws SQLException {
-        Object[] values = new Object[5];
+        Object[] values = new Object[6];
         values[0] = set;
         String sql = listRecordsSql(values, from, segmentStart, segmentId, until);
         log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
@@ -144,6 +147,13 @@ public class OaiDatabaseWorker {
         }
     }
 
+    /**
+     * Convert a row to an OAIIdentifier
+     *
+     * @param resultSet database row
+     * @return identifier
+     * @throws SQLException If fields couldn't be accessed
+     */
     private static OaiIdentifier identifierFromStatement(ResultSet resultSet) throws SQLException {
         String identifier = resultSet.getString(1);
         boolean deleted = resultSet.getBoolean(2);
@@ -156,6 +166,16 @@ public class OaiDatabaseWorker {
         }
     }
 
+    /**
+     * Build an sql statement for fetching identifiers from a time slot
+     *
+     * @param values       Array of values to insert into the prepared statement
+     * @param from         Starting timestamp
+     * @param segmentStart Continue from timestamp
+     * @param segmentId    Continue from identifier
+     * @param until        Ending timestamp
+     * @return SQL statement
+     */
     private String listRecordsSql(Object[] values, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
         int i = 1;
         StringBuilder sql = new StringBuilder();

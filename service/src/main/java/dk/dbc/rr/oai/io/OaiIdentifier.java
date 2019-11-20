@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import org.w3c.dom.Element;
 
 /**
  *
@@ -36,7 +35,6 @@ public class OaiIdentifier {
     private final boolean deleted;
     private final Timestamp changed;
     private final HashSet<String> setspecs;
-    private Element xml;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public OaiIdentifier(String identifier, boolean deleted, Timestamp changed, String... setspecs) {
@@ -61,14 +59,6 @@ public class OaiIdentifier {
 
     public HashSet<String> getSetspecs() {
         return setspecs;
-    }
-
-    public Element getXml() {
-        return xml;
-    }
-
-    public void setXml(Element xml) {
-        this.xml = xml;
     }
 
     public void add(String setspec) {
