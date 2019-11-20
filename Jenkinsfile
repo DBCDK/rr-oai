@@ -85,51 +85,51 @@ pipeline {
             }
         }
 
-//        stage("docker") {
-//            steps {
-//                script {
-//                    def allDockerFiles = findFiles glob: '**/Dockerfile'
-//                    def dockerFiles = allDockerFiles.findAll { f -> f.path.endsWith("target/docker/Dockerfile") }
-//                    def version = readMavenPom().version
-//
-//                    for (def f : dockerFiles) {
-//                        def dirName = f.path.take(f.path.length() - "target/docker/Dockerfile".length())
-//                        if ( dirName == '' )
-//                            dirName = '.'
-//                        dir(dirName) {
-//                            modulePom = readMavenPom file: 'pom.xml'
-//                            def projectArtifactId = modulePom.getArtifactId()
-//                            def imageName = "${projectArtifactId}-${version}".toLowerCase()
-//                            if (! env.CHANGE_BRANCH) {
-//                                imageLabel = env.BRANCH_NAME.toLowerCase()
-//                            } else {
-//                                imageLabel = env.CHANGE_BRANCH.toLowerCase()
-//                            }
-//                            if ( ! (imageLabel ==~ /master|trunk/) ) {
-//                                println("Using branch_name ${imageLabel}")
-//                                imageLabel = imageLabel.split(/\//)[-1]
-//                            } else {
-//                                println(" Using Master branch ${BRANCH_NAME}")
-//                                imageLabel = env.BUILD_NUMBER
-//                            }
-//
-//                            println("In ${dirName} build ${projectArtifactId} as ${imageName}:$imageLabel")
-//
-//                            def app = docker.build("$imageName:${imageLabel}", '--pull --no-cache --file target/docker/Dockerfile .')
-//
-//                            if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
-//                                docker.withRegistry(dockerRepository, 'docker') {
-//                                    app.push()
-//                                    if (env.BRANCH_NAME ==~ /master|trunk/) {
-//                                        app.push "latest"
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        stage("docker") {
+            steps {
+                script {
+                    def allDockerFiles = findFiles glob: '**/Dockerfile'
+                    def dockerFiles = allDockerFiles.findAll { f -> f.path.endsWith("target/docker/Dockerfile") }
+                    def version = readMavenPom().version.replace("-SNAPSHOT", "")
+
+                    for (def f : dockerFiles) {
+                        def dirName = f.path.take(f.path.length() - "target/docker/Dockerfile".length())
+                        if ( dirName == '' )
+                            dirName = '.'
+                        dir(dirName) {
+                            modulePom = readMavenPom file: 'pom.xml'
+                            def projectArtifactId = modulePom.getArtifactId()
+                            def imageName = "${projectArtifactId}-${version}".toLowerCase()
+                            if (! env.CHANGE_BRANCH) {
+                                imageLabel = env.BRANCH_NAME.toLowerCase()
+                            } else {
+                                imageLabel = env.CHANGE_BRANCH.toLowerCase()
+                            }
+                            if ( ! (imageLabel ==~ /master|trunk/) ) {
+                                println("Using branch_name ${imageLabel}")
+                                imageLabel = imageLabel.split(/\//)[-1]
+                            } else {
+                                println(" Using Master branch ${BRANCH_NAME}")
+                                imageLabel = env.BUILD_NUMBER
+                            }
+
+                            println("In ${dirName} build ${projectArtifactId} as ${imageName}:$imageLabel")
+
+                            def app = docker.build("$imageName:${imageLabel}", '--pull --no-cache --file target/docker/Dockerfile .')
+
+                            if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
+                                docker.withRegistry(dockerRepository, 'docker') {
+                                    app.push()
+                                    if (env.BRANCH_NAME ==~ /master|trunk/) {
+                                        app.push "latest"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     post {
         success {
