@@ -223,7 +223,7 @@ public class OaiDatabaseWorker {
             until.sqlTo(sql, "changed");
             values[valueOffset++] = until.getTimestamp();
         }
-        sql.append("ORDER BY changed, pid LIMIT ")
+        sql.append(" ORDER BY changed, pid LIMIT ")
                 .append(config.getMaxRowsPrRequest() + 1);
         return sql.toString();
     }
