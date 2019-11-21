@@ -112,11 +112,10 @@ public class OaiRequest {
      * <p>
      * From query-string or resumption-token
      *
-     * @param defaultSet If set has not been defined use this instead
      * @return request parameter or null if unset
      */
-    public String getSetOrDefault(String defaultSet) {
-        return set == null ? defaultSet : set;
+    public String getSet() {
+        return set;
     }
 
     /**

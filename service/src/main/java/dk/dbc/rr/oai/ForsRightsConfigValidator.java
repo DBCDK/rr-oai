@@ -75,10 +75,6 @@ public class ForsRightsConfigValidator {
             if (!allSets.isEmpty())
                 throw new EJBException("Set(s) `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");
 
-            String defaultSet = config.getDefaultSet();
-            if (!databaseSets.contains(defaultSet))
-                throw new EJBException("DefaultSet `" + defaultSet + "` is not listed in database");
-
         } catch (SQLException ex) {
             log.error("Cannot read setspecs: {}", ex.getMessage());
             log.debug("Cannot read setspecs: ", ex);

@@ -29,12 +29,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.Arrays;
+import java.util.Set;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.singleton;
 
 /**
  *
@@ -93,12 +96,20 @@ public class OaiDatabaseWorker {
      * If it is longer than configured, then the last should be removed and
      * converted into a new resumption token
      *
-     * @param token resumptionToken as supplied from uaser
+     * @param token       resumptionToken as supplied from user
+     * @param allowedSets which sets to use in none has been declared originally
      * @return List of identifiers
      * @throws SQLException if identifiers couldn't be fetched from the database
      */
-    public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token) throws SQLException {
-        return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), token.getSet());
+    public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token, Set<String> allowedSets) throws SQLException {
+        return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), makeSetsSet(token, allowedSets));
+    }
+
+    private static Set<String> makeSetsSet(OaiResumptionToken token, Set<String> allowedSets) {
+        String set = token.getSet();
+        if (set == null)
+            return allowedSets;
+        return singleton(set);
     }
 
     /**
@@ -114,14 +125,18 @@ public class OaiDatabaseWorker {
      * @return List of identifiers
      * @throws SQLException if identifiers couldn't be fetched from the database
      */
-    public LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, OaiTimestamp until, String set) throws SQLException {
+    public LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, OaiTimestamp until, Set<String> set) throws SQLException {
         return listIdentifiers(from, null, null, until, set);
     }
 
-    private LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, String set) throws SQLException {
-        Object[] values = new Object[6];
+    private LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, Set<String> set) throws SQLException {
+        Object[] values = new Object[5 + set.size()];
         values[0] = set;
-        String sql = listRecordsSql(values, from, segmentStart, segmentId, until);
+        int pos = 0;
+        for (String s : set) {
+            values[pos++] = s;
+        }
+        String sql = listRecordsSql(values, pos, from, segmentStart, segmentId, until);
         log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
         try (Connection connection = dataSource.getConnection() ;
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -170,30 +185,43 @@ public class OaiDatabaseWorker {
      * Build an sql statement for fetching identifiers from a time slot
      *
      * @param values       Array of values to insert into the prepared statement
+     * @param valueOffset  Start position in values
      * @param from         Starting timestamp
      * @param segmentStart Continue from timestamp
      * @param segmentId    Continue from identifier
      * @param until        Ending timestamp
      * @return SQL statement
      */
-    private String listRecordsSql(Object[] values, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
-        int i = 1;
+    private String listRecordsSql(Object[] values, int valueOffset, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_OAI_RECORDS_JOIN_SETS + " WHERE setspec=?");
+        sql.append(SELECT_OAI_RECORDS_JOIN_SETS + " WHERE setspec");
+        if (valueOffset == 1) {
+            sql.append(" = ?");
+        } else {
+            sql.append(" IN (");
+            for (int i = 0 ; i < valueOffset ; i++) {
+                if (i == 0) {
+                    sql.append("?");
+                } else {
+                    sql.append(", ?");
+                }
+            }
+            sql.append(")");
+        }
         if (segmentStart != null && segmentId != null) {
             sql.append(" AND (changed > ? OR changed = ? AND pid >= ?)");
-            values[i++] = segmentStart;
-            values[i++] = segmentStart;
-            values[i++] = segmentId;
+            values[valueOffset++] = segmentStart;
+            values[valueOffset++] = segmentStart;
+            values[valueOffset++] = segmentId;
         } else if (from != null) {
             sql.append(" AND ");
             from.sqlFrom(sql, "changed");
-            values[i++] = from.getTimestamp();
+            values[valueOffset++] = from.getTimestamp();
         }
         if (until != null) {
             sql.append(" AND ");
             until.sqlTo(sql, "changed");
-            values[i++] = until.getTimestamp();
+            values[valueOffset++] = until.getTimestamp();
         }
         sql.append("ORDER BY changed, pid LIMIT ")
                 .append(config.getMaxRowsPrRequest() + 1);

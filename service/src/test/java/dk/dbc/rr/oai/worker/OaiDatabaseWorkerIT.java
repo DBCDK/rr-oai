@@ -24,6 +24,9 @@ import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiIdentifier;
 import dk.dbc.rr.oai.io.OaiResumptionToken;
 import dk.dbc.rr.oai.io.OaiTimestamp;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,12 +44,14 @@ public class OaiDatabaseWorkerIT extends DB {
     private Config config;
     private OaiDatabaseWorker bean;
     private OaiIOBean ioBean;
+    private HashSet<String> allowedSets;
 
     @Before
     public void setUp() {
         this.config = newConfig();
         this.ioBean = newOaiIOBean(config);
         this.bean = newOaiDatabaseWorker(config, ds);
+        this.allowedSets = new HashSet<>(Arrays.asList("nat", "art", "bkm", "onl"));
     }
 
     @Test(timeout = 2_000L)
@@ -57,13 +62,13 @@ public class OaiDatabaseWorkerIT extends DB {
         OaiTimestamp from = OaiTimestamp.of("2019");
         OaiTimestamp to = OaiTimestamp.of("2019");
         String set = "nat";
-        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
+        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, Collections.singleton(set));
         OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
         assertThat(identifiers.size(), is(10));
-        identifiers = bean.listIdentifiers(token);
+        identifiers = bean.listIdentifiers(token, allowedSets);
         token = takeLastAsResumptionToken(from, identifiers, to, set);
         assertThat(identifiers.size(), is(10));
-        identifiers = bean.listIdentifiers(token);
+        identifiers = bean.listIdentifiers(token, allowedSets);
         assertThat(identifiers.size(), is(5));
     }
 
@@ -74,7 +79,7 @@ public class OaiDatabaseWorkerIT extends DB {
         OaiTimestamp from = OaiTimestamp.of("2019");
         OaiTimestamp to = OaiTimestamp.of("2019");
         String set = "nat";
-        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
+        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, Collections.singleton(set));
         OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
         assertThat(identifiers.size(), is(10));
         OaiIdentifier identifier = identifiers.pop();
@@ -83,7 +88,7 @@ public class OaiDatabaseWorkerIT extends DB {
         insert(id)
                 .set("nat=2019-02-02T20:59:59Z")
                 .commit();
-        identifiers = bean.listIdentifiers(token);
+        identifiers = bean.listIdentifiers(token, allowedSets);
         assertThat(identifiers.size(), is(6));
     }
 
@@ -94,7 +99,7 @@ public class OaiDatabaseWorkerIT extends DB {
         OaiTimestamp from = OaiTimestamp.of("2019");
         OaiTimestamp to = OaiTimestamp.of("2019");
         String set = "nat";
-        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, set);
+        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, Collections.singleton(set));
         OaiResumptionToken token = takeLastAsResumptionToken(from, identifiers, to, set);
         System.out.println("token = " + token);
         assertThat(identifiers.size(), is(10));
@@ -104,7 +109,7 @@ public class OaiDatabaseWorkerIT extends DB {
         insert(id)
                 .set("!nat=2019-02-02T20:59:59Z")
                 .commit();
-        identifiers = bean.listIdentifiers(token);
+        identifiers = bean.listIdentifiers(token, allowedSets);
         assertThat(identifiers.size(), is(6));
 
         OaiIdentifier removedId = identifiers.getLast();

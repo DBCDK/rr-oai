@@ -54,6 +54,7 @@ import dk.dbc.oai.pmh.*;
 
 import static dk.dbc.rr.oai.io.OaiResponse.O;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singleton;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
@@ -163,7 +164,7 @@ public class OaiWorker {
     public void listIdentifiers(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listIdentifiers");
         ListIdentifiersType list = response.listIdentifiers();
-        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken);
+        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken, allowedSets);
 
         if (identifiers.isEmpty())
             return;
@@ -228,7 +229,7 @@ public class OaiWorker {
     public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listRecords");
         ListRecordsType list = response.listRecords();
-        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken);
+        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken, allowedSets);
 
         if (identifiers.isEmpty())
             return;
@@ -332,7 +333,7 @@ public class OaiWorker {
      * @return list of identifiers - might be empty
      * @throws SQLException If the database acts up
      */
-    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumpotionTokenSetter) throws SQLException {
+    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumpotionTokenSetter, Set<String> allowedSets) throws SQLException {
         if (!databaseMetadata.knownPrefix(request.getMetadataPrefix())) {
             response.error(OAIPMHerrorcodeType.CANNOT_DISSEMINATE_FORMAT, "Unknown metadata prefix");
             return Collections.EMPTY_LIST;
@@ -346,12 +347,16 @@ public class OaiWorker {
             from = resumptionToken.getFrom();
             until = resumptionToken.getUntil();
             set = resumptionToken.getSet();
-            identifiers = databaseWorker.listIdentifiers(resumptionToken);
+            identifiers = databaseWorker.listIdentifiers(resumptionToken, allowedSets);
         } else {
             from = request.getFrom();
             until = request.getUntil();
-            set = request.getSetOrDefault(config.getDefaultSet());
-            identifiers = databaseWorker.listIdentifiers(from, until, set);
+            set = request.getSet();
+            if (set == null) {
+                identifiers = databaseWorker.listIdentifiers(from, until, allowedSets);
+            } else {
+                identifiers = databaseWorker.listIdentifiers(from, until, singleton(set));
+            }
         }
         log.debug("identifiers.size() = {}", identifiers.size());
         if (identifiers.isEmpty()) {
