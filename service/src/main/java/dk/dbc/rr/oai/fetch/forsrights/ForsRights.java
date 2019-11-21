@@ -34,6 +34,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +71,7 @@ public class ForsRights {
                  cachedExceptions = {ClientErrorException.class,
                                      ServerErrorException.class,
                                      IOException.class})
+    @Timed
     public Set<String> authorized(@CacheKey String triple, @CacheKey String ip) throws IOException {
         try {
             URI uri = buildForsRightsURI(triple, ip);

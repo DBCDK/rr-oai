@@ -40,6 +40,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,7 @@ public class OaiBean {
     public RemoteIp remoteIp;
 
     @GET
+    @Timed
     public Response oai(@Context UriInfo uriInfo,
                         @Context HttpServletRequest httpRequest,
                         @Context HttpHeaders headers) {

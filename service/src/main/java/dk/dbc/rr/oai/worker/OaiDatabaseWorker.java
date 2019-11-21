@@ -34,6 +34,7 @@ import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,6 +102,7 @@ public class OaiDatabaseWorker {
      * @return List of identifiers
      * @throws SQLException if identifiers couldn't be fetched from the database
      */
+    @Timed
     public LinkedList<OaiIdentifier> listIdentifiers(OaiResumptionToken token, Set<String> allowedSets) throws SQLException {
         return listIdentifiers(token.getFrom(), token.getSegmentStart(), token.getSegmentId(), token.getUntil(), makeSetsSet(token, allowedSets));
     }
@@ -125,6 +127,7 @@ public class OaiDatabaseWorker {
      * @return List of identifiers
      * @throws SQLException if identifiers couldn't be fetched from the database
      */
+    @Timed
     public LinkedList<OaiIdentifier> listIdentifiers(OaiTimestamp from, OaiTimestamp until, Set<String> set) throws SQLException {
         return listIdentifiers(from, null, null, until, set);
     }

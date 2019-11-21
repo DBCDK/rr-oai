@@ -37,6 +37,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -91,6 +92,7 @@ public class ParallelFetch {
      * @return list of XML-Elements and/or nulls
      * @throws ServerErrorException in case of a timeout
      */
+    @Timed
     public List<Element> parallelFetch(List<URI> uris) {
         log.info("Requesting {} uris", uris.size());
         threads.clear();
@@ -150,6 +152,7 @@ public class ParallelFetch {
      * @param req uri to fetch
      * @return xml element or runtime exception
      */
+    @Timed
     public Document fetchASingleDocument(URI req) {
         log.debug("Fetching {}", req);
         Thread thread = Thread.currentThread();

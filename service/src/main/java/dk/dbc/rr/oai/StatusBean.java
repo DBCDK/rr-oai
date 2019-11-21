@@ -61,7 +61,7 @@ public class StatusBean {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response method() {
+    public Response status() {
         Optional<String> err = this.testDb();
         if (!err.isPresent())
             err = testFormatService();

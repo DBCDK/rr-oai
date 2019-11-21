@@ -51,6 +51,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import dk.dbc.oai.pmh.*;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import static dk.dbc.rr.oai.io.OaiResponse.O;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -98,6 +99,7 @@ public class OaiWorker {
      * @param allowedSets Which sets user has access to
      * @throws SQLException In case of database communication problems
      */
+    @Timed
     public void getRecord(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("getRecord");
         GetRecordType record = response.getRecord();
@@ -132,6 +134,7 @@ public class OaiWorker {
      *
      * @param response Where to write data
      */
+    @Timed
     public void identify(OaiResponse response) {
         log.info("identify");
         IdentifyType identify = response.identify();
@@ -161,6 +164,7 @@ public class OaiWorker {
      * @param allowedSets Which sets user has access to
      * @throws SQLException In case of database communication problems
      */
+    @Timed
     public void listIdentifiers(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listIdentifiers");
         ListIdentifiersType list = response.listIdentifiers();
@@ -190,6 +194,7 @@ public class OaiWorker {
      * @param allowedSets Which sets user has access to
      * @throws SQLException In case of database communication problems
      */
+    @Timed
     public void listMetadataFormats(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listMetadataFormats");
         if (request.getIdentifier() != null) {
@@ -226,6 +231,7 @@ public class OaiWorker {
      * @param allowedSets Which sets user has access to
      * @throws SQLException In case of database communication problems
      */
+    @Timed
     public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listRecords");
         ListRecordsType list = response.listRecords();
@@ -276,6 +282,7 @@ public class OaiWorker {
      *
      * @param response Where to write data
      */
+    @Timed
     public void listSets(OaiResponse response) {
         log.info("listSets");
         List<SetType> sets = response.listSets().getSets();
