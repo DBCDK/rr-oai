@@ -45,7 +45,7 @@ public class OaiTimestamp {
     public static final ZoneId ZONE_Z = ZoneId.of("Z");
 
     private final Timestamp timestamp;
-    private final Granularity granuality;
+    private final Granularity granularity;
 
     public static OaiTimestamp of(String text) {
         try {
@@ -119,9 +119,9 @@ public class OaiTimestamp {
         return new OaiTimestamp(timestamp, Granularity.MICROSECONDS);
     }
 
-    private OaiTimestamp(Timestamp timestamp, Granularity granuality) {
+    private OaiTimestamp(Timestamp timestamp, Granularity granularity) {
         this.timestamp = timestamp;
-        this.granuality = granuality;
+        this.granularity = granularity;
     }
 
     @SuppressFBWarnings("EI_EXPOSE_REP")
@@ -130,7 +130,7 @@ public class OaiTimestamp {
     }
 
     public String getTruncate() {
-        return granuality.getText();
+        return granularity.getText();
     }
 
     public void sqlFrom(StringBuilder sql, String column) {
@@ -167,7 +167,7 @@ public class OaiTimestamp {
     public int hashCode() {
         int hash = 3;
         hash = 29 * hash + Objects.hashCode(this.timestamp);
-        hash = 29 * hash + Objects.hashCode(this.granuality);
+        hash = 29 * hash + Objects.hashCode(this.granularity);
         return hash;
     }
 
@@ -178,13 +178,13 @@ public class OaiTimestamp {
         if (obj == null || getClass() != obj.getClass())
             return false;
         final OaiTimestamp other = (OaiTimestamp) obj;
-        return this.granuality == other.granuality &&
+        return this.granularity == other.granularity &&
                Objects.equals(this.timestamp, other.timestamp);
     }
 
     @Override
     public String toString() {
-        return "OaiTimestamp{" + timestamp + "/" + granuality.text + '}';
+        return "OaiTimestamp{" + timestamp + "/" + granularity.text + '}';
     }
 
     static void to(DataOutputStream dos, OaiTimestamp ts) throws IOException {
@@ -192,7 +192,7 @@ public class OaiTimestamp {
             dos.writeByte(Byte.MIN_VALUE);
 
         } else {
-            dos.writeByte(ts.granuality.getNo());
+            dos.writeByte(ts.granularity.getNo());
             dos.writeInt(ts.timestamp.getNanos());
             dos.writeLong(ts.timestamp.getTime());
         }
