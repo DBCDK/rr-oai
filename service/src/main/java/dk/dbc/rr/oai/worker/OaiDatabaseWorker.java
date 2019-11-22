@@ -70,11 +70,11 @@ public class OaiDatabaseWorker {
     public DataSource dataSource;
 
     /**
-     * Returns an identifier or null is no record is available
+     * Returns an identifier or null if no record is available
      *
      * @param id id of record
      * @return identifier or null
-     * @throws SQLException Is the record cannot be fetched
+     * @throws SQLException If the record cannot be fetched
      */
     public OaiIdentifier getIdentifier(String id) throws SQLException {
         String sql = SELECT_OAI_RECORDS + " WHERE pid = ? ORDER BY changed DESC LIMIT 1";
@@ -115,7 +115,7 @@ public class OaiDatabaseWorker {
     }
 
     /**
-     * List identifiers starting with the specification supplied bu the user
+     * List identifiers starting with the specification supplied by the user
      * <p>
      * Resulting list is up to {@link Config#getMaxRowsPrRequest()} + 1 long
      * If it is longer than configured, then the last should be removed and

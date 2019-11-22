@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 DBC A/S (http://dbc.dk/)
  *
- * This is match of rr-oai-service
+ * This is part of rr-oai-service
  *
  * rr-oai-service is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by

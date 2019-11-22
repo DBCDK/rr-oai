@@ -37,6 +37,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.ws.WebServiceException;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,15 +128,15 @@ public class ParallelFetch {
                     } catch (ExecutionException ex) {
                         Throwable cause = ex.getCause();
                         if (cause != null &&
-                            cause instanceof ServerErrorException) {
-                            throw (ServerErrorException) cause;
+                            cause instanceof WebServiceException) {
+                            throw (WebServiceException) cause;
                         }
-                        log.error("Error executong parrallel fetch: {}", ex.getMessage());
-                        log.debug("Error executong parrallel fetch: ", ex);
-                        throw new ServerErrorException("Error executong parrallel fetch", Response.Status.INTERNAL_SERVER_ERROR);
+                        log.error("Error executing parallel fetch: {}", ex.getMessage());
+                        log.debug("Error executing parallel fetch: ", ex);
+                        throw new ServerErrorException("Error executing parallel fetch", Response.Status.INTERNAL_SERVER_ERROR);
                     } catch (InterruptedException ex) {
-                        log.error("Interrupted durign parallel fetch: {}", ex.getMessage());
-                        log.debug("Interrupted durign parallel fetch: ", ex);
+                        log.error("Interrupted during parallel fetch: {}", ex.getMessage());
+                        log.debug("Interrupted during parallel fetch: ", ex);
                         throw new ServerErrorException("Interrupted during parallel fetch", Response.Status.INTERNAL_SERVER_ERROR);
                     }
                 })

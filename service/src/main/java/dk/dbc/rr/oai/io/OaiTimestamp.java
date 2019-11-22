@@ -45,58 +45,58 @@ public class OaiTimestamp {
     public static final ZoneId ZONE_Z = ZoneId.of("Z");
 
     private final Timestamp timestamp;
-    private final Granuality granuality;
+    private final Granularity granuality;
 
     public static OaiTimestamp of(String text) {
         try {
             if (!OaiTimestamp.ISO8601.matcher(text).matches())
                 throw new DateTimeException("Not a iso-8601 date");
             String ts;
-            Granuality truncated; // https://www.postgresql.org/docs/12/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC
+            Granularity truncated; // https://www.postgresql.org/docs/12/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC
             switch (text.length()) {
                 case 4:
                     ts = text + "-01-01T00:00:00.000000Z";
-                    truncated = Granuality.YEAR;
+                    truncated = Granularity.YEAR;
                     break;
                 case 7:
                     ts = text + "-01T00:00:00.000000Z";
-                    truncated = Granuality.MONTH;
+                    truncated = Granularity.MONTH;
                     break;
                 case 10:
                     ts = text + "T00:00:00.000000Z";
-                    truncated = Granuality.DAY;
+                    truncated = Granularity.DAY;
                     break;
                 case 17:
                     ts = text.replace("Z", ":00.000000Z");
-                    truncated = Granuality.MINUTE;
+                    truncated = Granularity.MINUTE;
                     break;
                 case 20:
                     ts = text.replace("Z", ".000000Z");
-                    truncated = Granuality.SECOND;
+                    truncated = Granularity.SECOND;
                     break;
                 case 22:
                     ts = text.replace("Z", "00000Z");
-                    truncated = Granuality.MILLISECONDS;
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 23:
                     ts = text.replace("Z", "0000Z");
-                    truncated = Granuality.MILLISECONDS;
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 24:
                     ts = text.replace("Z", "000Z");
-                    truncated = Granuality.MILLISECONDS;
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 25:
                     ts = text.replace("Z", "00Z");
-                    truncated = Granuality.MICROSECONDS;
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 case 26:
                     ts = text.replace("Z", "0Z");
-                    truncated = Granuality.MICROSECONDS;
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 case 27:
                     ts = text;
-                    truncated = Granuality.MICROSECONDS;
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 default:
                     throw new AssertionError();
@@ -116,10 +116,10 @@ public class OaiTimestamp {
     }
 
     public static OaiTimestamp from(Timestamp timestamp) {
-        return new OaiTimestamp(timestamp, Granuality.MICROSECONDS);
+        return new OaiTimestamp(timestamp, Granularity.MICROSECONDS);
     }
 
-    private OaiTimestamp(Timestamp timestamp, Granuality granuality) {
+    private OaiTimestamp(Timestamp timestamp, Granularity granuality) {
         this.timestamp = timestamp;
         this.granuality = granuality;
     }
@@ -202,7 +202,7 @@ public class OaiTimestamp {
         byte b = dis.readByte();
         if (b == Byte.MIN_VALUE)
             return null;
-        Granuality g = Granuality.of(b);
+        Granularity g = Granularity.of(b);
         int nanos = dis.readInt();
         long time = dis.readLong();
         Timestamp ts = new Timestamp(time);
@@ -210,7 +210,7 @@ public class OaiTimestamp {
         return new OaiTimestamp(ts, g);
     }
 
-    private enum Granuality {
+    private enum Granularity {
         YEAR("year", 0),
         MONTH("month", 1),
         DAY("day", 2),
@@ -223,13 +223,13 @@ public class OaiTimestamp {
         private final String text;
         private final byte no;
 
-        Granuality(String text, int no) {
+        Granularity(String text, int no) {
             this.text = text;
             this.no = (byte) no;
         }
 
-        private static Granuality of(byte no) {
-            for (Granuality value : values()) {
+        private static Granularity of(byte no) {
+            for (Granularity value : values()) {
                 if (value.no == no)
                     return value;
             }
