@@ -33,7 +33,8 @@ public class OaiServiceApplication extends Application {
 
     private static final HashSet<Class<?>> CLASSES = new HashSet<>(Arrays.asList(
             OaiBean.class,
-            RootBean.class
+            RootBean.class,
+            StatusBean.class
     ));
 
     @Override

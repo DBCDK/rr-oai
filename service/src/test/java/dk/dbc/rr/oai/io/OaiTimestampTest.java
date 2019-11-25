@@ -31,61 +31,42 @@ import static org.junit.Assert.assertThat;
 public class OaiTimestampTest {
 
     @Test(timeout = 2_000L)
-    public void testCheckString() throws Exception {
-        System.out.println("testCheckString");
-
-        Arrays.asList(
-                "2019 true",
-                "2019-02 true",
-                "2019-92 false",
-                "2019-01-11 true",
-                "2019-02-29 false", // Not leap
-                "2019-01-01T12 false", // Requires :mm'Z' too
-                "2019-01-01T12z false", // Requires :mm'Z' too
-                "2019-01-01T12:34Z true",
-                "2019-01-01T12:34:56Z true",
-                "2019-01-01T21:34:56Z true",
-                "2019-01-01T12:34:77Z false",
-                "2019-01-01T12:34:56.Z false",
-                "2019-01-01T12:34:56.1Z true",
-                "2019-01-01T12:34:56.12Z true",
-                "2019-01-01T12:34:56.123Z true",
-                "2019-01-01T12:34:56.1234Z true",
-                "2019-01-01T12:34:56.12345Z true",
-                "2019-01-01T12:34:56.123456Z true",
-                "2019-01-01T12:34:56.1234567Z false",
-                "xxx false",
-                " false" // Empty string
-        ).forEach(l -> {
-            String a[] = l.split("\\s+", 2);
-            boolean actual = OaiTimestamp.checkString(a[0]) != null;
-            System.out.println(a[0] + " = " + actual);
-            assertThat(a[0], actual, is(Boolean.parseBoolean(a[1])));
-        });
-    }
-
-    @Test(timeout = 2_000L)
     public void testOf() throws Exception {
         System.out.println("testOf - make timestamp with granuality");
 
         Arrays.asList(
-                "2019 2019-01-01T00:00:00.000000Z year",
-                "2019-02 2019-02-01T00:00:00.000000Z month",
-                "2019-01-11 2019-01-11T00:00:00.000000Z day",
-                "2019-01-01T12:34Z 2019-01-01T12:34:00.000000Z minute",
-                "2019-01-01T12:34:56Z 2019-01-01T12:34:56.000000Z second",
-                "2019-01-01T12:34:56.1Z 2019-01-01T12:34:56.100000Z milliseconds",
-                "2019-01-01T12:34:56.12Z 2019-01-01T12:34:56.120000Z milliseconds",
-                "2019-01-01T12:34:56.123Z 2019-01-01T12:34:56.123000Z milliseconds",
+                "2019 2019-01-01T00:00:00Z year",
+                "2019-02 2019-02-01T00:00:00Z month",
+                "2019-01-11 2019-01-11T00:00:00Z day",
+                "2019-01-01T12:34Z 2019-01-01T12:34:00Z minute",
+                "2019-01-01T12:34:56Z 2019-01-01T12:34:56Z second",
+                "2019-01-01T12:34:56.1Z 2019-01-01T12:34:56.100Z milliseconds",
+                "2019-01-01T12:34:56.12Z 2019-01-01T12:34:56.120Z milliseconds",
+                "2019-01-01T12:34:56.123Z 2019-01-01T12:34:56.123Z milliseconds",
                 "2019-01-01T12:34:56.1234Z 2019-01-01T12:34:56.123400Z microseconds",
                 "2019-01-01T12:34:56.12345Z 2019-01-01T12:34:56.123450Z microseconds",
                 "2019-01-01T12:34:56.123456Z 2019-01-01T12:34:56.123456Z microseconds"
         ).forEach(l -> {
             String a[] = l.split("\\s+", 3);
             OaiTimestamp actual = OaiTimestamp.of(a[0]);
-            System.out.println(a[0] + " = " + actual);
-            assertThat(a[0], actual.getTimestamp(), is(a[1]));
+            String instant = actual.getTimestamp().toInstant().toString();
+            System.out.println(a[0] + " = " + instant + " " + actual.getTruncate());
+            assertThat(a[0], instant, is(a[1]));
             assertThat(a[0], actual.getTruncate(), is(a[2]));
+        });
+    }
+
+    @Test(timeout = 2_000L)
+    public void testSql() throws Exception {
+        System.out.println("testSql");
+        Arrays.asList(
+                "2019       DATE_TRUNC('year', XXX) <= DATE_TRUNC('year', ?::TIMESTAMP)",
+                "2019-01    DATE_TRUNC('month', XXX) <= DATE_TRUNC('month', ?::TIMESTAMP)",
+                "2019-01-11 DATE_TRUNC('day', XXX) <= DATE_TRUNC('day', ?::TIMESTAMP)"
+        ).forEach(l -> {
+            String[] a = l.split("\\s+", 2);
+            String actual = OaiTimestamp.of(a[0]).sql("XXX", "<=");
+            assertThat(actual, is(a[1]));
         });
     }
 }

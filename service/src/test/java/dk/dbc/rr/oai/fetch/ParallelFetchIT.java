@@ -26,9 +26,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Stream;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import org.junit.Test;
@@ -64,14 +62,14 @@ public class ParallelFetchIT {
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         List<String> ids = Arrays.asList(
-                "870970:00010480", "870970:00010626", "870970:00020001", "870970:00020087", "870970:00020117",
-                "870970:00020125", "870970:00020141", "870970:00020184", "870970:00020206", "870970:00020214",
-                "870970:00020257", "870970:00020281", "870970:00020370", "870970:00020389", "870970:00020478",
-                "870970:00020486", "870970:00020397", "870970:00020508", "870970:00020788", "870970:00020796",
-                "870970:00020818", "870970:00020826", "870970:00020834", "870970:00020877", "870970:00020893");
+                "870970-00010480", "870970-00010626", "870970-00020001", "870970-00020087", "870970-00020117",
+                "870970-00020125", "870970-00020141", "870970-00020184", "870970-00020206", "870970-00020214",
+                "870970-00020257", "870970-00020281", "870970-00020370", "870970-00020389", "870970-00020478",
+                "870970-00020486", "870970-00020397", "870970-00020508", "870970-00020788", "870970-00020796",
+                "870970-00020818", "870970-00020826", "870970-00020834", "870970-00020877", "870970-00020893");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "bkm"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "nat"))
                 .collect(toList());
 
         List<Element> docs = parallelFetch.parallelFetch(uris);
@@ -83,7 +81,7 @@ public class ParallelFetchIT {
         assertThat("Multiple threads in play", tids.size() > 1, is(true));
     }
 
-    @Test(timeout = 10_000L)
+    @Test(timeout = 10_000L, expected = ServerErrorException.class)
     public void testBadXml() throws Exception {
         System.out.println("testBadXml");
 
@@ -91,16 +89,13 @@ public class ParallelFetchIT {
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         List<String> ids = Arrays.asList(
-                "870970:00010480", "870970:error");
+                "870970-00010480", "870970-error");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "bkm"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "nat"))
                 .collect(toList());
 
-        List<Element> docs = parallelFetch.parallelFetch(uris);
-        System.out.println("docs = " + docs);
-        assertThat(docs.stream()
-                .anyMatch(e -> e == null), is(true));
+        parallelFetch.parallelFetch(uris);
     }
 
     @Test(timeout = 10_000L, expected = ServerErrorException.class)
@@ -116,7 +111,7 @@ public class ParallelFetchIT {
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         ArrayList<URI> uris = new ArrayList<>(10_000);
-        URI uri = parallelFetch.buildUri("870970:00010480", "marcx", "bkm");
+        URI uri = parallelFetch.buildUri("870970-00010480", "marcx", "nat");
         for (int i = 0 ; i < 10_000 ; i++) {
             uris.add(uri);
         }

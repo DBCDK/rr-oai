@@ -34,6 +34,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +71,7 @@ public class ForsRights {
                  cachedExceptions = {ClientErrorException.class,
                                      ServerErrorException.class,
                                      IOException.class})
+    @Timed
     public Set<String> authorized(@CacheKey String triple, @CacheKey String ip) throws IOException {
         try {
             URI uri = buildForsRightsURI(triple, ip);
@@ -115,27 +117,31 @@ public class ForsRights {
     /**
      * Construct a ForsRights url
      *
-     * @param tripple the user:group:password string (or null)
-     * @param ip      the remote ip address (or null)
+     * @param triple the user:group:password string (or null)
+     * @param ip     the remote ip address (or null)
      * @return url with request parameters
      */
-    URI buildForsRightsURI(String tripple, String ip) {
+    URI buildForsRightsURI(String triple, String ip) {
         UriBuilder builder = config.getForsRightsUrl()
                 .queryParam("action", "forsRights");
-        if (tripple != null) {
-            String[] parts = tripple.split(":", 3);
+        if (triple != null) {
+            String[] parts = triple.split(":", 3);
             if (parts.length == 3) {
                 builder.queryParam("userIdAut", parts[0]);
                 builder.queryParam("groupIdAut", parts[1]);
                 builder.queryParam("passwordAut", parts[2]);
             } else {
-                tripple = null; // Invalid format for tripple
+                triple = null; // Invalid format for tripple
             }
         }
-        if (ip != null)
+        if (triple == null) {
+            builder.queryParam("userIdAut", "");
+            builder.queryParam("groupIdAut", "");
+            builder.queryParam("passwordAut", "");
+        }
+        if (ip != null) {
             builder.queryParam("ipAddress", ip);
-        if (tripple == null && ip == null)
-            throw new IllegalArgumentException("No authorization supplied");
+        }
         builder.queryParam("outputType", "json");
         return builder.build();
     }

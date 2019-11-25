@@ -69,7 +69,6 @@ public class ForsRightsConfigValidator {
                 if (!allSets.remove(setSpec))
                     throw new EJBException("Set `" + setSpec + "` is declared in database but not allowed for anybody");
             }
-
             log.trace("allSets = {}", allSets);
             if (!allSets.isEmpty())
                 throw new EJBException("Set(s) `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");

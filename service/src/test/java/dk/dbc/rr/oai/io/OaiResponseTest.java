@@ -43,7 +43,7 @@ public class OaiResponseTest {
         OaiResponse oaiResponse = OaiResponse.withoutRequestObject("http://foo/bar", qs("verb=ListRecords&from=2018-01-01&until=2019-01-01&metadataPrefix=dc"));
         String str = new String(oaiResponse.content(), UTF_8);
 
-        assertThat(str, containsString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+        assertThat(str, containsString("<?xml version=\"1.0\""));
         assertThat(str, containsString("<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\"" +
                                        " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                                        " xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">"));

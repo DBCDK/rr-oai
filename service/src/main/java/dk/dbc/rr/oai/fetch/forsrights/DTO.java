@@ -50,6 +50,8 @@ class DTO {
             log.error("Invalid formatted forsrights rule: {}", nameAndRight);
             return false; // Badly formatted part
         }
+        if(forsRightsResponse.ressource == null)
+            return false;
         return forsRightsResponse.ressource.stream()
                 .filter(r -> parts[0].equals(r.name))
                 .flatMap(r -> r.right.stream())
@@ -62,7 +64,8 @@ class DTO {
      * @return are there any rights present at all
      */
     boolean hasAnyRight() {
-        return !forsRightsResponse.ressource.isEmpty();
+        return forsRightsResponse.ressource != null &&
+               !forsRightsResponse.ressource.isEmpty();
     }
 
     @Override
@@ -73,10 +76,11 @@ class DTO {
     public static class ForsRightsResponse {
 
         public List<Resource> ressource;
+        public String error;
 
         @Override
         public String toString() {
-            return "ForsRightsResponse{" + "resource=" + ressource + '}';
+            return "ForsRightsResponse{" + "resource=" + ressource + "; error=" + error + '}';
         }
     }
 

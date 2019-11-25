@@ -161,8 +161,8 @@
                 <configuration>
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                     <environmentVariables>
-                        <RAWREPO_OAI_FORMATTER_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-oai-formatter-service/</RAWREPO_OAI_FORMATTER_SERVICE_URL>
-                        <FORS_RIGHTS_URL>http://localhost:${wiremock.port}/forsrights/</FORS_RIGHTS_URL>
+                        <RAWREPO_OAI_FORMATTER_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-oai-formatter-service</RAWREPO_OAI_FORMATTER_SERVICE_URL>
+                        <FORS_RIGHTS_URL>http://localhost:${wiremock.port}/forsrights</FORS_RIGHTS_URL>
                         <RAWREPO_OAI_POSTGRESQL_URL>localhost:${postgresql.port}/rroai</RAWREPO_OAI_POSTGRESQL_URL>
                     </environmentVariables>
                     <systemProperties>

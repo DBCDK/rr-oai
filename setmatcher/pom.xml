@@ -140,6 +140,7 @@
                                     <type>zip</type>
                                 </artifactItem>
                             </artifactItems>
+                            <excludes>**/*.test.js</excludes>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <useSubDirectoryPerArtifact>false</useSubDirectoryPerArtifact>
                             <stripVersion>true</stripVersion>

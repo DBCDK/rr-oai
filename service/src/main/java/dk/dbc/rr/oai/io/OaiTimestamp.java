@@ -18,14 +18,19 @@
  */
 package dk.dbc.rr.oai.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  *
@@ -39,59 +44,59 @@ public class OaiTimestamp {
     public static final DateTimeFormatter EXACT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSz");
     public static final ZoneId ZONE_Z = ZoneId.of("Z");
 
-    private final String timestamp;
-    private final String truncate;
+    private final Timestamp timestamp;
+    private final Granularity granularity;
 
     public static OaiTimestamp of(String text) {
         try {
             if (!OaiTimestamp.ISO8601.matcher(text).matches())
                 throw new DateTimeException("Not a iso-8601 date");
             String ts;
-            String truncated; // https://www.postgresql.org/docs/12/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC
+            Granularity truncated; // https://www.postgresql.org/docs/12/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC
             switch (text.length()) {
                 case 4:
                     ts = text + "-01-01T00:00:00.000000Z";
-                    truncated = "year";
+                    truncated = Granularity.YEAR;
                     break;
                 case 7:
                     ts = text + "-01T00:00:00.000000Z";
-                    truncated = "month";
+                    truncated = Granularity.MONTH;
                     break;
                 case 10:
                     ts = text + "T00:00:00.000000Z";
-                    truncated = "day";
+                    truncated = Granularity.DAY;
                     break;
                 case 17:
                     ts = text.replace("Z", ":00.000000Z");
-                    truncated = "minute";
+                    truncated = Granularity.MINUTE;
                     break;
                 case 20:
                     ts = text.replace("Z", ".000000Z");
-                    truncated = "second";
+                    truncated = Granularity.SECOND;
                     break;
                 case 22:
                     ts = text.replace("Z", "00000Z");
-                    truncated = "milliseconds";
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 23:
                     ts = text.replace("Z", "0000Z");
-                    truncated = "milliseconds";
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 24:
                     ts = text.replace("Z", "000Z");
-                    truncated = "milliseconds";
+                    truncated = Granularity.MILLISECONDS;
                     break;
                 case 25:
                     ts = text.replace("Z", "00Z");
-                    truncated = "microseconds";
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 case 26:
                     ts = text.replace("Z", "0Z");
-                    truncated = "microseconds";
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 case 27:
                     ts = text;
-                    truncated = "microseconds";
+                    truncated = Granularity.MICROSECONDS;
                     break;
                 default:
                     throw new AssertionError();
@@ -101,7 +106,7 @@ public class OaiTimestamp {
                 throw new DateTimeException("Timestamp is before EPOCH");
             String formatted = OaiTimestamp.EXACT.format(parsed.atZone(OaiTimestamp.ZONE_Z));
             if (formatted.equalsIgnoreCase(ts)) // Sanity check - toString matches input
-                return new OaiTimestamp(ts, truncated);
+                return new OaiTimestamp(Timestamp.from(parsed), truncated);
             return null;
         } catch (DateTimeException ex) {
             log.error("Error parsing timestamp: {}: {}", text, ex.getMessage());
@@ -110,73 +115,133 @@ public class OaiTimestamp {
         }
     }
 
-    private OaiTimestamp(String timestamp, String truncate) {
-        this.timestamp = timestamp;
-        this.truncate = truncate;
+    public static OaiTimestamp from(Timestamp timestamp) {
+        return new OaiTimestamp(timestamp, Granularity.MICROSECONDS);
     }
 
-    public String getTimestamp() {
+    private OaiTimestamp(Timestamp timestamp, Granularity granularity) {
+        this.timestamp = timestamp;
+        this.granularity = granularity;
+    }
+
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
     public String getTruncate() {
-        return truncate;
+        return granularity.getText();
     }
 
-    public static String checkString(String text) {
-        try {
-            if (!OaiTimestamp.ISO8601.matcher(text).matches())
-                throw new DateTimeException("Not a iso-8601 date");
-            String ts;
-            switch (text.length()) {
-                case 4:
-                    ts = text + "-01-01T00:00:00.000000Z";
-                    break;
-                case 7:
-                    ts = text + "-01T00:00:00.000000Z";
-                    break;
-                case 10:
-                    ts = text + "T00:00:00.000000Z";
-                    break;
-                case 17:
-                    ts = text.replace("Z", ":00.000000Z");
-                    break;
-                case 20:
-                    ts = text.replace("Z", ".000000Z");
-                    break;
-                case 22:
-                    ts = text.replace("Z", "00000Z");
-                    break;
-                case 23:
-                    ts = text.replace("Z", "0000Z");
-                    break;
-                case 24:
-                    ts = text.replace("Z", "000Z");
-                    break;
-                case 25:
-                    ts = text.replace("Z", "00Z");
-                    break;
-                case 26:
-                    ts = text.replace("Z", "0Z");
-                    break;
-                case 27:
-                    ts = text;
-                    break;
-                default:
-                    throw new AssertionError();
-            }
-            Instant parsed = Instant.from(OaiTimestamp.EXACT.parse(ts));
-            if (parsed.isBefore(Instant.EPOCH))
-                throw new DateTimeException("Timestamp is before EPOCH");
-            String formatted = OaiTimestamp.EXACT.format(parsed.atZone(OaiTimestamp.ZONE_Z));
-            if (formatted.equalsIgnoreCase(ts)) // Sanity check - toString matches input
-                return text;
-            return null;
-        } catch (DateTimeException ex) {
-            log.error("Error parsing timestamp: {}: {}", text, ex.getMessage());
-            log.debug("Error parsing timestamp: {}: ", text, ex);
-            return null;
+    public void sqlFrom(StringBuilder sql, String column) {
+        sql(sql, column, ">=");
+    }
+
+    public void sqlTo(StringBuilder sql, String column) {
+        sql(sql, column, "<=");
+    }
+
+    String sql(String column, String op) {
+        StringBuilder sql = new StringBuilder();
+        sql(sql, column, op);
+        return sql.toString();
+    }
+
+    void sql(StringBuilder sql, String column, String op) {
+        sqlString(sql, column);
+        sql.append(" ")
+                .append(op)
+                .append(" ");
+        sqlString(sql, "?::TIMESTAMP");
+    }
+
+    private void sqlString(StringBuilder stringBuilder, String column) {
+        stringBuilder.append("DATE_TRUNC('")
+                .append(getTruncate())
+                .append("', ")
+                .append(column)
+                .append(")");
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(this.timestamp);
+        hash = 29 * hash + Objects.hashCode(this.granularity);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        final OaiTimestamp other = (OaiTimestamp) obj;
+        return this.granularity == other.granularity &&
+               Objects.equals(this.timestamp, other.timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return "OaiTimestamp{" + timestamp + "/" + granularity.text + '}';
+    }
+
+    static void to(DataOutputStream dos, OaiTimestamp ts) throws IOException {
+        if (ts == null) {
+            dos.writeByte(Byte.MIN_VALUE);
+
+        } else {
+            dos.writeByte(ts.granularity.getNo());
+            dos.writeInt(ts.timestamp.getNanos());
+            dos.writeLong(ts.timestamp.getTime());
         }
     }
 
+    static OaiTimestamp from(DataInputStream dis) throws IOException {
+        byte b = dis.readByte();
+        if (b == Byte.MIN_VALUE)
+            return null;
+        Granularity g = Granularity.of(b);
+        int nanos = dis.readInt();
+        long time = dis.readLong();
+        Timestamp ts = new Timestamp(time);
+        ts.setNanos(nanos);
+        return new OaiTimestamp(ts, g);
+    }
+
+    private enum Granularity {
+        YEAR("year", 0),
+        MONTH("month", 1),
+        DAY("day", 2),
+        HOUR("hour", 3),
+        MINUTE("minute", 4),
+        SECOND("second", 5),
+        MILLISECONDS("milliseconds", 6),
+        MICROSECONDS("microseconds", 7);
+
+        private final String text;
+        private final byte no;
+
+        Granularity(String text, int no) {
+            this.text = text;
+            this.no = (byte) no;
+        }
+
+        private static Granularity of(byte no) {
+            for (Granularity value : values()) {
+                if (value.no == no)
+                    return value;
+            }
+            throw new IllegalArgumentException("Cannot convert '" + no + "' to Granuality");
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        private byte getNo() {
+            return no;
+        }
+    }
 }
