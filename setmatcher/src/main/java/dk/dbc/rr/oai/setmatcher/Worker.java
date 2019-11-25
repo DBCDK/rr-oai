@@ -75,10 +75,10 @@ public class Worker {
     @Inject
     public Throttle throttle;
 
-    @Resource(lookup = "jdbc/rr")
+    @Resource(lookup = "jdbc/rawrepo")
     DataSource rawRepo;
 
-    @Resource(lookup = "jdbc/rroai")
+    @Resource(lookup = "jdbc/rawrepo-oai")
     DataSource rawRepoOai;
 
     private final ConcurrentHashMap<Long, Thread> threads;
