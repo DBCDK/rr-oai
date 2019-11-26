@@ -1,6 +1,12 @@
 {
     "appName": "rawrepo-oai-setmatcher",
     "jdbc": {
+        "jdbc/rawrepo-oai-migrate": {
+            "xa": false,
+            "url": "${RAWREPO_OAI_POSTGRES_URL}",
+            "maxSize": "1",
+            "steadySize": "0"
+        },
         "jdbc/rawrepo-oai": {
             "xa": true,
             "url": "${RAWREPO_OAI_POSTGRES_URL}",

@@ -40,7 +40,7 @@ public class DatabaseMigrator {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseMigrator.class);
 
-    @Resource(lookup = "jdbc/rawrepo-oai")
+    @Resource(lookup = "jdbc/rawrepo-oai-migrate")
     DataSource ds;
 
     @PostConstruct
