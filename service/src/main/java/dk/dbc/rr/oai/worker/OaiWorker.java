@@ -393,7 +393,10 @@ public class OaiWorker {
             if (identifier.isDeleted())
                 header.setStatus(StatusType.DELETED);
             List<String> setSpecs = header.getSetSpecs();
-            identifier.setspecsLimitedTo(allowedSets).forEach(setSpecs::add);
+            identifier.setspecsLimitedTo(allowedSets)
+                    .stream()
+                    .sorted()
+                    .forEach(setSpecs::add);
             return header;
         };
     }
