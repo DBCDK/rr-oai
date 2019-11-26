@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.ServerErrorException;
@@ -99,7 +100,7 @@ public class OaiBean {
         Set<String> allowedSets = getAllowedSets(triple, clientIp);
 
         if (allowedSets.isEmpty())
-            throw new ServerErrorException(UNAUTHORIZED);
+            throw new ClientErrorException(UNAUTHORIZED);
 
         return Response.ok()
                 .type(MediaType.APPLICATION_XML_TYPE)

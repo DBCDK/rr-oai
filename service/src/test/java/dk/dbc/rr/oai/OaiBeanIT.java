@@ -18,8 +18,6 @@
  */
 package dk.dbc.rr.oai;
 
-import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
