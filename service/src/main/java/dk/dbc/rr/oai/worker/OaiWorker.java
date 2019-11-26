@@ -336,11 +336,11 @@ public class OaiWorker {
      *
      * @param response               Where errors are posted
      * @param request                The user request data
-     * @param resumpotionTokenSetter How to set the resumption token
+     * @param resumptionTokenSetter How to set the resumption token
      * @return list of identifiers - might be empty
      * @throws SQLException If the database acts up
      */
-    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumpotionTokenSetter, Set<String> allowedSets) throws SQLException {
+    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumptionTokenSetter, Set<String> allowedSets) throws SQLException {
         if (!databaseMetadata.knownPrefix(request.getMetadataPrefix())) {
             response.error(OAIPMHerrorcodeType.CANNOT_DISSEMINATE_FORMAT, "Unknown metadata prefix");
             return Collections.EMPTY_LIST;
@@ -365,6 +365,10 @@ public class OaiWorker {
                 identifiers = databaseWorker.listIdentifiers(from, until, singleton(set));
             }
         }
+        if (from.getTimestamp().after(until.getTimestamp())) {
+            response.error(OAIPMHerrorcodeType.BAD_ARGUMENT, "Error in timestamp arguments: 'from' cannot be after 'until'");
+            return Collections.EMPTY_LIST;
+        }
         log.debug("identifiers.size() = {}", identifiers.size());
         if (identifiers.isEmpty()) {
             response.error(OAIPMHerrorcodeType.NO_RECORDS_MATCH, "There are no records in the interval");
@@ -373,7 +377,7 @@ public class OaiWorker {
         if (identifiers.size() > config.getMaxRowsPrRequest()) {
             OaiIdentifier resumeFrom = identifiers.removeLast();
             ResumptionTokenType token = ioBean.resumptionTokenFor(from, resumeFrom, until, set);
-            resumpotionTokenSetter.accept(token);
+            resumptionTokenSetter.accept(token);
         }
         return identifiers;
     }

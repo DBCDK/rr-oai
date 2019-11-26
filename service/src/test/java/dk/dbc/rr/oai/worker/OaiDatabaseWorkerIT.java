@@ -55,6 +55,16 @@ public class OaiDatabaseWorkerIT extends DB {
     }
 
     @Test(timeout = 2_000L)
+    public void testMalformedTimestamps() throws Exception {
+        System.out.println("testMalformedTimeStamps");
+        OaiTimestamp from = OaiTimestamp.of("2020");
+        OaiTimestamp to = OaiTimestamp.of("2019");
+        String set = "nat";
+        LinkedList<OaiIdentifier> identifiers = bean.listIdentifiers(from, to, Collections.singleton(set));
+        assertThat(identifiers.size(), is(0));
+    }
+
+    @Test(timeout = 2_000L)
     public void testContinuedFetch() throws Exception {
         System.out.println("testContinuedFetch");
         assertThat(config.getMaxRowsPrRequest(), is(10));
