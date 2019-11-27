@@ -69,4 +69,35 @@ public class OaiTimestampTest {
             assertThat(actual, is(a[1]));
         });
     }
+
+    @Test(timeout = 2_000L)
+    public void testCompareTo() throws Exception {
+        System.out.println("testCompareTo");
+        Arrays.asList(
+                "2019                        2019-05-04T12:34:56.654321Z  0",
+                "2019                        2018-05-04T12:34:56.654321Z  1",
+                "2019                        2020-05-04T12:34:56.654321Z -1",
+                "2019-07                     2019                         0",
+                "2019                        2019-07                      0",
+                "2019-08                     2019-07                      1",
+                "2019-07                     2019-07                      0",
+                "2019-07                     2019-08                     -1",
+                "2019-03-10                  2019-03-09                   1",
+                "2019-03-10                  2019-03-10                   0",
+                "2019-03-09                  2019-03-10                  -1",
+                "2012-05-04T12:34:56.654321Z 2012-05-04T12:34:56.654320Z  1",
+                "2012-05-04T12:34:56.654321Z 2012-05-04T12:34:56.654321Z  0",
+                "2012-05-04T12:34:56.654321Z 2012-05-04T12:34:56.654322Z -1"
+        ).forEach(l -> {
+            String[] a = l.split("\\s+", 3);
+            OaiTimestamp left = OaiTimestamp.of(a[0]);
+            OaiTimestamp right = OaiTimestamp.of(a[1]);
+            int actual = left.compareTo(right);
+            if(actual > 0)
+                actual = 1;
+            if(actual < 0)
+                actual = -1;
+            assertThat(actual, is(Integer.parseInt(a[2])));
+        });
+    }
 }

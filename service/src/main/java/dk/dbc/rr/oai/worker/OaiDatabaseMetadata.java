@@ -85,10 +85,6 @@ public class OaiDatabaseMetadata {
         return sets;
     }
 
-    public boolean isAfter(OaiTimestamp from, OaiTimestamp until) throws SQLException {
-        return from.compareTimeStamp(dataSource, until) > 0;
-    }
-
     private List<Format> listFormats() throws SQLException {
         try (Connection connection = dataSource.getConnection() ;
              Statement stmt = connection.createStatement() ;

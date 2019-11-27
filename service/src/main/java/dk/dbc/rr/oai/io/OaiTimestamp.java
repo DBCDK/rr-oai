@@ -22,10 +22,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -33,7 +29,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,51 +128,48 @@ public class OaiTimestamp {
         this.granularity = granularity;
     }
 
-    /**
-     * Compare timestamps truncated to the broadest granularity
-     *
-     * @param dataSource database to handle granularity
-     * @param other      timestamp to compare to
-     * @return less than zero if this is before other, zero if same as other,
-     *         greater than zero if after other
-     * @throws SQLException If the database is misbehaving
-     */
-    public int compareTimeStamp(DataSource dataSource, OaiTimestamp other) throws SQLException {
-        String broadest = granularity.broadest(other.granularity)
-                .getText();
-        try (Connection connection = dataSource.getConnection() ;
-             PreparedStatement stmt = connection.prepareStatement(COMPARE_SQL)) {
-            int i = 0;
-            stmt.setString(++i, broadest);
-            stmt.setTimestamp(++i, timestamp);
-            stmt.setString(++i, broadest);
-            stmt.setTimestamp(++i, other.timestamp);
-            stmt.setString(++i, broadest);
-            stmt.setTimestamp(++i, timestamp);
-            stmt.setString(++i, broadest);
-            stmt.setTimestamp(++i, other.timestamp);
-            boolean le, ge;
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                if (resultSet.next()) {
-                    le = resultSet.getBoolean(1);
-                    ge = resultSet.getBoolean(2);
-                } else {
-                    throw new SQLException("No rows returned");
-                }
-            }
-            if (le && ge)
-                return 0;
-            if (le)
-                return -1;
-            return 1;
+    public int compareTo(OaiTimestamp other) {
+        Granularity broadest = this.granularity.broadest(other.granularity);
+        int trim;
+        switch (broadest) {
+            case YEAR:
+                trim = 4;
+                break;
+            case MONTH:
+                trim = 7;
+                break;
+            case DAY:
+                trim = 10;
+                break;
+            case HOUR:
+                trim = 13;
+                break;
+            case MINUTE:
+                trim = 16;
+                break;
+            case SECOND:
+                trim = 19;
+                break;
+            case MILLISECONDS:
+                trim = 23;
+                break;
+            case MICROSECONDS:
+                trim = 26;
+                break;
+            default:
+                throw new AssertionError();
         }
+        return trimTimestampTo(this.timestamp, trim)
+                .compareTo(trimTimestampTo(other.timestamp, trim));
     }
-    private static final String GRANULARITY_SQL =
-            "DATE_TRUNC(?, ?::TIMESTAMP WITH TIME ZONE)";
-    private static final String COMPARE_SQL =
-            "SELECT" +
-            " " + GRANULARITY_SQL + " <= " + GRANULARITY_SQL + " AS le," +
-            " " + GRANULARITY_SQL + " >= " + GRANULARITY_SQL + " AS ge";
+
+    // Cannot use Instant.truncateTo(DAYS) java.time.temporal.UnsupportedTemporalTypeException: Unit is too large to be used for truncation
+    private Instant trimTimestampTo(Timestamp timestamp, int i) {
+        String ts = timestamp.toInstant().toString();
+        String trimmed = ts.substring(0, i) +
+                         ( "0000-01-01T00:00:00.000000Z".substring(i) );
+        return Instant.parse(trimmed);
+    }
 
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Timestamp getTimestamp() {
@@ -239,13 +231,12 @@ public class OaiTimestamp {
 
     @Override
     public String toString() {
-        return "OaiTimestamp{" + timestamp + "/" + granularity.text + '}';
+        return "OaiTimestamp{" + timestamp.toInstant() + "/" + granularity.text + '}';
     }
 
     static void to(DataOutputStream dos, OaiTimestamp ts) throws IOException {
         if (ts == null) {
             dos.writeByte(Byte.MIN_VALUE);
-
         } else {
             dos.writeByte(ts.granularity.getNo());
             dos.writeInt(ts.timestamp.getNanos());

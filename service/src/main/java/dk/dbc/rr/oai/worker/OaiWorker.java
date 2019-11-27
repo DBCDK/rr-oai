@@ -370,7 +370,7 @@ public class OaiWorker {
             until = request.getUntil();
             set = request.getSet();
 
-            if (from != null && until != null && databaseMetadata.isAfter(from, until))
+            if (from != null && until != null && isAfter(from, until))
                 response.error(OAIPMHerrorcodeType.BAD_ARGUMENT, "Until is before from");
             if (set != null && !allowedSets.contains(set))
                 response.error(OAIPMHerrorcodeType.BAD_ARGUMENT, "Unknown setspec");
@@ -426,6 +426,10 @@ public class OaiWorker {
                     .forEach(setSpecs::add);
             return header;
         };
+    }
+
+    public boolean isAfter(OaiTimestamp from, OaiTimestamp until) {
+        return from.compareTo(until) > 0;
     }
 
 }
