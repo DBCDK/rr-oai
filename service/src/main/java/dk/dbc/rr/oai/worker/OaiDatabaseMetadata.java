@@ -18,7 +18,6 @@
  */
 package dk.dbc.rr.oai.worker;
 
-import dk.dbc.rr.oai.io.OaiTimestamp;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
