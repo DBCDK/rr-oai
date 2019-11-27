@@ -157,7 +157,6 @@ public class OaiRequest {
         private static final String VERB = "verb";
 
         private final OAIPMH oaipmh;
-        private boolean ok = true;
         private String identity = null;
 
         private OaiTimestamp from = null;
@@ -269,7 +268,6 @@ public class OaiRequest {
                 ensureUnset(UNTIL, until, RESUMPTION_TOKEN_IS_SET);
                 if (parsedResumptionToken == null) {
                     error(BAD_RESUMPTION_TOKEN, "Invalid or expired resumptionToken");
-                    ok = false;
                     resumptionToken = null;
                 }
             }
@@ -322,7 +320,6 @@ public class OaiRequest {
             err.setCode(errorCode);
             err.setValue(message);
             oaipmh.getErrors().add(err);
-            ok = false;
         }
 
         private <T> T setError(OAIPMHerrorcodeType errorCode, String msg) {
@@ -336,7 +333,6 @@ public class OaiRequest {
 
         private void ensureUnset(String name, Object value, String extra) {
             if (value != null) {
-                ok = false;
                 setError(BAD_ARGUMENT, "argument: " + name + " is not allowed for verb: " + verb.value() + extra);
             }
         }
@@ -347,7 +343,6 @@ public class OaiRequest {
 
         private void ensureSet(String name, Object value, String extra) {
             if (value == null) {
-                ok = false;
                 setError(BAD_ARGUMENT, "argument: " + name + " is required for verb: " + verb.value() + extra);
             }
         }
