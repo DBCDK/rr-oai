@@ -22,6 +22,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -29,6 +33,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +45,7 @@ public class OaiTimestamp {
 
     private static final Logger log = LoggerFactory.getLogger(OaiTimestamp.class);
 
-    public static final Pattern ISO8601 = Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}:\\d{2}(:\\d{2}(?:\\.\\d{1,6})?)?z)?)?)?$", Pattern.CASE_INSENSITIVE);
+    public static final Pattern ISO8601 = Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}(?::\\d{2}(?::\\d{2}(?:\\.\\d{1,6})?)?)?z)?)?)?$", Pattern.CASE_INSENSITIVE);
     public static final DateTimeFormatter EXACT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSz");
     public static final ZoneId ZONE_Z = ZoneId.of("Z");
 
@@ -65,6 +70,10 @@ public class OaiTimestamp {
                 case 10:
                     ts = text + "T00:00:00.000000Z";
                     truncated = Granularity.DAY;
+                    break;
+                case 14:
+                    ts = text.replace("Z", ":00:00.000000Z");
+                    truncated = Granularity.HOUR;
                     break;
                 case 17:
                     ts = text.replace("Z", ":00.000000Z");
@@ -123,6 +132,52 @@ public class OaiTimestamp {
         this.timestamp = timestamp;
         this.granularity = granularity;
     }
+
+    /**
+     * Compare timestamps truncated to the broadest granularity
+     *
+     * @param dataSource database to handle granularity
+     * @param other      timestamp to compare to
+     * @return less than zero if this is before other, zero if same as other,
+     *         greater than zero if after other
+     * @throws SQLException If the database is misbehaving
+     */
+    public int compareTimeStamp(DataSource dataSource, OaiTimestamp other) throws SQLException {
+        String broadest = granularity.broadest(other.granularity)
+                .getText();
+        try (Connection connection = dataSource.getConnection() ;
+             PreparedStatement stmt = connection.prepareStatement(COMPARE_SQL)) {
+            int i = 0;
+            stmt.setString(++i, broadest);
+            stmt.setTimestamp(++i, timestamp);
+            stmt.setString(++i, broadest);
+            stmt.setTimestamp(++i, other.timestamp);
+            stmt.setString(++i, broadest);
+            stmt.setTimestamp(++i, timestamp);
+            stmt.setString(++i, broadest);
+            stmt.setTimestamp(++i, other.timestamp);
+            boolean le, ge;
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    le = resultSet.getBoolean(1);
+                    ge = resultSet.getBoolean(2);
+                } else {
+                    throw new SQLException("No rows returned");
+                }
+            }
+            if (le && ge)
+                return 0;
+            if (le)
+                return -1;
+            return 1;
+        }
+    }
+    private static final String GRANULARITY_SQL =
+            "DATE_TRUNC(?, ?::TIMESTAMP WITH TIME ZONE)";
+    private static final String COMPARE_SQL =
+            "SELECT" +
+            " " + GRANULARITY_SQL + " <= " + GRANULARITY_SQL + " AS le," +
+            " " + GRANULARITY_SQL + " >= " + GRANULARITY_SQL + " AS ge";
 
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Timestamp getTimestamp() {
@@ -242,6 +297,10 @@ public class OaiTimestamp {
 
         private byte getNo() {
             return no;
+        }
+
+        private Granularity broadest(Granularity other) {
+            return this.no <= other.no ? this : other;
         }
     }
 }

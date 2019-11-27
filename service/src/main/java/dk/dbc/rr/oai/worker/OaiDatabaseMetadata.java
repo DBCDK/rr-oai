@@ -18,6 +18,7 @@
  */
 package dk.dbc.rr.oai.worker;
 
+import dk.dbc.rr.oai.io.OaiTimestamp;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -82,6 +83,10 @@ public class OaiDatabaseMetadata {
 
     public List<OaiSet> getSets() {
         return sets;
+    }
+
+    public boolean isAfter(OaiTimestamp from, OaiTimestamp until) throws SQLException {
+        return from.compareTimeStamp(dataSource, until) > 0;
     }
 
     private List<Format> listFormats() throws SQLException {

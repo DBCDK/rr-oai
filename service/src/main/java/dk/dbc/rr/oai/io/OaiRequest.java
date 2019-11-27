@@ -294,8 +294,6 @@ public class OaiRequest {
         }
 
         OaiRequest asOaiRequest() {
-            if (!ok)
-                return null;
             return new OaiRequest(identity, from, identifier, metadataPrefix, parsedResumptionToken, set, until, verb);
         }
 

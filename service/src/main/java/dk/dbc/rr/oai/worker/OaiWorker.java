@@ -102,20 +102,21 @@ public class OaiWorker {
     @Timed
     public void getRecord(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("getRecord");
-        GetRecordType record = response.getRecord();
         String metadataPrefix = request.getMetadataPrefix();
-        if (!databaseMetadata.knownPrefix(metadataPrefix)) {
+        if (!databaseMetadata.knownPrefix(metadataPrefix))
             response.error(OAIPMHerrorcodeType.CANNOT_DISSEMINATE_FORMAT, "Unknown metadata prefix");
-            return;
-        }
+
         OaiIdentifier identifier = databaseWorker.getIdentifier(request.getIdentifier());
-        if (identifier == null || identifier.setspecsLimitedTo(allowedSets).isEmpty()) {
+        if (identifier == null || identifier.setspecsLimitedTo(allowedSets).isEmpty())
             response.error(OAIPMHerrorcodeType.ID_DOES_NOT_EXIST, "No such record");
+
+        if (response.hasErrors())
             return;
-        }
+
+        GetRecordType record = response.getRecord();
         RecordType rec = O.createRecordType();
         rec.setHeader(makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets).apply(identifier));
-        if (!identifier.isDeleted()) {
+        if (identifier != null && !identifier.isDeleted()) {
             MetadataType metadata = O.createMetadataType();
             URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets));
             metadata.setAny(parallelFetch.fetchASingleDocument(uri).getDocumentElement());
@@ -137,6 +138,10 @@ public class OaiWorker {
     @Timed
     public void identify(OaiResponse response) {
         log.info("identify");
+
+        if (response.hasErrors())
+            return;
+
         IdentifyType identify = response.identify();
         identify.setRepositoryName(config.getRepoName());
         identify.setBaseURL(config.getExposedUrl());
@@ -167,15 +172,17 @@ public class OaiWorker {
     @Timed
     public void listIdentifiers(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listIdentifiers");
-        ListIdentifiersType list = response.listIdentifiers();
-        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken, allowedSets);
+        List<OaiIdentifier> identifiers = getIdentifiers(response, request, r -> response.listIdentifiers().setResumptionToken(r), allowedSets);
 
-        if (identifiers.isEmpty())
+        if (response.hasErrors())
             return;
 
+        ListIdentifiersType list = response.listIdentifiers();
         List<HeaderType> headers = list.getHeaders();
+
         Function<OaiIdentifier, HeaderType> headerBuilder =
                 makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets);
+
         identifiers.stream()
                 .map(headerBuilder)
                 .forEach(headers::add);
@@ -199,11 +206,13 @@ public class OaiWorker {
         log.info("listMetadataFormats");
         if (request.getIdentifier() != null) {
             OaiIdentifier identifier = databaseWorker.getIdentifier(request.getIdentifier());
-            if (identifier == null || identifier.setspecsLimitedTo(allowedSets).isEmpty()) {
+            if (identifier == null || identifier.setspecsLimitedTo(allowedSets).isEmpty())
                 response.error(OAIPMHerrorcodeType.ID_DOES_NOT_EXIST, "No such record");
-                return;
-            }
         }
+
+        if (response.hasErrors())
+            return;
+
         List<MetadataFormatType> metadataFormats = response.listMetadataFormats()
                 .getMetadataFormats();
         databaseMetadata.getFormats()
@@ -234,18 +243,19 @@ public class OaiWorker {
     @Timed
     public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
         log.info("listRecords");
-        ListRecordsType list = response.listRecords();
-        List<OaiIdentifier> identifiers = getIdentifiers(response, request, list::setResumptionToken, allowedSets);
+        List<OaiIdentifier> identifiers = getIdentifiers(response, request, r -> response.listRecords().setResumptionToken(r), allowedSets);
 
-        if (identifiers.isEmpty())
+        if (response.hasErrors())
             return;
 
+        ListRecordsType list = response.listRecords();
         String metadataPrefix = request.getMetadataPrefix();
 
         List<URI> uris = identifiers.stream()
                 .filter(i -> !i.isDeleted() && !i.setspecsLimitedTo(allowedSets).isEmpty())
                 .map(i -> parallelFetch.buildUri(i.getIdentifier(), metadataPrefix, i.setspecsLimitedTo(allowedSets)))
                 .collect(Collectors.toList());
+
         List<Element> elements = parallelFetch.parallelFetch(uris);
 
         if (uris.size() != elements.size()) {
@@ -285,6 +295,10 @@ public class OaiWorker {
     @Timed
     public void listSets(OaiResponse response) {
         log.info("listSets");
+
+        if (response.hasErrors())
+            return;
+
         List<SetType> sets = response.listSets().getSets();
         databaseMetadata.getSets()
                 .forEach(s -> {
@@ -334,36 +348,49 @@ public class OaiWorker {
      * returned
      * - If there are more records, the resumption token is set using the setter
      *
-     * @param response               Where errors are posted
-     * @param request                The user request data
-     * @param resumpotionTokenSetter How to set the resumption token
+     * @param response              Where errors are posted
+     * @param request               The user request data
+     * @param resumptionTokenSetter How to set the resumption token
      * @return list of identifiers - might be empty
      * @throws SQLException If the database acts up
      */
-    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumpotionTokenSetter, Set<String> allowedSets) throws SQLException {
-        if (!databaseMetadata.knownPrefix(request.getMetadataPrefix())) {
+    private List<OaiIdentifier> getIdentifiers(OaiResponse response, OaiRequest request, Consumer<ResumptionTokenType> resumptionTokenSetter, Set<String> allowedSets) throws SQLException {
+
+        if (!databaseMetadata.knownPrefix(request.getMetadataPrefix()))
             response.error(OAIPMHerrorcodeType.CANNOT_DISSEMINATE_FORMAT, "Unknown metadata prefix");
-            return Collections.EMPTY_LIST;
-        }
-        LinkedList<OaiIdentifier> identifiers;
+
         OaiTimestamp from;
         OaiTimestamp until;
         String set;
-        if (request.getResumptionToken() != null) {
-            OaiResumptionToken resumptionToken = request.getResumptionToken();
-            from = resumptionToken.getFrom();
-            until = resumptionToken.getUntil();
-            set = resumptionToken.getSet();
-            identifiers = databaseWorker.listIdentifiers(resumptionToken, allowedSets);
-        } else {
+
+        LinkedList<OaiIdentifier> identifiers;
+
+        if (request.getResumptionToken() == null) {
             from = request.getFrom();
             until = request.getUntil();
             set = request.getSet();
+
+            if (from != null && until != null && databaseMetadata.isAfter(from, until))
+                response.error(OAIPMHerrorcodeType.BAD_ARGUMENT, "Until is before from");
+            if (set != null && !allowedSets.contains(set))
+                response.error(OAIPMHerrorcodeType.BAD_ARGUMENT, "Unknown setspec");
+
+            if (response.hasErrors())
+                return Collections.EMPTY_LIST;
+
             if (set == null) {
                 identifiers = databaseWorker.listIdentifiers(from, until, allowedSets);
             } else {
                 identifiers = databaseWorker.listIdentifiers(from, until, singleton(set));
             }
+        } else if (response.hasErrors()) { // format error
+            return Collections.EMPTY_LIST;
+        } else {
+            OaiResumptionToken resumptionToken = request.getResumptionToken();
+            from = resumptionToken.getFrom();
+            until = resumptionToken.getUntil();
+            set = resumptionToken.getSet();
+            identifiers = databaseWorker.listIdentifiers(resumptionToken, allowedSets);
         }
         log.debug("identifiers.size() = {}", identifiers.size());
         if (identifiers.isEmpty()) {
@@ -373,7 +400,7 @@ public class OaiWorker {
         if (identifiers.size() > config.getMaxRowsPrRequest()) {
             OaiIdentifier resumeFrom = identifiers.removeLast();
             ResumptionTokenType token = ioBean.resumptionTokenFor(from, resumeFrom, until, set);
-            resumpotionTokenSetter.accept(token);
+            resumptionTokenSetter.accept(token);
         }
         return identifiers;
     }
