@@ -136,6 +136,15 @@ public final class OaiResponse {
     }
 
     /**
+     * If any errors are registered
+     *
+     * @return if error list isn't empty
+     */
+    public boolean hasErrors() {
+        return !oaipmh.getErrors().isEmpty();
+    }
+
+    /**
      * Get the request object
      *
      * @return null if the request is invalid
@@ -150,8 +159,9 @@ public final class OaiResponse {
      * @return response object
      */
     public GetRecordType getRecord() {
-        GetRecordType obj = O.createGetRecordType();
-        oaipmh.setGetRecord(obj);
+        GetRecordType obj = oaipmh.getGetRecord();
+        if (obj == null)
+            oaipmh.setGetRecord(obj = O.createGetRecordType());
         return obj;
     }
 
@@ -161,8 +171,9 @@ public final class OaiResponse {
      * @return response object
      */
     public IdentifyType identify() {
-        IdentifyType obj = O.createIdentifyType();
-        oaipmh.setIdentify(obj);
+        IdentifyType obj = oaipmh.getIdentify();
+        if (obj == null)
+            oaipmh.setIdentify(obj = O.createIdentifyType());
         return obj;
     }
 
@@ -172,8 +183,9 @@ public final class OaiResponse {
      * @return response object
      */
     public ListIdentifiersType listIdentifiers() {
-        ListIdentifiersType obj = O.createListIdentifiersType();
-        oaipmh.setListIdentifiers(obj);
+        ListIdentifiersType obj = oaipmh.getListIdentifiers();
+        if (obj == null)
+            oaipmh.setListIdentifiers(obj = O.createListIdentifiersType());
         return obj;
     }
 
@@ -183,8 +195,9 @@ public final class OaiResponse {
      * @return response object
      */
     public ListMetadataFormatsType listMetadataFormats() {
-        ListMetadataFormatsType obj = O.createListMetadataFormatsType();
-        oaipmh.setListMetadataFormats(obj);
+        ListMetadataFormatsType obj = oaipmh.getListMetadataFormats();
+        if (obj == null)
+            oaipmh.setListMetadataFormats(obj = O.createListMetadataFormatsType());
         return obj;
     }
 
@@ -194,8 +207,9 @@ public final class OaiResponse {
      * @return response object
      */
     public ListRecordsType listRecords() {
-        ListRecordsType obj = O.createListRecordsType();
-        oaipmh.setListRecords(obj);
+        ListRecordsType obj = oaipmh.getListRecords();
+        if (obj == null)
+            oaipmh.setListRecords(obj = O.createListRecordsType());
         return obj;
     }
 
@@ -205,8 +219,9 @@ public final class OaiResponse {
      * @return response object
      */
     public ListSetsType listSets() {
-        ListSetsType obj = O.createListSetsType();
-        oaipmh.setListSets(obj);
+        ListSetsType obj = oaipmh.getListSets();
+        if (obj == null)
+            oaipmh.setListSets(obj = O.createListSetsType());
         return obj;
     }
 

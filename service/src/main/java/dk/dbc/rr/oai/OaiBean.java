@@ -120,8 +120,7 @@ public class OaiBean {
         OaiResponse response = oaiIO.oaiResponseOf(config.getExposedUrl(), params);
         OaiRequest request = response.getRequest();
         try {
-            if (request != null) {
-                log.debug("request.getVerb = {}", request.getVerb());
+            if (request.getVerb() != null) {
                 switch (request.getVerb()) {
                     case GET_RECORD:
                         oaiWorker.getRecord(response, request, allowedSets);

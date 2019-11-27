@@ -59,10 +59,9 @@ public class DB {
 
     protected static final ObjectMapper O = new ObjectMapper();
 
-    protected PGSimpleDataSource ds;
+    protected static final PGSimpleDataSource ds = createDataSource();
 
-    @Before
-    public void initDatabase() throws SQLException {
+    private static PGSimpleDataSource createDataSource() {
         String portProperty = System.getProperty("postgresql.port");
         String username = System.getProperty("user.name");
         String user = username;
@@ -80,7 +79,7 @@ public class DB {
             host = env.getOrDefault("PGHOST", "localhost");
             base = env.getOrDefault("PGDATABASE", username);
         }
-        ds = new PGSimpleDataSource() {
+        PGSimpleDataSource ds = new PGSimpleDataSource() {
             @Override
             public Connection getConnection() throws SQLException {
                 Connection connection = super.getConnection();
@@ -98,11 +97,17 @@ public class DB {
         ds.setDatabaseName(base);
 
         DatabaseMigrate.migrate(ds);
+        return ds;
+    }
+
+    @Before
+    public void wipeDatabase() throws SQLException {
         try (Connection connection = ds.getConnection() ;
              Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("TRUNCATE oairecords CASCADE");
             stmt.executeUpdate("TRUNCATE oairecordsets CASCADE");
         }
+
     }
 
     protected void loadData(String data) throws IOException, SQLException {

@@ -40,7 +40,7 @@ public class OaiTimestamp {
 
     private static final Logger log = LoggerFactory.getLogger(OaiTimestamp.class);
 
-    public static final Pattern ISO8601 = Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}:\\d{2}(:\\d{2}(?:\\.\\d{1,6})?)?z)?)?)?$", Pattern.CASE_INSENSITIVE);
+    public static final Pattern ISO8601 = Pattern.compile("^\\d{4}(?:-\\d{2}(?:-\\d{2}(?:T\\d{2}(?::\\d{2}(?::\\d{2}(?:\\.\\d{1,6})?)?)?z)?)?)?$", Pattern.CASE_INSENSITIVE);
     public static final DateTimeFormatter EXACT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSz");
     public static final ZoneId ZONE_Z = ZoneId.of("Z");
 
@@ -65,6 +65,10 @@ public class OaiTimestamp {
                 case 10:
                     ts = text + "T00:00:00.000000Z";
                     truncated = Granularity.DAY;
+                    break;
+                case 14:
+                    ts = text.replace("Z", ":00:00.000000Z");
+                    truncated = Granularity.HOUR;
                     break;
                 case 17:
                     ts = text.replace("Z", ":00.000000Z");
@@ -122,6 +126,49 @@ public class OaiTimestamp {
     private OaiTimestamp(Timestamp timestamp, Granularity granularity) {
         this.timestamp = timestamp;
         this.granularity = granularity;
+    }
+
+    public int compareTo(OaiTimestamp other) {
+        Granularity broadest = this.granularity.broadest(other.granularity);
+        int trim;
+        switch (broadest) {
+            case YEAR:
+                trim = 4;
+                break;
+            case MONTH:
+                trim = 7;
+                break;
+            case DAY:
+                trim = 10;
+                break;
+            case HOUR:
+                trim = 13;
+                break;
+            case MINUTE:
+                trim = 16;
+                break;
+            case SECOND:
+                trim = 19;
+                break;
+            case MILLISECONDS:
+                trim = 23;
+                break;
+            case MICROSECONDS:
+                trim = 26;
+                break;
+            default:
+                throw new AssertionError();
+        }
+        return trimTimestampTo(this.timestamp, trim)
+                .compareTo(trimTimestampTo(other.timestamp, trim));
+    }
+
+    // Cannot use Instant.truncateTo(DAYS) java.time.temporal.UnsupportedTemporalTypeException: Unit is too large to be used for truncation
+    private Instant trimTimestampTo(Timestamp timestamp, int i) {
+        String ts = timestamp.toInstant().toString();
+        String trimmed = ts.substring(0, i) +
+                         ( "0000-01-01T00:00:00.000000Z".substring(i) );
+        return Instant.parse(trimmed);
     }
 
     @SuppressFBWarnings("EI_EXPOSE_REP")
@@ -184,13 +231,12 @@ public class OaiTimestamp {
 
     @Override
     public String toString() {
-        return "OaiTimestamp{" + timestamp + "/" + granularity.text + '}';
+        return "OaiTimestamp{" + timestamp.toInstant() + "/" + granularity.text + '}';
     }
 
     static void to(DataOutputStream dos, OaiTimestamp ts) throws IOException {
         if (ts == null) {
             dos.writeByte(Byte.MIN_VALUE);
-
         } else {
             dos.writeByte(ts.granularity.getNo());
             dos.writeInt(ts.timestamp.getNanos());
@@ -242,6 +288,10 @@ public class OaiTimestamp {
 
         private byte getNo() {
             return no;
+        }
+
+        private Granularity broadest(Granularity other) {
+            return this.no <= other.no ? this : other;
         }
     }
 }
