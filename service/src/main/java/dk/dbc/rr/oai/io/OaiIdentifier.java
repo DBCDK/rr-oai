@@ -44,6 +44,13 @@ public class OaiIdentifier {
         this.setspecs = new HashSet<>(Arrays.asList(setspecs));
     }
 
+    public OaiIdentifier() {
+        this.identifier = null;
+        this.deleted = false;
+        this.changed = null;
+        this.setspecs = null;
+    }
+
     public String getIdentifier() {
         return identifier;
     }

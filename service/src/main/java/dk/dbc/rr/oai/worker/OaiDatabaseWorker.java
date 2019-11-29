@@ -49,17 +49,8 @@ public class OaiDatabaseWorker {
 
     private static final Logger log = LoggerFactory.getLogger(OaiDatabaseWorker.class);
 
-    private static final String COMMA_LIST_OF_SETSPECS =
-            "(SELECT STRING_AGG(sets.setspec, ',')" +
-            " FROM oairecordsets AS sets" +
-            " WHERE pid = oairecords.pid" +
-            " AND NOT GONE)";
     private static final String SELECT_OAI_RECORDS =
-            "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
-            " FROM oairecords" +
-            " JOIN oairecordsets USING (pid)";
-    private static final String SELECT_OAI_RECORDS_JOIN_SETS =
-            "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
+            "SELECT pid, deleted, changed, setspec, gone" +
             " FROM oairecords" +
             " JOIN oairecordsets USING (pid)";
 
@@ -77,16 +68,16 @@ public class OaiDatabaseWorker {
      * @throws SQLException If the record cannot be fetched
      */
     public OaiIdentifier getIdentifier(String id) throws SQLException {
-        String sql = SELECT_OAI_RECORDS + " WHERE pid = ? ORDER BY changed DESC LIMIT 1";
+        String sql = SELECT_OAI_RECORDS + " WHERE pid = ?";
         log.debug("sql = {}", sql);
         try (Connection connection = dataSource.getConnection() ;
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, id);
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                if (resultSet.next())
-                    return identifierFromStatement(resultSet);
+            LinkedList<OaiIdentifier> list = listOfIdentifiersFromStatement(stmt, 1);
+            if (list.isEmpty()) {
                 return null;
             }
+            return list.get(0);
         }
     }
 
@@ -139,7 +130,7 @@ public class OaiDatabaseWorker {
         for (String s : set) {
             values[pos++] = s;
         }
-        String sql = listRecordsSql(values, pos, from, segmentStart, segmentId, until);
+        String sql = listRecordsSql(values, pos, from, segmentStart, segmentId, until, set.size());
         log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
         try (Connection connection = dataSource.getConnection() ;
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -155,32 +146,39 @@ public class OaiDatabaseWorker {
                     throw new AssertionError();
                 }
             }
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                LinkedList<OaiIdentifier> identifiers = new LinkedList<>();
-                while (resultSet.next()) {
-                    identifiers.add(identifierFromStatement(resultSet));
-                }
-                return identifiers;
-            }
+            int maxLength = config.getMaxRowsPrRequest() + 1;
+            return listOfIdentifiersFromStatement(stmt, maxLength);
         }
     }
 
     /**
-     * Convert a row to an OAIIdentifier
+     * Construct a list of identifiers from a prepared statement
      *
-     * @param resultSet database row
-     * @return identifier
-     * @throws SQLException If fields couldn't be accessed
+     * @param stmt      Statement that has id,deleted,changed,setspec,gone
+     * @param maxLength Max length of returned list
+     * @return list of idenitfiers
+     * @throws SQLException if a row cannot be fetched
      */
-    private static OaiIdentifier identifierFromStatement(ResultSet resultSet) throws SQLException {
-        String identifier = resultSet.getString(1);
-        boolean deleted = resultSet.getBoolean(2);
-        Timestamp changed = resultSet.getTimestamp(3);
-        String setspecs = resultSet.getString(4);
-        if (setspecs == null || setspecs.isEmpty()) {
-            return new OaiIdentifier(identifier, deleted, changed);
-        } else {
-            return new OaiIdentifier(identifier, deleted, changed, setspecs.split(","));
+    private LinkedList<OaiIdentifier> listOfIdentifiersFromStatement(final PreparedStatement stmt, int maxLength) throws SQLException {
+        OaiIdentifier oaiIdentifier = new OaiIdentifier();
+        try (ResultSet resultSet = stmt.executeQuery()) {
+            LinkedList<OaiIdentifier> identifiers = new LinkedList<>();
+            while (resultSet.next()) {
+                String identifier = resultSet.getString(1);
+                if (!identifier.equals(oaiIdentifier.getIdentifier())) {
+                    if (identifiers.size() == maxLength)
+                        break; // All setspecs for the wanted number has been fetched
+                    boolean deleted = resultSet.getBoolean(2);
+                    Timestamp changed = resultSet.getTimestamp(3);
+                    oaiIdentifier = new OaiIdentifier(identifier, deleted, changed);
+                    identifiers.add(oaiIdentifier);
+                }
+                String setSpec = resultSet.getString(4);
+                boolean gone = resultSet.getBoolean(5);
+                if (!gone)
+                    oaiIdentifier.add(setSpec);
+            }
+            return identifiers;
         }
     }
 
@@ -195,9 +193,9 @@ public class OaiDatabaseWorker {
      * @param until        Ending timestamp
      * @return SQL statement
      */
-    private String listRecordsSql(Object[] values, int valueOffset, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
+    private String listRecordsSql(Object[] values, int valueOffset, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, int setSize) {
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_OAI_RECORDS_JOIN_SETS + " WHERE setspec");
+        sql.append(SELECT_OAI_RECORDS + " WHERE setspec");
         if (valueOffset == 1) {
             sql.append(" = ?");
         } else {
@@ -227,7 +225,7 @@ public class OaiDatabaseWorker {
             values[valueOffset++] = until.getTimestamp();
         }
         sql.append(" ORDER BY changed, pid LIMIT ")
-                .append(config.getMaxRowsPrRequest() + 1);
+                .append(config.getMaxRowsPrRequest() * setSize + 1);
         return sql.toString();
     }
 
