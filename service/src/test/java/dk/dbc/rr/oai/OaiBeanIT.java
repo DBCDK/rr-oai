@@ -175,6 +175,17 @@ public class OaiBeanIT extends DB {
     }
 
     @Test(timeout = 2_000L)
+    public void testListIdentifiersMultipleSets() throws Exception {
+        System.out.println("testListIdentifiersMultipleSets");
+        insert("123456-12000001").set("nat").commit();
+        insert("123456-12000002").set("nat", "art").commit();
+        insert("123456-12000003").set("nat").commit();
+        String content = requestAuthorized("verb=ListIdentifiers&from=2019&until=2019&metadataPrefix=oai_dc");
+        assertThat(content, containsString("123456-12000002"));
+        assertThat(content, not(containsInOrder("123456-12000002", "123456-12000002"))); // Only once
+    }
+
+    @Test(timeout = 2_000L)
     public void testListIdentifiersManyErrors() throws Exception {
         System.out.println("testListIdentifiersManyErrors");
         String content = requestAuthorized("verb=ListIdentifiers&from=2019&until=2018&set=unknown&metadataPrefix=really_bad");

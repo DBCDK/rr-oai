@@ -58,10 +58,6 @@ public class OaiDatabaseWorker {
             "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
             " FROM oairecords" +
             " JOIN oairecordsets USING (pid)";
-    private static final String SELECT_OAI_RECORDS_JOIN_SETS =
-            "SELECT pid, deleted, changed, " + COMMA_LIST_OF_SETSPECS +
-            " FROM oairecords" +
-            " JOIN oairecordsets USING (pid)";
 
     @Inject
     public Config config;
@@ -139,7 +135,7 @@ public class OaiDatabaseWorker {
         for (String s : set) {
             values[pos++] = s;
         }
-        String sql = listRecordsSql(values, pos, from, segmentStart, segmentId, until);
+        String sql = listRecordsSql(values, pos, from, segmentStart, segmentId, until, set.size());
         log.debug("sql = {}, values = {}", sql, Arrays.toString(values));
         try (Connection connection = dataSource.getConnection() ;
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -155,9 +151,15 @@ public class OaiDatabaseWorker {
                     throw new AssertionError();
                 }
             }
+            int maxLength = config.getMaxRowsPrRequest() + 1;
+            String lastPid = null;
             try (ResultSet resultSet = stmt.executeQuery()) {
                 LinkedList<OaiIdentifier> identifiers = new LinkedList<>();
-                while (resultSet.next()) {
+                while (resultSet.next() && identifiers.size() < maxLength) {
+                    String pid = resultSet.getString(1);
+                    if (pid.equals(lastPid))
+                        continue;
+                    lastPid = pid;
                     identifiers.add(identifierFromStatement(resultSet));
                 }
                 return identifiers;
@@ -195,9 +197,9 @@ public class OaiDatabaseWorker {
      * @param until        Ending timestamp
      * @return SQL statement
      */
-    private String listRecordsSql(Object[] values, int valueOffset, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until) {
+    private String listRecordsSql(Object[] values, int valueOffset, OaiTimestamp from, Timestamp segmentStart, String segmentId, OaiTimestamp until, int setSize) {
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_OAI_RECORDS_JOIN_SETS + " WHERE setspec");
+        sql.append(SELECT_OAI_RECORDS + " WHERE setspec");
         if (valueOffset == 1) {
             sql.append(" = ?");
         } else {
@@ -227,7 +229,7 @@ public class OaiDatabaseWorker {
             values[valueOffset++] = until.getTimestamp();
         }
         sql.append(" ORDER BY changed, pid LIMIT ")
-                .append(config.getMaxRowsPrRequest() + 1);
+                .append(config.getMaxRowsPrRequest() * setSize + 1);
         return sql.toString();
     }
 
