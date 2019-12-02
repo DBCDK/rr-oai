@@ -162,7 +162,7 @@ public class ParallelFetch {
             threads.put(me, thread);
             try (DocumentBuilderPool.Lease lease = documentBuilders.lease()) {
                 if (thread.isInterrupted())
-                    throw new InterruptedException("during lease()");
+                    throw new InterruptedException("During lease()");
                 Client client = config.getHttpClient();
                 try (InputStream is = client.target(req)
                         .request(MediaType.APPLICATION_XML_TYPE)
@@ -171,6 +171,10 @@ public class ParallelFetch {
                         throw new InterruptedException("During get(url)");
                     return lease.get().parse(is);
                 }
+            } catch (WebServiceException ex) {
+                log.error("Error getting content from {}: {}", req, ex.getMessage());
+                log.debug("Error getting content from {}: ", req, ex);
+                throw new ServerErrorException("Cannot format record (parse xml)", Response.Status.INTERNAL_SERVER_ERROR);
             } catch (ProcessingException | SAXException | IOException ex) {
                 log.error("Cannot parse XML from formatter url: {}: {}", req, ex.getMessage());
                 log.debug("Cannot parse XML from formatter url: {}: ", req, ex);
