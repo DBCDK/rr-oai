@@ -418,6 +418,8 @@ public final class OaiResponse {
         private static final Map<String, String> DECLARED_NAMESPACES = unmodifiableMap(new HashMap<String, String>() {
             {
                 put("info:lc/xmlns/marcxchange-v1", "marcx");
+                put("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc");
+                put("http://purl.org/dc/elements/1.1/", "purl");
             }
         });
         private final Map<String, String> namespaces;
