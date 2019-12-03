@@ -146,6 +146,7 @@ public class OaiRequest {
     static class Parser {
 
         private static final String IDENTITY = "identity";
+        private static final String TRACKING_ID = "trackingId";
 
         private static final String FROM = "from";
         private static final String IDENTIFIER = "identifier";
@@ -175,6 +176,8 @@ public class OaiRequest {
         Parser parse(MultivaluedMap<String, String> map) {
             map.forEach((name, values) -> {
                 switch (name) {
+                    case TRACKING_ID:
+                        break;
                     case IDENTITY:
                         identity = getValue(name, values, s -> s, BAD_ARGUMENT);
                         break;

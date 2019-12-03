@@ -8,9 +8,15 @@
     <body>
         <h1><a href="http://www.openarchives.org/OAI/openarchivesprotocol.html">OAI protocol</a></h1>
         <h2>Authentication</h2>
+        This is outside the standard. But if you want to access commercial datasets this is needed.
         <dl>
             <dt>By Header</dt><dd>Identity: user:group:password</dd>
             <dt>By Argument</dt><dd>verb=...&amp;<em>identity=user:group:password</em> (this overrides the header)</dd>
+        </dl>
+        <h2>Tracking-Id</h2>
+        This is outside the standard, however it is very useful for debugging.
+        <dl>
+            <dt>By Argument</dt><dd>verb=...&amp;<em>trackingId=...</em></dd>
         </dl>
     </body>
 </html>
