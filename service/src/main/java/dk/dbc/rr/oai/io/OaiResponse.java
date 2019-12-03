@@ -325,6 +325,7 @@ public final class OaiResponse {
         }
 
         @Override
+        @SuppressWarnings("PMD.CollapsibleIfStatements")
         public void add(XMLEvent event) throws XMLStreamException {
             if (event.isNamespace()) {
                 Namespace ns = (Namespace) event;
