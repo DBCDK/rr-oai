@@ -331,11 +331,11 @@ public final class OaiResponse {
                 String nsUri = ns.getNamespaceURI();
                 if (namespaces.getPrefix(nsUri) != null)
                     return; // Bubble namespaces to top (default namespace is special - needs to be declared directly)
-            } else if (event.isStartElement()) {
-                level++;
-            } else if (event.isEndElement()) {
-                if (--level == 0) {
-                    if (comment != null)
+            } else if (comment != null) {
+                if (event.isStartElement()) {
+                    level++;
+                } else if (event.isEndElement()) {
+                    if (--level == 0) // Closing last element
                         events.add(E.createComment(comment));
                 }
             }
