@@ -67,19 +67,19 @@ public class FormatterBeanTest {
             }
         };
 
-        expectException("Missing recordId", () -> bean.format(null, "marcx", "bkm"), ClientErrorException.class);
-        expectException("Empty recordId", () -> bean.format("", "marcx", "bkm"), ClientErrorException.class);
-        expectException("No colon in recordid", () -> bean.format("abc", "marcx", "bkm"), ClientErrorException.class);
-        expectException("Not a number for agency in recordid", () -> bean.format("abc:abc", "marcx", "bkm"), ClientErrorException.class);
-        expectException("Not a number for agency in recordid", () -> bean.format(":abc", "marcx", "bkm"), ClientErrorException.class);
-        expectException("Empty bibliographicRecordId", () -> bean.format("123:", "marcx", "bkm"), ClientErrorException.class);
-        expectException("Missing format", () -> bean.format("123:abc", null, "bkm"), ClientErrorException.class);
-        expectException("Empty format", () -> bean.format("123:abc", "", "bkm"), ClientErrorException.class);
-        expectException("Invalid format", () -> bean.format("123:abc", "abc", "bkm"), ClientErrorException.class);
-        expectException("Missing sets", () -> bean.format("123:abc", "marcx", null), ClientErrorException.class);
-        expectException("Empty sets", () -> bean.format("123:abc", "marcx", ""), ClientErrorException.class);
+        expectException("Missing recordId", () -> bean.format(null, "marcx", "bkm", null), ClientErrorException.class);
+        expectException("Empty recordId", () -> bean.format("", "marcx", "bkm", null), ClientErrorException.class);
+        expectException("No colon in recordid", () -> bean.format("abc", "marcx", "bkm", null), ClientErrorException.class);
+        expectException("Not a number for agency in recordid", () -> bean.format("abc:abc", "marcx", "bkm", null), ClientErrorException.class);
+        expectException("Not a number for agency in recordid", () -> bean.format(":abc", "marcx", "bkm", null), ClientErrorException.class);
+        expectException("Empty bibliographicRecordId", () -> bean.format("123:", "marcx", "bkm", null), ClientErrorException.class);
+        expectException("Missing format", () -> bean.format("123:abc", null, "bkm", null), ClientErrorException.class);
+        expectException("Empty format", () -> bean.format("123:abc", "", "bkm", null), ClientErrorException.class);
+        expectException("Invalid format", () -> bean.format("123:abc", "abc", "bkm", null), ClientErrorException.class);
+        expectException("Missing sets", () -> bean.format("123:abc", "marcx", null, null), ClientErrorException.class);
+        expectException("Empty sets", () -> bean.format("123:abc", "marcx", "", null), ClientErrorException.class);
 
-        Response resp = bean.format("123:abc", "marcx", "bkm");
+        Response resp = bean.format("123:abc", "marcx", "bkm", null);
         String xml = String.valueOf(resp.getEntity());
         assertThat(xml, is(MOCKED_FORMATTED_CONTENT));
     }

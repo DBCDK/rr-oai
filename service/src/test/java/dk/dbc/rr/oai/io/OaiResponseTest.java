@@ -41,13 +41,14 @@ public class OaiResponseTest {
         System.out.println("envelope");
 
         OaiResponse oaiResponse = OaiResponse.withoutRequestObject("http://foo/bar", qs("verb=ListRecords&from=2018-01-01&until=2019-01-01&metadataPrefix=dc"));
-        String str = new String(oaiResponse.content(), UTF_8);
+        String str = new String(oaiResponse.content("MY_MESSAGE"), UTF_8);
 
         assertThat(str, containsString("<?xml version=\"1.0\""));
         assertThat(str, containsString("<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\"" +
                                        " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
                                        " xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">"));
         assertThat(str, containsString("<request verb=\"ListRecords\" metadataPrefix=\"dc\" from=\"2018-01-01\" until=\"2019-01-01\">http://foo/bar</request>"));
+        assertThat(str, containsString("<!--MY_MESSAGE-->"));
     }
 
     @Test(timeout = 2_000L)
@@ -56,7 +57,7 @@ public class OaiResponseTest {
 
         OaiResponse oaiResponse = OaiResponse.withoutRequestObject("http://foo/bar", qs("verb=GetRecord&identifier=x&metadataPrefix=dc"));
         oaiResponse.error(OAIPMHerrorcodeType.ID_DOES_NOT_EXIST, "no such id");
-        String str = new String(oaiResponse.content(), UTF_8);
+        String str = new String(oaiResponse.content(null), UTF_8);
 
         assertThat(str, containsString("<request verb=\"GetRecord\" identifier=\"x\" metadataPrefix=\"dc\">http://foo/bar</request>"));
         assertThat(str, containsString("<error code=\"idDoesNotExist\">no such id</error>"));
@@ -68,7 +69,7 @@ public class OaiResponseTest {
 
         OaiResponse oaiResponse = OaiResponse.withoutRequestObject("http://foo/bar", qs(""));
         oaiResponse.error(OAIPMHerrorcodeType.BAD_VERB, "Value of the verb argument is not a legal OAI-PMH verb");
-        String str = new String(oaiResponse.content(), UTF_8);
+        String str = new String(oaiResponse.content(null), UTF_8);
 
         assertThat(str, containsString("<request>http://foo/bar</request>"));
         assertThat(str, containsString("<error code=\"badVerb\">Value of the verb argument is not a legal OAI-PMH verb</error>"));
@@ -81,7 +82,7 @@ public class OaiResponseTest {
         OaiResponse oaiResponse = OaiResponse.withoutRequestObject("http://foo/bar", qs(""));
         oaiResponse.error(OAIPMHerrorcodeType.BAD_VERB, "Value of the verb argument is not a legal OAI-PMH verb");
         oaiResponse.error(OAIPMHerrorcodeType.ID_DOES_NOT_EXIST, "no such id");
-        String str = new String(oaiResponse.content(), UTF_8);
+        String str = new String(oaiResponse.content(null), UTF_8);
 
         assertThat(str, containsString("<request>http://foo/bar</request>"));
         assertThat(str, containsString("<error code=\"idDoesNotExist\">no such id</error>"));

@@ -57,6 +57,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.XMLEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,9 +233,10 @@ public final class OaiResponse {
      * <p>
      * Ensure declared (from metadata formats) prefixes are used
      *
+     * @param comment Comment to add to the end of the output XML
      * @return bytes to send to the user
      */
-    public byte[] content() {
+    public byte[] content(String comment) {
         try {
             oaipmh.setResponseDate(xmlDate(Instant.now()));
             RequestType reqType = O.createRequestType();
@@ -246,7 +248,7 @@ public final class OaiResponse {
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 Marshaller marshaller = C.createMarshaller();
                 XMLEventWriter writer = OF.createXMLEventWriter(bos);
-                XMLEventWriterWithNamespaces nsWriter = new XMLEventWriterWithNamespaces(writer);
+                XMLEventWriterWithNamespaces nsWriter = new XMLEventWriterWithNamespaces(writer, comment);
                 marshaller.marshal(oaipmh, nsWriter);
                 nsWriter.close(); // outputs to writer
                 writer.close();
@@ -311,16 +313,34 @@ public final class OaiResponse {
         private final XMLEventWriter writer;
         private final ArrayList<XMLEvent> events;
         private final NamespaceContextWithDefaults namespaces;
+        private final String comment;
+        private int level;
 
-        public XMLEventWriterWithNamespaces(XMLEventWriter writer) {
+        public XMLEventWriterWithNamespaces(XMLEventWriter writer, String comment) {
             this.writer = writer;
             this.events = new ArrayList<>();
             this.namespaces = new NamespaceContextWithDefaults();
+            this.comment = comment;
+            this.level = 0;
         }
 
         @Override
         public void add(XMLEvent event) throws XMLStreamException {
+            if (event.isNamespace()) {
+                Namespace ns = (Namespace) event;
+                String nsUri = ns.getNamespaceURI();
+                if (namespaces.getPrefix(nsUri) != null)
+                    return; // Bubble namespaces to top (default namespace is special - needs to be declared directly)
+            } else if (event.isStartElement()) {
+                level++;
+            } else if (event.isEndElement()) {
+                if (--level == 0) {
+                    if (comment != null)
+                        events.add(E.createComment(comment));
+                }
+            }
             events.add(event);
+
         }
 
         @Override

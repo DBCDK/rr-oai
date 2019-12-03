@@ -1,7 +1,7 @@
 {
   "id" : "d6a4d667-222d-3262-869c-276f61210cf9",
   "request" : {
-    "url" : "/rawrepo-oai-formatter-service/api/format?id=870970-00020001&format=marcx&sets=nat",
+    "url" : "/rawrepo-oai-formatter-service/api/format?id=870970-00020001&format=marcx&sets=nat&trackingId=tracking",
     "method" : "GET"
   },
   "response" : {

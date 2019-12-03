@@ -116,6 +116,7 @@ public class RawRepo {
     }
 
     private MarcXChangeWrapper marcXChangeWrapper(RecordId id) {
+        log.debug("Wrapping id {}", id);
         return new MarcXChangeWrapper(getDataOf(id), getChildrenOf(id));
     }
 
@@ -151,7 +152,9 @@ public class RawRepo {
      */
     private RecordId getParentOf(RecordId id) {
         try {
+            log.debug("Get Parent Of: {}", id);
             RecordId[] recordParents = connector.getRecordParents(id.getAgencyId(), id.getBibliographicRecordId());
+            log.debug("Got Parent Of: {}", id);
             return Arrays.stream(recordParents)
                     .filter(r -> r.getAgencyId() == COMMON_AGENCY)
                     .findFirst()

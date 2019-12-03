@@ -19,6 +19,8 @@
 package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.MarcXChangeWrapper;
+import dk.dbc.log.LogWith;
+import java.util.UUID;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.ClientErrorException;
@@ -52,7 +54,8 @@ public class FormatterBean {
     @Produces(MediaType.APPLICATION_XML)
     public Response format(@QueryParam("id") String id,
                            @QueryParam("format") String format,
-                           @QueryParam("sets") String sets) {
+                           @QueryParam("sets") String sets,
+                           @QueryParam("trackingId") String trackingId) {
         if (id == null || id.isEmpty())
             throw new ClientErrorException("Missing query param 'id'", Status.BAD_REQUEST);
         if (format == null || format.isEmpty())
@@ -60,31 +63,39 @@ public class FormatterBean {
         if (sets == null || sets.isEmpty())
             throw new ClientErrorException("Missing query param 'sets'", Status.BAD_REQUEST);
 
-        int agencyId;
-        String recordId;
-        try {
-            String[] parts = id.split("[-:]", 2);
-            if (parts.length != 2)
-                throw new IllegalArgumentException("Bad format");
-            agencyId = Integer.parseUnsignedInt(parts[0]);
-            recordId = parts[1];
-            if (recordId.isEmpty())
-                throw new IllegalStateException("Empty record part");
-        } catch (RuntimeException ex) {
-            throw new ClientErrorException("Query param 'id' has wrong format (agency:recordid)", Status.BAD_REQUEST);
+        if (trackingId == null)
+            trackingId = UUID.randomUUID().toString();
+        try (LogWith logWith = LogWith.track(trackingId)) {
+
+            int agencyId;
+            String recordId;
+            try {
+                String[] parts = id.split("[-:]", 2);
+                if (parts.length != 2)
+                    throw new IllegalArgumentException("Bad format");
+                agencyId = Integer.parseUnsignedInt(parts[0]);
+                recordId = parts[1];
+                if (recordId.isEmpty())
+                    throw new IllegalStateException("Empty record part");
+            } catch (RuntimeException ex) {
+                throw new ClientErrorException("Query param 'id' has wrong format (agency:recordid)", Status.BAD_REQUEST);
+            }
+
+            logWith.agencyId(agencyId)
+                    .bibliographicRecordId(recordId);
+
+            if (!jsPool.checkFormat(format))
+                throw new ClientErrorException("Query param 'format' contains an unknown format", Status.BAD_REQUEST);
+            log.debug("Fetching records");
+            MarcXChangeWrapper[] records = rr.getRecordsFor(agencyId, recordId);
+            log.debug("formatting");
+            String response = jsPool.format(records, format, sets);
+
+            return Response.ok()
+                    .type(MediaType.APPLICATION_XML_TYPE)
+                    .entity(response)
+                    .build();
         }
-
-        if (!jsPool.checkFormat(format))
-            throw new ClientErrorException("Query param 'format' contains an unknown format", Status.BAD_REQUEST);
-        log.debug("Fetching records");
-        MarcXChangeWrapper[] records = rr.getRecordsFor(agencyId, recordId);
-        log.debug("formatting");
-        String response = jsPool.format(records, format, sets);
-
-        return Response.ok()
-                .type(MediaType.APPLICATION_XML_TYPE)
-                .entity(response)
-                .build();
     }
 
 }

@@ -97,10 +97,11 @@ public class OaiWorker {
      * @param response    Where to write data
      * @param request     The request parameters (validated)
      * @param allowedSets Which sets user has access to
+     * @param trackingId  Tracking id of the request
      * @throws SQLException In case of database communication problems
      */
     @Timed
-    public void getRecord(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+    public void getRecord(OaiResponse response, OaiRequest request, Set<String> allowedSets, String trackingId) throws SQLException {
         log.info("getRecord");
         String metadataPrefix = request.getMetadataPrefix();
         if (!databaseMetadata.knownPrefix(metadataPrefix))
@@ -118,7 +119,7 @@ public class OaiWorker {
         rec.setHeader(makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets).apply(identifier));
         if (identifier != null && !identifier.isDeleted()) {
             MetadataType metadata = O.createMetadataType();
-            URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets));
+            URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets), trackingId);
             metadata.setAny(parallelFetch.fetchASingleDocument(uri).getDocumentElement());
             rec.setMetadata(metadata);
         }
@@ -238,10 +239,11 @@ public class OaiWorker {
      * @param response    Where to write data
      * @param request     The request parameters (validated)
      * @param allowedSets Which sets user has access to
+     * @param trackingId  The tracking id of the request
      * @throws SQLException In case of database communication problems
      */
     @Timed
-    public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets) throws SQLException {
+    public void listRecords(OaiResponse response, OaiRequest request, Set<String> allowedSets, String trackingId) throws SQLException {
         log.info("listRecords");
         List<OaiIdentifier> identifiers = getIdentifiers(response, request, r -> response.listRecords().setResumptionToken(r), allowedSets);
 
@@ -253,10 +255,10 @@ public class OaiWorker {
 
         List<URI> uris = identifiers.stream()
                 .filter(i -> !i.isDeleted() && !i.setspecsLimitedTo(allowedSets).isEmpty())
-                .map(i -> parallelFetch.buildUri(i.getIdentifier(), metadataPrefix, i.setspecsLimitedTo(allowedSets)))
+                .map(i -> parallelFetch.buildUri(i.getIdentifier(), metadataPrefix, i.setspecsLimitedTo(allowedSets), trackingId))
                 .collect(Collectors.toList());
 
-        List<Element> elements = parallelFetch.parallelFetch(uris);
+        List<Element> elements = parallelFetch.parallelFetch(uris, trackingId);
 
         if (uris.size() != elements.size()) {
             log.error("Error formatting records - got different list sizes: uris = {} and elements = {}", uris.size(), elements.size());

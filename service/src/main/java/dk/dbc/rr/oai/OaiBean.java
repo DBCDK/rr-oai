@@ -18,6 +18,9 @@
  */
 package dk.dbc.rr.oai;
 
+import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.log.LogWith;
+import dk.dbc.oai.pmh.VerbType;
 import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiRequest;
@@ -27,6 +30,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -91,21 +95,27 @@ public class OaiBean {
                     .build();
         }
 
-        String triple = params.getFirst("identity");
-        if (triple == null || triple.split(":", 3).length != 3)
-            triple = headers.getHeaderString("Identity");
-        String clientIp = remoteIp.clientIp(httpRequest.getRemoteAddr(),
-                                            headers.getHeaderString("X-Forwarded-For"));
-        log.trace("triple = {}; clientIp = {}", triple, clientIp);
-        Set<String> allowedSets = getAllowedSets(triple, clientIp);
+        String trackingId = params.getFirst("trackingId");
+        if (trackingId == null)
+            trackingId = UUID.randomUUID().toString();
 
-        if (allowedSets.isEmpty())
-            throw new ClientErrorException(UNAUTHORIZED);
+        try (LogWith logWith = LogWith.track(trackingId)) {
+            String triple = params.getFirst("identity");
+            if (triple == null || triple.split(":", 3).length != 3)
+                triple = headers.getHeaderString("Identity");
+            String clientIp = remoteIp.clientIp(httpRequest.getRemoteAddr(),
+                                                headers.getHeaderString("X-Forwarded-For"));
+            log.trace("triple = {}; clientIp = {}", triple, clientIp);
+            Set<String> allowedSets = getAllowedSets(triple, clientIp);
 
-        return Response.ok()
-                .type(MediaType.APPLICATION_XML_TYPE)
-                .entity(processOaiRequest(allowedSets, params))
-                .build();
+            if (allowedSets.isEmpty())
+                throw new ClientErrorException(UNAUTHORIZED);
+
+            return Response.ok()
+                    .type(MediaType.APPLICATION_XML_TYPE)
+                    .entity(processOaiRequest(allowedSets, params, trackingId))
+                    .build();
+        }
     }
 
     /**
@@ -113,17 +123,20 @@ public class OaiBean {
      *
      * @param allowedSets This sets the user has access to
      * @param params      The request params
+     * @param trackingId  The tracking id (to be used in different threads)
      * @return XML bytes
      */
-    byte[] processOaiRequest(Set<String> allowedSets, MultivaluedMap<String, String> params) {
+    byte[] processOaiRequest(Set<String> allowedSets, MultivaluedMap<String, String> params, String trackingId) {
 
         OaiResponse response = oaiIO.oaiResponseOf(config.getExposedUrl(), params);
         OaiRequest request = response.getRequest();
-        try {
-            if (request.getVerb() != null) {
-                switch (request.getVerb()) {
+        VerbType verb = request.getVerb();
+        if (verb != null) {
+            try (DBCTrackedLogContext logWith = LogWith.track(trackingId)
+                    .with("verb", verb.toString())) {
+                switch (verb) {
                     case GET_RECORD:
-                        oaiWorker.getRecord(response, request, allowedSets);
+                        oaiWorker.getRecord(response, request, allowedSets, trackingId);
                         break;
                     case IDENTIFY:
                         oaiWorker.identify(response);
@@ -135,7 +148,7 @@ public class OaiBean {
                         oaiWorker.listMetadataFormats(response, request, allowedSets);
                         break;
                     case LIST_RECORDS:
-                        oaiWorker.listRecords(response, request, allowedSets);
+                        oaiWorker.listRecords(response, request, allowedSets, trackingId);
                         break;
                     case LIST_SETS:
                         oaiWorker.listSets(response);
@@ -143,13 +156,17 @@ public class OaiBean {
                     default:
                         throw new ServerErrorException("Verb not implemented", INTERNAL_SERVER_ERROR);
                 }
+            } catch (SQLException ex) {
+                log.error("Error communicating with the database: {}", ex.getMessage());
+                log.debug("Error communicating with the database: ", ex);
+                throw new ServerErrorException(INTERNAL_SERVER_ERROR);
             }
-        } catch (SQLException ex) {
-            log.error("Error communicating with the database: {}", ex.getMessage());
-            log.debug("Error communicating with the database: ", ex);
-            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
         }
-        return response.content();
+        String comment = new StringBuilder()
+                .append(" trackingId: ")
+                .append(trackingId)
+                .append(' ').toString();
+        return response.content(comment);
     }
 
     /**

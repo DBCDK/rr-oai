@@ -148,7 +148,7 @@ public class OaiRequestTest {
     public void test() throws Exception {
         System.out.println("test - " + name);
         OaiResponse oaiResponse = BEAN.oaiResponseOf("http://foo/bar", request);
-        String str = new String(oaiResponse.content(), UTF_8);
+        String str = new String(oaiResponse.content(null), UTF_8);
         System.out.println(str);
         for (String exp : expected) {
             assertThat(str, containsString(exp));

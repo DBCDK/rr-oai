@@ -331,14 +331,14 @@ public class OaiBeanIT extends DB {
     }
 
     private String requestAnonymous(String queryString) {
-        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("nat")), queryString(queryString));
+        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("nat")), queryString(queryString), "tracking");
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
         return content;
     }
 
     private String requestAuthorized(String queryString) {
-        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString));
+        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString), "tracking");
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
         return content;

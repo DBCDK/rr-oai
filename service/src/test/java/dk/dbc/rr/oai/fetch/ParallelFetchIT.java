@@ -69,10 +69,10 @@ public class ParallelFetchIT {
                 "870970-00020818", "870970-00020826", "870970-00020834", "870970-00020877", "870970-00020893");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "nat"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "nat", "tracking"))
                 .collect(toList());
 
-        List<Element> docs = parallelFetch.parallelFetch(uris);
+        List<Element> docs = parallelFetch.parallelFetch(uris, "tracking");
         System.out.println("docs = " + docs);
         assertThat(docs.stream()
                 .anyMatch(e -> e == null), is(false));
@@ -92,10 +92,10 @@ public class ParallelFetchIT {
                 "870970-00010480", "870970-error");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "nat"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "nat", "tracking"))
                 .collect(toList());
 
-        parallelFetch.parallelFetch(uris);
+        parallelFetch.parallelFetch(uris, "tracking");
     }
 
     @Test(timeout = 10_000L, expected = ServerErrorException.class)
@@ -111,7 +111,7 @@ public class ParallelFetchIT {
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         ArrayList<URI> uris = new ArrayList<>(10_000);
-        URI uri = parallelFetch.buildUri("870970-00010480", "marcx", "nat");
+        URI uri = parallelFetch.buildUri("870970-00010480", "marcx", "nat", "tracking");
         for (int i = 0 ; i < 10_000 ; i++) {
             uris.add(uri);
         }
@@ -122,7 +122,7 @@ public class ParallelFetchIT {
         Level level = logger.getLevel();
         logger.setLevel(Level.INFO);
         try {
-            parallelFetch.parallelFetch(uris); // throws ServerError Exception
+            parallelFetch.parallelFetch(uris, "tracking"); // throws ServerError Exception
         } finally {
             logger.setLevel(level);
         }
