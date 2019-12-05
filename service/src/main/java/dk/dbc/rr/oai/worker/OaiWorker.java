@@ -338,7 +338,6 @@ public class OaiWorker {
             log.debug("Error parsing dc description (static xml): ", ex);
             throw new ServerErrorException("Cannot build description", INTERNAL_SERVER_ERROR);
         }
-
     }
 
     /**

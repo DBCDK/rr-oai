@@ -57,7 +57,10 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,8 +333,8 @@ public final class OaiResponse {
             if (event.isNamespace()) {
                 Namespace ns = (Namespace) event;
                 String nsUri = ns.getNamespaceURI();
-                if (namespaces.getPrefix(nsUri) != null)
-                    return; // Bubble namespaces to top (default namespace is special - needs to be declared directly)
+                namespaces.getPrefix(nsUri); // Register/accumulate used namespace
+                return;
             } else if (comment != null) {
                 if (event.isStartElement()) {
                     level++;
@@ -341,7 +344,6 @@ public final class OaiResponse {
                 }
             }
             events.add(event);
-
         }
 
         @Override
@@ -367,6 +369,31 @@ public final class OaiResponse {
                         // root element - the one that should have all namespaces
                         setNamespaces = true;
                     }
+                }
+
+                if (event.isAttribute()) {
+                    Attribute attr = (Attribute) event;
+                    String uri = attr.getName().getNamespaceURI();
+                    if (!uri.isEmpty()) {
+                        String prefix = namespaces.getPrefix(uri);
+                        if (!prefix.equals(attr.getName().getPrefix()))
+                            event = E.createAttribute(prefix, uri, attr.getName().getLocalPart(),
+                                                      attr.getValue());
+                    }
+                }
+                if (event.isStartElement()) {
+                    StartElement e = event.asStartElement();
+                    String uri = e.getName().getNamespaceURI();
+                    String prefix = namespaces.getPrefix(uri);
+                    if (!prefix.equals(e.getName().getPrefix()))
+                        event = E.createStartElement(prefix, uri, e.getName().getLocalPart(),
+                                                     e.getAttributes(), e.getNamespaces());
+                } else if (event.isEndElement()) {
+                    EndElement e = event.asEndElement();
+                    String uri = e.getName().getNamespaceURI();
+                    String prefix = namespaces.getPrefix(uri);
+                    if (!prefix.equals(e.getName().getPrefix()))
+                        event = E.createEndElement(prefix, uri, e.getName().getLocalPart());
                 }
                 writer.add(event);
             }
@@ -415,21 +442,26 @@ public final class OaiResponse {
      */
     private static class NamespaceContextWithDefaults implements NamespaceContext {
 
+        private static final Map<String, String> MANDATORY_NAMESPACES = unmodifiableMap(new HashMap<String, String>() {
+            {
+                // from http://www.openarchives.org/OAI/openarchivesprotocol.html#XMLResponse
+                put("http://www.openarchives.org/OAI/2.0/", "");
+                put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
+            }
+        });
         private static final Map<String, String> DECLARED_NAMESPACES = unmodifiableMap(new HashMap<String, String>() {
             {
                 put("info:lc/xmlns/marcxchange-v1", "marcx");
                 put("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc");
-                put("http://purl.org/dc/elements/1.1/", "purl");
+                put("http://purl.org/dc/elements/1.1/", "dc");
             }
         });
         private final Map<String, String> namespaces;
-        private int no;
+        private int unknownNamespaceNumber;
 
         public NamespaceContextWithDefaults() {
-            this.namespaces = new HashMap<>();
-            // from http://www.openarchives.org/OAI/openarchivesprotocol.html#XMLResponse
-            this.namespaces.put("http://www.w3.org/2001/XMLSchema-instance", "xsi");
-            this.no = 1;
+            this.namespaces = new HashMap<>(MANDATORY_NAMESPACES);
+            this.unknownNamespaceNumber = 1;
         }
 
         @Override
@@ -439,9 +471,6 @@ public final class OaiResponse {
 
         @Override
         public String getPrefix(String namespaceURI) {
-            // from http://www.openarchives.org/OAI/openarchivesprotocol.html#XMLResponse
-            if ("http://www.openarchives.org/OAI/2.0/".equals(namespaceURI))
-                return null;
             return namespaces.computeIfAbsent(namespaceURI, this::findPrefixForNamespace);
         }
 
@@ -463,7 +492,7 @@ public final class OaiResponse {
             String prefix = DECLARED_NAMESPACES.get(namespaceURI);
             if (prefix == null) {
                 log.error("Undeclared namespace {} add to DECLARED_NAMESPACES", namespaceURI);
-                prefix = "ns" + no++;
+                prefix = "ns" + unknownNamespaceNumber++;
             }
             return prefix;
         }
