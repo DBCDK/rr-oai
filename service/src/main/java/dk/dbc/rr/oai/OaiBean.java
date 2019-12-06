@@ -193,11 +193,11 @@ public class OaiBean {
                 log.debug("Error validating user: ", ex);
                 throw new ServerErrorException("Error validating user", INTERNAL_SERVER_ERROR);
             }
+            // Anonymous access (no login/ip-based access)
+            if (allowedSets.isEmpty() && triple == null)
+                allowedSets = new HashSet<>(config.getForsRightsRules()
+                        .getOrDefault("*", EMPTY_LIST));
         }
-        // Anonymous access (no login/ip-based access)
-        if (allowedSets.isEmpty() && triple == null)
-            allowedSets = new HashSet<>(config.getForsRightsRules()
-                    .getOrDefault("*", EMPTY_LIST));
         return allowedSets;
     }
 }

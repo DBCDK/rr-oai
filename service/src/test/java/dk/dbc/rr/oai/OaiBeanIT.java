@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,6 +81,26 @@ public class OaiBeanIT extends DB {
         assertThat(abno.stream().sorted().collect(toList()), is(asList("art", "bkm", "nat", "onl")));
         Set<String> anonymous = oaiBean.getAllowedSets(null, "8.8.8.8");
         assertThat(anonymous.stream().sorted().collect(toList()), is(asList("art", "nat")));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testNoVerb() throws Exception {
+        System.out.println("testNoVerb");
+        String content = requestAnonymous("");
+        assertThat(content, containsInOrder(
+                   "<request>",
+                   "</request>",
+                   "<error code=\"badVerb\">"));
+    }
+
+    @Test(timeout = 2_000L)
+    public void testMultiVerb() throws Exception {
+        System.out.println("testMultiVerb");
+        String content = requestAnonymous("verb=ListIdetifiers&verb=ListIdetifiers");
+        assertThat(content, containsInOrder(
+                   "<request>",
+                   "</request>",
+                   "<error code=\"badVerb\">"));
     }
 
     @Test(timeout = 2_000L)

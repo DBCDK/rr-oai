@@ -217,7 +217,12 @@ public class OaiRequest {
         }
 
         Parser validateArguments() {
-            if (verb != null) {
+            if (verb == null) {
+                if (oaipmh.getErrors().stream()
+                        .map(OAIPMHerrorType::getCode)
+                        .noneMatch(e -> e == BAD_VERB))
+                    setError(BAD_VERB, "argument: verb is unset");
+            } else {
                 switch (verb) {
                     case GET_RECORD:
                         valudateArgumentsGetRecord();
