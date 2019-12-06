@@ -99,6 +99,14 @@ Need to depend upon only what is used:
 
         <!-- For testing -->
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rr-oai-wsdl</artifactId>
+            <version>${project.version}</version>
+            <classifier>xsd</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
