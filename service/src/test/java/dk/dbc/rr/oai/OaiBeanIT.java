@@ -18,8 +18,15 @@
  */
 package dk.dbc.rr.oai;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,11 +34,18 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
 import static dk.dbc.rr.oai.BeanFactory.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -122,7 +136,7 @@ public class OaiBeanIT extends DB {
     @Test(timeout = 2_000L)
     public void testListIdentifiersEmptySet() throws Exception {
         System.out.println("testListIdentifiersEmptySet");
-        String content = requestAnonymous("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<error code=\"noRecordsMatch\">"
            ));
@@ -134,7 +148,7 @@ public class OaiBeanIT extends DB {
         System.out.println("listIdentifiers");
         loadResource("records-15-same-timestamp.json");
         String firstPid = "870970-00010480";
-        String content = requestAnonymous("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<ListIdentifiers>",
                    "<header>",
@@ -144,7 +158,7 @@ public class OaiBeanIT extends DB {
                    "<resumptionToken",
                    "</ListIdentifiers>"
            ));
-        content = requestAuthorized("verb=ListIdentifiers&from=2019&until=2019&set=nat&metadataPrefix=oai_dc");
+        content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<ListIdentifiers>",
                    "<header>",
@@ -180,7 +194,7 @@ public class OaiBeanIT extends DB {
         insert("123456-12000001").set("nat").commit();
         insert("123456-12000002").set("nat", "art").commit();
         insert("123456-12000003").set("nat").commit();
-        String content = requestAuthorized("verb=ListIdentifiers&from=2019&until=2019&metadataPrefix=oai_dc");
+        String content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&metadataPrefix=oai_dc");
         assertThat(content, containsString("123456-12000002"));
         assertThat(content, not(containsInOrder("123456-12000002", "123456-12000002"))); // Only once
     }
@@ -224,7 +238,7 @@ public class OaiBeanIT extends DB {
     public void listRecords() throws Exception {
         System.out.println("listRecords");
         loadResource("records-15-same-timestamp.json");
-        String content = requestAuthorized("verb=ListRecords&from=2019&until=2019&set=nat&metadataPrefix=marcx");
+        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=marcx");
         assertThat(content, containsInOrder(
                    "<ListRecords>",
                    "<record>",
@@ -244,7 +258,7 @@ public class OaiBeanIT extends DB {
         System.out.println("listRecordsDeleted");
         insert("870970-00010480").deleted()
                 .set("!nat=now").commit();
-        String content = requestAnonymous("verb=ListRecords&from=2019&set=nat&metadataPrefix=marcx");
+        String content = requestAnonymous("verb=ListRecords&from=2019-01-01&set=nat&metadataPrefix=marcx");
         assertThat(content, containsInOrder(
                    "<ListRecords>",
                    "<record>",
@@ -263,7 +277,7 @@ public class OaiBeanIT extends DB {
         System.out.println("listRecordsVanished");
         insert("870970-00010480")
                 .set("!nat=now").commit();
-        String content = requestAuthorized("verb=ListRecords&from=2019&until=2019&set=nat&metadataPrefix=marcx");
+        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=marcx");
         assertThat(content, containsInOrder(
                    "<ListRecords>",
                    "<record>",
@@ -330,17 +344,42 @@ public class OaiBeanIT extends DB {
         assertThat(content, containsString("<error code=\"idDoesNotExist\">No such record</error>"));
     }
 
-    private String requestAnonymous(String queryString) {
+    private void validate(byte[] bytes) throws SAXException, IOException, URISyntaxException {
+        try (InputStream oaiPmhXsd = getClass().getClassLoader().getResourceAsStream("oai-pmh.xsd") ;
+             ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
+            Path xsd = new File(getClass().getClassLoader().getResource("test-xsd/").toURI()).toPath();
+
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file");
+            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "file");
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+            Schema schema = factory.newSchema(new Source[] {
+                new StreamSource(oaiPmhXsd),
+                new StreamSource(xsd.resolve("xml.xsd").toFile()),
+                new StreamSource(xsd.resolve("simpledc20021212.xsd").toFile()),
+                new StreamSource(xsd.resolve("oai_dc.xsd").toFile()),
+                new StreamSource(xsd.resolve("marcxchange-1-1.xsd").toFile())
+            });
+
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(input));
+        }
+    }
+
+    private String requestAnonymous(String queryString) throws SAXException, IOException, URISyntaxException {
         byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("nat")), queryString(queryString), "tracking");
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
+        validate(bytes);
         return content;
     }
 
-    private String requestAuthorized(String queryString) {
+    private String requestAuthorized(String queryString) throws SAXException, IOException, URISyntaxException {
         byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString), "tracking");
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
+        validate(bytes);
         return content;
     }
 
