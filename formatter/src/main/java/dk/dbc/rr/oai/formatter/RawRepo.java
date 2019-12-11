@@ -22,6 +22,7 @@ import dk.dbc.formatter.js.MarcXChangeWrapper;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.RecordServiceConnectorNoContentStatusCodeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.annotation.PostConstruct;
@@ -124,9 +125,13 @@ public class RawRepo {
         try {
             byte[] content = connector.getRecordContent(id.getAgencyId(), id.getBibliographicRecordId(), PARAMS);
             return new String(content, UTF_8);
+        } catch (RecordServiceConnectorNoContentStatusCodeException ex) {
+            log.error("Error getting data of: {} no content: {}", id, ex.getMessage());
+            log.debug("Error getting data of: {} no content: ", id, ex);
+            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
         } catch (RecordServiceConnectorException ex) {
-            log.error("Error getting children of: {}: {}", id, ex.getMessage());
-            log.debug("Error getting children of: {}: ", id, ex);
+            log.error("Error getting data of: {}: {}", id, ex.getMessage());
+            log.debug("Error getting data of: {}: ", id, ex);
             throw new ServerErrorException(INTERNAL_SERVER_ERROR);
         }
     }
@@ -160,8 +165,8 @@ public class RawRepo {
                     .findFirst()
                     .orElse(null);
         } catch (RecordServiceConnectorException ex) {
-            log.error("Error getting children of: {}: {}", id, ex.getMessage());
-            log.debug("Error getting children of: {}: ", id, ex);
+            log.error("Error getting parent of: {}: {}", id, ex.getMessage());
+            log.debug("Error getting parent of: {}: ", id, ex);
             throw new ServerErrorException(INTERNAL_SERVER_ERROR);
         }
     }
