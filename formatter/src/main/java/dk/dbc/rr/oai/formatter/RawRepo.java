@@ -31,11 +31,11 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.InternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * Bean for communicating with RawRepo Record Service
@@ -128,11 +128,11 @@ public class RawRepo {
         } catch (RecordServiceConnectorNoContentStatusCodeException ex) {
             log.error("Error getting data of: {} no content: {}", id, ex.getMessage());
             log.debug("Error getting data of: {} no content: ", id, ex);
-            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException();
         } catch (RecordServiceConnectorException ex) {
             log.error("Error getting data of: {}: {}", id, ex.getMessage());
             log.debug("Error getting data of: {}: ", id, ex);
-            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException();
         }
     }
 
@@ -145,7 +145,7 @@ public class RawRepo {
         } catch (RecordServiceConnectorException ex) {
             log.error("Error getting children of: {}: {}", id, ex.getMessage());
             log.debug("Error getting children of: {}: ", id, ex);
-            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException();
         }
     }
 
@@ -167,7 +167,7 @@ public class RawRepo {
         } catch (RecordServiceConnectorException ex) {
             log.error("Error getting parent of: {}: {}", id, ex.getMessage());
             log.debug("Error getting parent of: {}: ", id, ex);
-            throw new ServerErrorException(INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException();
         }
     }
 }
