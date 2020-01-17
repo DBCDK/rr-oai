@@ -23,3 +23,7 @@ hs_err_pid*
 /*/nbproject/
 /*/nb-configuration.xml
 /*/target/
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
