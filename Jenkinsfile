@@ -1,4 +1,5 @@
 def dockerRepository = 'https://docker-os.dbc.dk'
+def workerNode = 'devel9'
 
 properties([
     disableConcurrentBuilds()
@@ -156,6 +157,7 @@ pipeline {
                 }
             }
         }
+
     }
     post {
         failure {
