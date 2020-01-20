@@ -155,7 +155,7 @@ public class OaiBeanIT extends DB {
     @Test(timeout = 2_000L)
     public void testListIdentifiersEmptySet() throws Exception {
         System.out.println("testListIdentifiersEmptySet");
-        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
+        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2222-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<error code=\"noRecordsMatch\">"
            ));
@@ -167,7 +167,7 @@ public class OaiBeanIT extends DB {
         System.out.println("listIdentifiers");
         loadResource("records-15-same-timestamp.json");
         String firstPid = "870970-00010480";
-        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
+        String content = requestAnonymous("verb=ListIdentifiers&from=2019-01-01&until=2222-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<ListIdentifiers>",
                    "<header>",
@@ -177,7 +177,7 @@ public class OaiBeanIT extends DB {
                    "<resumptionToken",
                    "</ListIdentifiers>"
            ));
-        content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=oai_dc");
+        content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2222-12-31&set=nat&metadataPrefix=oai_dc");
         assertThat(content, containsInOrder(
                    "<ListIdentifiers>",
                    "<header>",
@@ -213,7 +213,7 @@ public class OaiBeanIT extends DB {
         insert("123456-12000001").set("nat").commit();
         insert("123456-12000002").set("nat", "art").commit();
         insert("123456-12000003").set("nat").commit();
-        String content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2019-12-31&metadataPrefix=oai_dc");
+        String content = requestAuthorized("verb=ListIdentifiers&from=2019-01-01&until=2222-12-31&metadataPrefix=oai_dc");
         assertThat(content, containsString("123456-12000002"));
         assertThat(content, not(containsInOrder("123456-12000002", "123456-12000002"))); // Only once
     }
@@ -257,7 +257,7 @@ public class OaiBeanIT extends DB {
     public void listRecords() throws Exception {
         System.out.println("listRecords");
         loadResource("records-15-same-timestamp.json");
-        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=marcx");
+        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2222-12-31&set=nat&metadataPrefix=marcx");
         assertThat(content, containsInOrder(
                    "<ListRecords>",
                    "<record>",
@@ -296,7 +296,7 @@ public class OaiBeanIT extends DB {
         System.out.println("listRecordsVanished");
         insert("870970-00010480")
                 .set("!nat=now").commit();
-        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2019-12-31&set=nat&metadataPrefix=marcx");
+        String content = requestAuthorized("verb=ListRecords&from=2019-01-01&until=2222-12-31&set=nat&metadataPrefix=marcx");
         assertThat(content, containsInOrder(
                    "<ListRecords>",
                    "<record>",
