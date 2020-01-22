@@ -1,5 +1,5 @@
 def dockerRepository = 'https://docker-os.dbc.dk'
-def workerNode = 'devel9'
+def workerNode = 'devel10'
 
 properties([
     disableConcurrentBuilds()
