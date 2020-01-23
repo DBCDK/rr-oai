@@ -200,7 +200,7 @@ public class Worker {
                 if (job != null) {
                     int agencyId = job.getAgencyId();
                     String bibliographicRecordId = job.getBibliographicRecordId();
-                    String pid = agencyId + ":" + bibliographicRecordId;
+                    String pid = agencyId + "-" + bibliographicRecordId;
                     log.info("Processing pid: {}", pid);
                     RecordData recordData = rr.getContentFor(agencyId, bibliographicRecordId);
                     boolean deleted = recordData.isDeleted();
