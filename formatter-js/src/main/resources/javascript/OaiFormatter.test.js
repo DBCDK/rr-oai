@@ -137,7 +137,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format DC)", function() {
 
     volumeRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n m  22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
             '<marcx:subfield code="a">23642468</marcx:subfield>' +
             '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -159,7 +159,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format DC)", function() {
 
     var sectionRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n m  22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23642433</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -179,7 +179,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format DC)", function() {
 
     headRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n m  22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
             '<marcx:subfield code="a">23641348</marcx:subfield>' +
             '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -246,7 +246,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     var recordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23645564</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -289,7 +289,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
     var expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="Bibliographic">' +
-            '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">23645564</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -328,7 +328,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
     //This next test can be removed when field 665 is allowed and code hence changed:
     recordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">23645564</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -374,7 +374,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
     expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
         '<marcx:record format="danMARC2" type="Bibliographic">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">23645564</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -412,7 +412,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     var volumeRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c mb 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">44816687</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -431,7 +431,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     var headRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c mh 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">44783851</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -473,7 +473,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
     expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="BibliographicMain">' +
-            '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000c mh 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">44783851</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -499,7 +499,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
                 '</marcx:datafield>' +
                 '</marcx:record>' +
             '<marcx:record format="danMARC2" type="BibliographicVolume">' +
-            '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000c mb 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">44816687</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -526,7 +526,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     volumeRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mb 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23642468</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -548,7 +548,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     var sectionRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n ms 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23642433</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -568,7 +568,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
     headRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mh 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23641348</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -614,7 +614,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
     expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="BibliographicMain">' +
-            '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000n mh 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">23641348</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -634,7 +634,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
                 '</marcx:datafield>' +
             '</marcx:record>' +
             '<marcx:record format="danMARC2" type="BibliographicSection">' +
-            '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000n ms 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">23642433</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -658,7 +658,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
                 '</marcx:datafield>' +
             '</marcx:record>' +
             '<marcx:record format="danMARC2" type="BibliographicVolume">' +
-            '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000n mb 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">23642468</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -695,7 +695,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm NOT allowed 
 
     var recordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23645564</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -738,7 +738,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm NOT allowed 
     var expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="Bibliographic">' +
-            '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+            '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                     '<marcx:subfield code="a">23645564</marcx:subfield>' +
                     '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -779,7 +779,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (unknown format name)", functio
 
     var recordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000c    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000c me 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">23645564</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -818,7 +818,7 @@ UnitTest.addFixture( "OaiFormatter.convertXmlRecordStringsToMarcObjects", functi
 
     var volumeRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mb 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">23642468</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -840,7 +840,7 @@ UnitTest.addFixture( "OaiFormatter.convertXmlRecordStringsToMarcObjects", functi
 
     var sectionRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n ms 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">23642433</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -860,7 +860,7 @@ UnitTest.addFixture( "OaiFormatter.convertXmlRecordStringsToMarcObjects", functi
 
     var headRecordString =
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mh 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">23641348</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +

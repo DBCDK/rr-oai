@@ -35,7 +35,7 @@ UnitTest.addFixture( "MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType", f
 
     var expected = XmlUtil.fromString(
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000name 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">20049278</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -115,7 +115,7 @@ UnitTest.addFixture( "MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType", f
 
     expected = XmlUtil.fromString(
         '<marcx:record format="danMARC2" type="BibliographicMain" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mh 22000004  4500</marcx:leader>' +
         '<marcx:datafield ind1="0" ind2="0" tag="001">' +
         '<marcx:subfield code="a">12345678</marcx:subfield>' +
         '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -140,7 +140,7 @@ UnitTest.addFixture( "MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType", f
 
     expected = XmlUtil.fromString(
         '<marcx:record format="danMARC2" type="BibliographicSection" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n ms 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">12345678</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
@@ -165,7 +165,7 @@ UnitTest.addFixture( "MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType", f
 
     expected = XmlUtil.fromString(
         '<marcx:record format="danMARC2" type="BibliographicVolume" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
-        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+        '<marcx:leader>00000n mb 22000004  4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                 '<marcx:subfield code="a">20775084</marcx:subfield>' +
                 '<marcx:subfield code="b">870970</marcx:subfield>' +
