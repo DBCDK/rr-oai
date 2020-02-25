@@ -119,7 +119,7 @@ public class OaiWorker {
         rec.setHeader(makeHeaderFromIdentifierWithLimitedSetsFunction(allowedSets).apply(identifier));
         if (identifier != null && !identifier.isDeleted()) {
             MetadataType metadata = O.createMetadataType();
-            URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, identifier.setspecsLimitedTo(allowedSets), trackingId);
+            URI uri = parallelFetch.buildUri(identifier.getIdentifier(), metadataPrefix, allowedSets, trackingId);
             metadata.setAny(parallelFetch.fetchASingleDocument(uri).getDocumentElement());
             rec.setMetadata(metadata);
         }
@@ -255,7 +255,7 @@ public class OaiWorker {
 
         List<URI> uris = identifiers.stream()
                 .filter(i -> !i.isDeleted() && !i.setspecsLimitedTo(allowedSets).isEmpty())
-                .map(i -> parallelFetch.buildUri(i.getIdentifier(), metadataPrefix, i.setspecsLimitedTo(allowedSets), trackingId))
+                .map(i -> parallelFetch.buildUri(i.getIdentifier(), metadataPrefix, allowedSets, trackingId))
                 .collect(Collectors.toList());
 
         List<Element> elements = parallelFetch.parallelFetch(uris, trackingId);

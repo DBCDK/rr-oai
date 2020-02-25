@@ -69,7 +69,7 @@ public class ParallelFetchIT {
                 "870970-00020818", "870970-00020826", "870970-00020834", "870970-00020877", "870970-00020893");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "nat", "tracking"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "art,bkm,nat,onl", "tracking"))
                 .collect(toList());
 
         List<Element> docs = parallelFetch.parallelFetch(uris, "tracking");
@@ -92,7 +92,7 @@ public class ParallelFetchIT {
                 "870970-00010480", "870970-error");
 
         List<URI> uris = ids.stream()
-                .map(id -> parallelFetch.buildUri(id, "marcx", "nat", "tracking"))
+                .map(id -> parallelFetch.buildUri(id, "marcx", "art,bkm,nat,onl", "tracking"))
                 .collect(toList());
 
         parallelFetch.parallelFetch(uris, "tracking");
@@ -111,7 +111,7 @@ public class ParallelFetchIT {
         ParallelFetch parallelFetch = newParallelFetch(config);
 
         ArrayList<URI> uris = new ArrayList<>(10_000);
-        URI uri = parallelFetch.buildUri("870970-00010480", "marcx", "nat", "tracking");
+        URI uri = parallelFetch.buildUri("870970-00010480", "marcx", "art,bkm,nat,onl", "tracking");
         for (int i = 0 ; i < 10_000 ; i++) {
             uris.add(uri);
         }

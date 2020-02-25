@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -395,7 +396,7 @@ public class OaiBeanIT extends DB {
     }
 
     private String requestAuthorized(String queryString) throws SAXException, IOException, URISyntaxException {
-        byte[] bytes = oaiBean.processOaiRequest(new HashSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString), "tracking");
+        byte[] bytes = oaiBean.processOaiRequest(new TreeSet<>(Arrays.asList("art", "bkm", "nat", "onl")), queryString(queryString), "tracking");
         String content = new String(bytes, UTF_8);
         System.out.println("content = " + content);
         validate(bytes);
