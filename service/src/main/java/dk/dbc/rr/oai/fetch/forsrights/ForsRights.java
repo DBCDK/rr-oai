@@ -74,18 +74,31 @@ public class ForsRights {
     @Timed
     public Set<String> authorized(@CacheKey String triple, @CacheKey String ip) throws IOException {
         try {
-            URI uri = buildForsRightsURI(triple, ip);
-            log.info("Fetching forsrights from: {}", uri.toString().replaceFirst("&passwordAut=[^&]*", "&passwordAut=[REDACTED]"));
-            DTO dto = getDTO(uri);
-            log.debug("dto = {}", dto);
-            if (dto.hasAnyRight()) {
-                return config.getForsRightsRules().entrySet().stream()
-                        .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowed by DTO
-                        .flatMap(e -> e.getValue().stream())
-                        .collect(toSet());
-            } else {
-                return EMPTY_SET;
+            if (triple != null) {
+                URI uri = buildForsRightsURI(triple, null);
+                log.info("Fetching forsrights from: {}", uri.toString().replaceFirst("&passwordAut=[^&]*", "&passwordAut=[REDACTED]"));
+                DTO dto = getDTO(uri);
+                log.debug("dto = {}", dto);
+                if (dto.hasAnyRight()) {
+                    return config.getForsRightsRules().entrySet().stream()
+                            .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowed by DTO
+                            .flatMap(e -> e.getValue().stream())
+                            .collect(toSet());
+                }
             }
+            if (ip != null) {
+                URI uri = buildForsRightsURI(null, ip);
+                log.info("Fetching forsrights from: {}", uri);
+                DTO dto = getDTO(uri);
+                log.debug("dto = {}", dto);
+                if (dto.hasAnyRight()) {
+                    return config.getForsRightsRules().entrySet().stream()
+                            .filter(e -> dto.hasRight(e.getKey())) // Map entries that are allowed by DTO
+                            .flatMap(e -> e.getValue().stream())
+                            .collect(toSet());
+                }
+            }
+            return EMPTY_SET;
         } catch (ServerErrorException | IOException ex) {
             log.error("Error getting rights: {}", ex.getMessage());
             log.debug("Error getting rights: ", ex);
