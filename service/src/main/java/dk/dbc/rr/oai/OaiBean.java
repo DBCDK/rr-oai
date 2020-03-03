@@ -184,6 +184,7 @@ public class OaiBean {
         Set<String> allowedSets = EMPTY_SET;
         if (config.isAuthenticationDisabled()) {
             allowedSets = config.getAllForsRightsSets();
+            log.debug("allowedSets = {} (default)", allowedSets);
         } else {
             try {
                 // This is returns empty if invalid login and no ip-based access
@@ -197,6 +198,7 @@ public class OaiBean {
             if (allowedSets.isEmpty() && triple == null)
                 allowedSets = new HashSet<>(config.getForsRightsRules()
                         .getOrDefault("*", EMPTY_LIST));
+            log.debug("allowedSets = {}", allowedSets);
         }
         return allowedSets;
     }
