@@ -1,7 +1,7 @@
 {
   "id" : "25e4a441-5f86-3ba1-bc2a-3a7866aa0b00",
   "request" : {
-    "url" : "/forsrights?action=forsRights&userIdAut=aaa&groupIdAut=bbb&passwordAut=ccc&ipAddress=127.0.0.1&outputType=json",
+    "url" : "/forsrights?action=forsRights&userIdAut=aaa&groupIdAut=bbb&passwordAut=ccc&outputType=json",
     "method" : "GET"
   },
   "response" : {

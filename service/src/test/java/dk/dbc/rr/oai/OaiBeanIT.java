@@ -80,7 +80,7 @@ public class OaiBeanIT extends DB {
         assertThat(an.stream().sorted().collect(toList()), is(asList("art", "nat")));
         Set<String> abno = oaiBean.getAllowedSets(ABNO_TRIPLE, "127.0.0.1");
         assertThat(abno.stream().sorted().collect(toList()), is(asList("art", "bkm", "nat", "onl")));
-        Set<String> anonymous = oaiBean.getAllowedSets(null, "8.8.8.8");
+        Set<String> anonymous = oaiBean.getAllowedSets(null, "127.0.0.1");
         assertThat(anonymous.stream().sorted().collect(toList()), is(asList("art", "nat")));
     }
 
