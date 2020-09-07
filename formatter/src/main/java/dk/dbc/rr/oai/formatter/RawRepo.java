@@ -19,19 +19,26 @@
 package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.MarcXChangeWrapper;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.RecordServiceConnectorNoContentStatusCodeException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.core.Response;
+
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +77,13 @@ public class RawRepo {
                 log.isDebugEnabled() ?
                 RecordServiceConnector.TimingLogLevel.DEBUG :
                 RecordServiceConnector.TimingLogLevel.INFO;
-        this.connector = new RecordServiceConnector(
-                config.getHttpClient(),
-                config.getRawrepoRecordService(), connectorLogLevel);
+        final RetryPolicy rp = new RetryPolicy()
+                .retryOn(Collections.singletonList(ProcessingException.class))
+                .retryIf((Response r) -> r.getStatus() == 500 || r.getStatus() == 404 || r.getStatus() == 502)
+                .withDelay(2, TimeUnit.SECONDS)
+                .withMaxRetries(1);
+        final FailSafeHttpClient fsc = FailSafeHttpClient.create(config.getHttpClient(), rp);
+        this.connector = new RecordServiceConnector(fsc, config.getRawrepoRecordService(), connectorLogLevel);
     }
 
     @PreDestroy
