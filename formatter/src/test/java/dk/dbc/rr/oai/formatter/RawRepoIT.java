@@ -26,6 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.InternalServerErrorException;
+
 import static dk.dbc.rr.oai.formatter.BeanFactory.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -70,6 +72,18 @@ public class RawRepoIT {
         assertThat(wrappers[1].content, containsString("<datafield ind1='0' ind2='0' tag='001'><subfield code='a'>28413882</subfield>"));
         assertThat(wrappers[1].children.length, not(is(0)));
         assertThat(Arrays.asList(wrappers[1].children), hasItem(new RecordId(id, 870970)));
+    }
+
+    @Test(timeout = 4_000L)
+    public void testError() throws Exception {
+        System.out.println("testError");
+
+        String id = "43914804";
+        try {
+            MarcXChangeWrapper[] wrappers = rawrepo.getRecordsFor(870971, id);
+        } catch (InternalServerErrorException ise) {
+            assertThat(ise.getResponse().getStatus(), is(500));
+        }
     }
 
     @Test(timeout = 2_000L)
