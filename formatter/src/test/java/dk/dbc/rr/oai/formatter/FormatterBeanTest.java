@@ -27,8 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 /**
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
@@ -87,13 +86,13 @@ public class FormatterBeanTest {
     private static <T extends RuntimeException> void expectException(String msg, Supplier<Response> sup, Class<T> e) {
         try {
             sup.get();
-            fail(msg + " - Expected exception of type: " + e.getSimpleName());
+            assertThat(msg + " - Expected exception of type: " + e.getSimpleName(), false);
         } catch (RuntimeException ex) {
             if (e.isAssignableFrom(ex.getClass()))
                 return;
             log.error("Got Exception: {}", ex.getMessage());
             log.debug("Got Exception: ", ex);
-            fail(msg + " - Expected exception of type: " + e.getSimpleName() + " got " + ex.getClass().getSimpleName());
+            assertThat(msg + " - Expected exception of type: " + e.getSimpleName() + " got " + ex.getClass().getSimpleName(), false);
         }
     }
 }

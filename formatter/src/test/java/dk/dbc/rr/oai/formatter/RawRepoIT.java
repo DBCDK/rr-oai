@@ -30,8 +30,7 @@ import javax.ws.rs.InternalServerErrorException;
 
 import static dk.dbc.rr.oai.formatter.BeanFactory.*;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 /**
  *
  * @author Morten Bøgeskov (mb@dbc.dk)

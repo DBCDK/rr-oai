@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import static dk.dbc.rr.oai.RemoteIp.ipOf;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  *
@@ -90,7 +90,7 @@ public class RemoteIpTest {
                 .forEach(badRange -> {
                     try {
                         IpRange.of(badRange);
-                        fail("Expected exception of range: " + badRange);
+                        assertThat("Expected exception of range: " + badRange, false);
                     } catch (RuntimeException ex) {
                         System.out.println("Exception of: " + badRange + " expected");
                     }

@@ -75,13 +75,13 @@ public class DB {
         }
         dsrr.setUser(user);
         dsrr.setPassword(pass);
-        dsrr.setServerName(host);
-        dsrr.setPortNumber(Integer.parseUnsignedInt(port));
+        dsrr.setServerNames(new String[] {host});
+        dsrr.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
         dsrr.setDatabaseName(baserr);
         dsrroai.setUser(user);
         dsrroai.setPassword(pass);
-        dsrroai.setServerName(host);
-        dsrroai.setPortNumber(Integer.parseUnsignedInt(port));
+        dsrroai.setServerNames(new String[] {host});
+        dsrroai.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
         dsrroai.setDatabaseName(baserroai);
 
         DatabaseMigrate.migrate(dsrroai);

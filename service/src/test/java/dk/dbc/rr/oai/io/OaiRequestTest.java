@@ -36,7 +36,7 @@ import static java.nio.charset.StandardCharsets.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_MAP;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  *
