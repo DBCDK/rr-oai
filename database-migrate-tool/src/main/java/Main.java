@@ -35,18 +35,6 @@ public class Main {
 
     private static final Pattern POSTGRES_URL_REGEX = Pattern.compile("(?:postgres(?:ql)?://)?(?:([^:@]+)(?::([^@]*))@)?([^:/]+)(?::([1-9][0-9]*))?/(.+)");
 
-    public static void main(String[] args) {
-        if (args.length != 1) {
-            System.err.println("Usage: java -jar rr-oai-database-migrate-tool-jar-with-dependencies.jar {DATABASE_URL}");
-        } else {
-            DataSource ds = makeDataSource(args[0]);
-            if (ds != null) {
-                DatabaseMigrate.migrate(ds);
-                log.info("Database migrated");
-            }
-        }
-    }
-
     private static DataSource makeDataSource(String url) {
         Matcher matcher = POSTGRES_URL_REGEX.matcher(url);
         if (matcher.matches()) {
@@ -60,14 +48,26 @@ public class Main {
                 ds.setUser(user);
             if (pass != null)
                 ds.setPassword(pass);
-            ds.setServerName(host);
+            ds.setServerNames(new String[] {host});
             if (port != null)
-                ds.setPortNumber(Integer.parseUnsignedInt(port));
+                ds.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
             ds.setDatabaseName(base);
             return ds;
         } else {
             log.error("Not a database url: {}", url);
             return null;
+        }
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: java -jar rr-oai-database-migrate-tool-jar-with-dependencies.jar {DATABASE_URL}");
+        } else {
+            DataSource ds = makeDataSource(args[0]);
+            if (ds != null) {
+                DatabaseMigrate.migrate(ds);
+                log.info("Database migrated");
+            }
         }
     }
 }

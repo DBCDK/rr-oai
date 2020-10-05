@@ -91,8 +91,8 @@ public class DatabaseMigrateIT {
             ds.setUser(user);
         if (password != null)
             ds.setPassword(password);
-        ds.setServerName(host);
-        ds.setPortNumber(Integer.parseInt(port));
+        ds.setServerNames(new String[] {host});
+        ds.setPortNumbers(new int[] {Integer.parseInt(port)});
         ds.setDatabaseName(database);
         return ds;
     }

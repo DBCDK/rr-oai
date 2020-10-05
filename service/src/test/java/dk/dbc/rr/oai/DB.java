@@ -92,8 +92,8 @@ public class DB {
         };
         ds.setUser(user);
         ds.setPassword(pass);
-        ds.setServerName(host);
-        ds.setPortNumber(Integer.parseUnsignedInt(port));
+        ds.setServerNames(new String[] {host});
+        ds.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
         ds.setDatabaseName(base);
 
         DatabaseMigrate.migrate(ds);

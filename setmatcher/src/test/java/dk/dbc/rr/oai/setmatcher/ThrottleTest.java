@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import static dk.dbc.rr.oai.setmatcher.BeanFactory.newConfig;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  *
