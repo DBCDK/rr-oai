@@ -90,7 +90,7 @@ public class RemoteIpTest {
                 .forEach(badRange -> {
                     try {
                         IpRange.of(badRange);
-                        fail("Expected exception of range: " + badRange);
+                        assertThat("Expected exception of range: " + badRange, false);
                     } catch (RuntimeException ex) {
                         System.out.println("Exception of: " + badRange + " expected");
                     }

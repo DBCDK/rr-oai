@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
 import static dk.dbc.rr.oai.BeanFactory.*;
 import static java.util.stream.Collectors.*;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  *
