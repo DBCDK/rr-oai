@@ -199,11 +199,13 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
 
     var expected = {
         agencyId: 870970,
+        valuesOf001b : [ '870970' ],
         valuesOf009g : [ 'xx' ],
         valuesOf014x : [ ],
         codesIn032a : [ 'DBF' ],
         codesIn032x : [ 'SFD', 'ACC', 'ACC', 'DAT' ],
-        exist856u : false
+        exist856u : false,
+        valuesOf996a : [ ]        
     };
 
     Assert.equalValue( "set record variables for record without field 014", actual, expected );
@@ -223,11 +225,13 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
 
     expected = {
         agencyId: 870971,
+        valuesOf001b : [ '870971' ],
         valuesOf009g : [ 'xx' ],
         valuesOf014x : [ 'ANM' ],
         codesIn032a : [ 'ANU', 'DAN' ],
         codesIn032x : [ ],
-        exist856u : false
+        exist856u : false,
+        valuesOf996a : [ ]        
     };
 
     Assert.equalValue( "set record variables for record with field 014", actual, expected );
@@ -255,14 +259,53 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
 
     expected = {
         agencyId: 870970,
+        valuesOf001b : [ '870970' ],
         valuesOf009g : [ ],
         valuesOf014x : [ ],
         codesIn032a : [ 'DBF' ],
         codesIn032x : [ ],
-        exist856u : true
+        exist856u : true,
+        valuesOf996a : [ ]        
     };
 
     Assert.equalValue( "set record variables for volume record with field 856", actual, expected );
+
+    record = new Record();
+    record.fromString(
+        '001 00 *a 47666813 *b 870970 *c 20200129083614 *d 20200121 *f a\n' +
+        '004 00 *r n *a e\n' +
+        '008 00 *t m *u r *a 2019 *z 2019 *b fr *d y *l per *v 0\n' +
+        '009 00 *a a *g xx\n' +
+        '021 00 *e 9782366124194\n' +
+        '100 00 *a Najafī *h Shāhīn *4 aut\n' +
+        '245 00 *a Bītriks\n' +
+        '260 00 *a Paris *b Nashr-i Nākujā *c 2019\n' +
+        '300 00 *a 152 sider\n' +
+        '504 00 *a Eksil sanger, musiker og komposer, Shāhīn Najafī skriver om kunst med fokus på begrebet "overlevelse"\n' +
+        '532 00 *a Med litteraturhenvisninger\n' +
+        '652 00 *m 70.1\n' +
+        '666 00 *f kunst\n' +
+        '666 00 *f livet\n' +
+        '666 00 *f kultur\n' +
+        '666 00 *f musik\n' +
+        '666 00 *f værdier\n' +
+        '996 00 *a 700300\n' 
+    );
+
+    actual = OaiSetMatcher.setRecordVariables( 870970, record );
+
+    expected = {
+        agencyId: 870970,
+        valuesOf001b : [ '870970' ],
+        valuesOf009g : [ 'xx'],
+        valuesOf014x : [ ],
+        codesIn032a : [ ],
+        codesIn032x : [ ],
+        exist856u : false,
+        valuesOf996a : [ '700300' ]        
+    };
+
+    Assert.equalValue( "set record variables for volume record with field 996", actual, expected );
 
 } );
 
@@ -761,6 +804,35 @@ UnitTest.addFixture( "test OaiSetMatcher.isPartOfONL (record not in ONL)", funct
     actual = OaiSetMatcher.isPartOfONL( recordVariables );
     testName = "Record NOT contained in ONL set (wrong agency)";
     Assert.equalValue( testName, actual, false );
+
+} );
+
+UnitTest.addFixture( "test OaiSetMatcher.isPartOfBCI", function( ) {
+
+    var recordVariables = {
+        agencyId : 870970,
+        valuesOf001b : [ 870970 ],
+        valuesOf996a : [ 700300 ],
+    };
+    var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
+    Assert.equalValue( "Record is BCI", actual, true );
+    
+    var recordVariables = {
+        agencyId : 870970,
+        valuesOf001b : [ 870970 ],
+        valuesOf996a : [ 700301 ],
+    };
+    var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
+    Assert.equalValue( "Record is not BCI, 996a is not 700300", actual, false );
+
+    var recordVariables = {
+        agencyId : 870970,
+        valuesOf001b : [ 870971 ],
+        valuesOf996a : [ 700300 ],
+    };
+    var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
+    Assert.equalValue( "Record is not BCI, 1b is not 870970", actual, false );
+
 
 } );
 
