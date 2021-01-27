@@ -63,6 +63,10 @@ var OaiSetMatcher = function() {
             oaiSets.push( "BKM" );
         }
 
+        if ( OaiSetMatcher.isPartOfBCI( recordVariables ) ) {
+            oaiSets.push( "FDEPOT" );
+        }
+
         if ( OaiSetMatcher.isPartOfART( recordVariables ) ) {
             oaiSets.push( "ART" );
         }
@@ -71,7 +75,7 @@ var OaiSetMatcher = function() {
             oaiSets.push( "ONL" );
         }
 
-        Log.trace( "Leaving SetMatcher.getOaiSets" );
+        Log.trace( "Leaving SetMatcher.getOaiSets ", oaiSets );
 
         return oaiSets;
 
@@ -101,14 +105,21 @@ var OaiSetMatcher = function() {
 
         var recordVariables = {
             agencyId: agencyId,
+            valuesOf001b : [ ],
             valuesOf009g : [ ],
             valuesOf014x : [ ],
             codesIn032a : [ ],
             codesIn032x : [ ],
-            exist856u : false
+            exist856u : false,
+            valuesOf996a : [ ]
         };
 
         var map = new MatchMap( );
+
+        // Is the 001b value the same value as "agencyId" value? If so, this can be skipped
+        map.put( "001", function( field ) {
+            recordVariables.valuesOf001b = field.getValueAsArray( "b" );
+        } );
 
         map.put( "009", function( field ) {
             recordVariables.valuesOf009g = field.getValueAsArray( "g" );
@@ -133,6 +144,10 @@ var OaiSetMatcher = function() {
             if ( field.getValue( "u" ) ) {
                 recordVariables.exist856u = true;
             }
+        } );
+
+        map.put( "996", function( field ) {
+            recordVariables.valuesOf996a = field.getValueAsArray( "a" );
         } );
 
         record.eachFieldMap( map );
@@ -174,6 +189,39 @@ var OaiSetMatcher = function() {
         }
 
         Log.trace( "Leaving OaiSetMatcher.isPartOfART" );
+
+        return result;
+    }
+
+    /**
+     * Function that checks if recordVariables match criteria for including the
+     * record in the 'BCI' set.
+     *
+     * Members of 'BCI' are records from with 
+     * "870970" value in field 001 b
+     * and
+     * "700300" value in field 996 a
+     * 
+     *
+     * @syntax OaiSetMatcher.isPartOfBCI( recordVariables )
+     * @param {Object} recordVariables An object with necessary variables extracted from the marc record
+     * @return {Boolean} true if the record should be part of BCI set, otherwise false
+     * @type {function}
+     * @function
+     * @name OaiSetMatcher.isPartOfBCI
+     */
+    function isPartOfBCI( recordVariables ) {
+        
+        Log.trace( "Entering OaiSetMatcher.isPartOfBCI ", JSON.stringify(recordVariables) );
+
+        var result = false;
+        
+        if ( -1 < recordVariables.valuesOf001b.indexOf( "870970" ) &&
+             -1 < recordVariables.valuesOf996a.indexOf( "700300" ) ) {
+            result = true;
+        }
+        
+        Log.trace( "Leaving OaiSetMatcher.isPartOfBCI ", result);
 
         return result;
     }
@@ -323,6 +371,7 @@ var OaiSetMatcher = function() {
         getOaiSets: getOaiSets,
         setRecordVariables: setRecordVariables,
         isPartOfART: isPartOfART,
+        isPartOfBCI: isPartOfBCI,
         isPartOfBKM: isPartOfBKM,
         isPartOfNAT: isPartOfNAT,
         isPartOfONL: isPartOfONL

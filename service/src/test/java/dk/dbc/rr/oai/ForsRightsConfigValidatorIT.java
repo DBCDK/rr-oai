@@ -33,14 +33,14 @@ public class ForsRightsConfigValidatorIT extends DB {
     @Test(timeout = 2_000L)
     public void testOk() throws Exception {
         System.out.println("testOk");
-        Config config = newConfig("FORS_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl");
+        Config config = newConfig("FORS_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl;bob/300=fdepot");
         newForsRightsConfigValidator(config, ds);
     }
 
     @Test(timeout = 2_000L)
     public void testOkWithMultipleRulesForSameSet() throws Exception {
         System.out.println("testOkWithMultipleRulesForSameSet");
-        Config config = newConfig("FORS_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl;bar/200=onl");
+        Config config = newConfig("FORS_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl;bar/200=onl;bob/300=fdepot");
         newForsRightsConfigValidator(config, ds);
     }
 
