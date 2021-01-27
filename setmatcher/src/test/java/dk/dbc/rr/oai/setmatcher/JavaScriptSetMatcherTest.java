@@ -93,6 +93,17 @@ public class JavaScriptSetMatcherTest {
         assertThat(oaiSets, not(hasItems("ART")));
     }
 
+    @Test(timeout = 2_000L)
+    public void testBci() throws Exception {
+        System.out.println("testBci");
+        String content = getResource("870970-47666813.xml");
+        Set<String> oaiSets = JSSM.getOaiSets(870970, content);
+        System.out.println("oaiSets = " + oaiSets);
+        assertThat(oaiSets, hasItems("FDEPOT"));
+        assertThat(oaiSets, not(hasItems("NAT", "ONL", "ART", "BKM")));
+    }
+
+
     public String getResource(String path) throws IOException {
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
         if (is == null)

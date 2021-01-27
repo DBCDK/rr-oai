@@ -55,7 +55,6 @@ UnitTest.addFixture( "test OaiSetMatcher.getOaiSets", function( ) {
 
     Assert.equalValue( "Record is contained in NAT and BKM", actual, expected );
 
-
     recordString = (
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
         '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
@@ -180,6 +179,89 @@ UnitTest.addFixture( "test OaiSetMatcher.getOaiSets", function( ) {
     actual = OaiSetMatcher.getOaiSets( 870970, recordString );
 
     Assert.equalValue( "Record is part of NAT, BKM and ONL sets", actual, expected );
+    
+    recordString = (
+        '<record xmlns="info:lc/xmlns/marcxchange-v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd">' +
+        '    <leader>00000n    2200000   4500</leader>' +
+        '    <datafield ind1="0" ind2="0" tag="001">' +
+        '        <subfield code="a">47666813</subfield>' +
+        '        <subfield code="b">870970</subfield>' +
+        '        <subfield code="c">20200129083614</subfield>' +
+        '        <subfield code="d">20200121</subfield>' +
+        '        <subfield code="f">a</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="004">' +
+        '        <subfield code="r">n</subfield>' +
+        '        <subfield code="a">e</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="008">' +
+        '        <subfield code="t">m</subfield>' +
+        '        <subfield code="u">r</subfield>' +
+        '        <subfield code="a">2019</subfield>' +
+        '        <subfield code="z">2019</subfield>' +
+        '        <subfield code="b">fr</subfield>' +
+        '        <subfield code="d">y</subfield>' +
+        '        <subfield code="l">per</subfield>' +
+        '        <subfield code="v">0</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="009">' +
+        '        <subfield code="a">a</subfield>' +
+        '        <subfield code="g">xx</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="021">' +
+        '        <subfield code="e">9782366124194</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="100">' +
+        '        <subfield code="a">Najafī</subfield>' +
+        '        <subfield code="h">Shāhīn</subfield>' +
+        '        <subfield code="4">aut</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="245">' +
+        '        <subfield code="a">Bītriks</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="260">' +
+        '        <subfield code="a">Paris</subfield>' +
+        '        <subfield code="b">Nashr-i Nākujā</subfield>' +
+        '        <subfield code="c">2019</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="300">' +
+        '        <subfield code="a">152 sider</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="504">' +
+        '        <subfield code="a">Eksil sanger, musiker og komposer, Shāhīn Najafī skriver om kunst med fokus på begrebet &quot;overlevelse&quot;</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="532">' +
+        '        <subfield code="a">Med litteraturhenvisninger</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="652">' +
+        '        <subfield code="m">70.1</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="666">' +
+        '        <subfield code="f">kunst</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="666">' +
+        '        <subfield code="f">livet</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="666">' +
+        '        <subfield code="f">kultur</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="666">' +
+        '        <subfield code="f">musik</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="666">' +
+        '        <subfield code="f">værdier</subfield>' +
+        '    </datafield>' +
+        '    <datafield ind1="0" ind2="0" tag="996">' +
+        '        <subfield code="a">700300</subfield>' +
+        '    </datafield>' +
+        '</record>' );
+
+    expected = [ "FDEPOT" ];
+
+    actual = OaiSetMatcher.getOaiSets( 870970, recordString );
+
+    Assert.equalValue( "Record is part of BCI sets", actual, expected );
+    
 
 } );
 
@@ -811,24 +893,24 @@ UnitTest.addFixture( "test OaiSetMatcher.isPartOfBCI", function( ) {
 
     var recordVariables = {
         agencyId : 870970,
-        valuesOf001b : [ 870970 ],
-        valuesOf996a : [ 700300 ],
+        valuesOf001b : [ "870970" ],
+        valuesOf996a : [ "700300" ]
     };
     var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
     Assert.equalValue( "Record is BCI", actual, true );
     
     var recordVariables = {
         agencyId : 870970,
-        valuesOf001b : [ 870970 ],
-        valuesOf996a : [ 700301 ],
+        valuesOf001b : [ "870970" ],
+        valuesOf996a : [ "700301" ]
     };
     var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
     Assert.equalValue( "Record is not BCI, 996a is not 700300", actual, false );
 
     var recordVariables = {
         agencyId : 870970,
-        valuesOf001b : [ 870971 ],
-        valuesOf996a : [ 700300 ],
+        valuesOf001b : [ "870971" ],
+        valuesOf996a : [ "700300" ]
     };
     var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
     Assert.equalValue( "Record is not BCI, 1b is not 870970", actual, false );

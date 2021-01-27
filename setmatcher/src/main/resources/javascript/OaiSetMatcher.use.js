@@ -64,7 +64,7 @@ var OaiSetMatcher = function() {
         }
 
         if ( OaiSetMatcher.isPartOfBCI( recordVariables ) ) {
-            oaiSets.push( "BCI" );
+            oaiSets.push( "FDEPOT" );
         }
 
         if ( OaiSetMatcher.isPartOfART( recordVariables ) ) {
@@ -216,8 +216,8 @@ var OaiSetMatcher = function() {
 
         var result = false;
         
-        if ( -1 < recordVariables.valuesOf001b.indexOf( 870970 ) &&
-             -1 < recordVariables.valuesOf996a.indexOf( 700300 ) ) {
+        if ( -1 < recordVariables.valuesOf001b.indexOf( "870970" ) &&
+             -1 < recordVariables.valuesOf996a.indexOf( "700300" ) ) {
             result = true;
         }
         
