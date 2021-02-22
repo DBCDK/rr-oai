@@ -238,7 +238,6 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format DC)", function() {
 
 } );
 
-
 UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed set)", function() {
 
     var format = 'marcx'; //applies to all tests in this Fixture
@@ -687,7 +686,6 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed s
 
 } );
 
-
 UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm NOT allowed set)", function() {
 
     var format = 'marcx';
@@ -987,9 +985,141 @@ UnitTest.addFixture( "OaiFormatter.convertXmlRecordStringsToMarcObjects", functi
 
 } );
 
-
 UnitTest.addFixture( "OaiFormatter.getAllowedFormats", function() {
 
     Assert.equalValue( "get allowed formats", OaiFormatter.getAllowedFormats(), [ 'oai_dc', 'marcx' ] );
 
 } );
+
+// SAHU: starting with unit tests
+UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, nat as allowed set, excl. 241 *u)", function() {
+
+    var format = 'marcx'; // applies to all tests in this fixture
+    var allowedSets = [ "BKM", "NAT" ]; // applies to all tests in this fixture
+
+    var recordString =
+       '<marcx:record format="danMARC2" type="Bibliographic">' +
+           '<marcx:leader>00000name 22000000  4500</marcx:leader>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="001">' +
+               '<marcx:subfield code="a">38240803</marcx:subfield>' + 
+               '<marcx:subfield code="b">870970</marcx:subfield>' + 
+               '<marcx:subfield code="c">20210216122929</marcx:subfield>' + 
+               '<marcx:subfield code="d">20201022</marcx:subfield>' + 
+               '<marcx:subfield code="f">a</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="004">' +
+               '<marcx:subfield code="r">n</marcx:subfield>' + 
+               '<marcx:subfield code="a">e</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="008">' +
+               '<marcx:subfield code="t">s</marcx:subfield>' + 
+               '<marcx:subfield code="u">f</marcx:subfield>' + 
+               '<marcx:subfield code="a">2020</marcx:subfield>' + 
+               '<marcx:subfield code="b">dk</marcx:subfield>' + 
+               '<marcx:subfield code="d">x</marcx:subfield>' + 
+               '<marcx:subfield code="j">p</marcx:subfield>' + 
+               '<marcx:subfield code="l">dan</marcx:subfield>' + 
+               '<marcx:subfield code="v">0</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="009">' +
+               '<marcx:subfield code="a">a</marcx:subfield>' + 
+               '<marcx:subfield code="g">xx</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="021">' +
+               '<marcx:subfield code="e">9788793871472</marcx:subfield>' + 
+               '<marcx:subfield code="c">hf.</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="032">' +
+               '<marcx:subfield code="x">ACC202043</marcx:subfield>' + 
+               '<marcx:subfield code="a">DBF202048</marcx:subfield>' + 
+               '<marcx:subfield code="x">BKM202048</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="041">' +
+               '<marcx:subfield code="a">dan</marcx:subfield>' + 
+               '<marcx:subfield code="c">spa</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="100">' +
+               '<marcx:subfield code="5">870979</marcx:subfield>' + 
+               '<marcx:subfield code="6">68339480</marcx:subfield>' + 
+               '<marcx:subfield code="a">García Lorca</marcx:subfield>' + 
+               '<marcx:subfield code="h">Federico</marcx:subfield>' + 
+               '<marcx:subfield code="4">aut</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="241">' +
+               '<marcx:subfield code="a">Romancero gitano</marcx:subfield>' + 
+               '<marcx:subfield code="u">1928</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="245">' +
+               '<marcx:subfield code="a">Sigøjnerballader</marcx:subfield>' + 
+               '<marcx:subfield code="ø">Ved Juancío d\'Héroville</marcx:subfield>' +
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="250">' +
+               '<marcx:subfield code="a">1. udgave</marcx:subfield>' + 
+               '<marcx:subfield code="b">÷</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="260">' +
+               '<marcx:subfield code="a">[Kbh.]</marcx:subfield>' + 
+               '<marcx:subfield code="b">Det Poetiske Bureau</marcx:subfield>' + 
+               '<marcx:subfield code="c">2020</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="300">' +
+               '<marcx:subfield code="a">89 sider</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="440">' +
+               '<marcx:subfield code="0"/>' +
+               '<marcx:subfield code="a">Bureauets lommebibliotek</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="504">' +
+               '<marcx:subfield code="a">Dramatiske digte fulde af historier og smerte. For læsere af modernistiske, oversatte digte</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="521">' +
+               '<marcx:subfield code="b">1. oplag</marcx:subfield>' + 
+               '<marcx:subfield code="c">2020</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="530">' +
+               '<marcx:subfield code="i">Indhold</marcx:subfield>' + 
+               '<marcx:subfield code="t">Romancen om månen, månen</marcx:subfield>' + 
+               '<marcx:subfield code="t">Preciosa og vinden</marcx:subfield>' + 
+               '<marcx:subfield code="t">Fejde</marcx:subfield>' + 
+               '<marcx:subfield code="t">Søvngængerromance</marcx:subfield>' + 
+               '<marcx:subfield code="t">Sigøjnernonnen</marcx:subfield>' + 
+               '<marcx:subfield code="t">Den ¤utro hustru</marcx:subfield>' + 
+               '<marcx:subfield code="t">Romancen om den sorte smerte</marcx:subfield>' + 
+               '<marcx:subfield code="t">Skt. Mikkel (Granada)</marcx:subfield>' + 
+               '<marcx:subfield code="t">Skt. Rafael (Cordoba)</marcx:subfield>' + 
+               '<marcx:subfield code="t">Skt. Gabriel (Sevilla)</marcx:subfield>' + 
+               '<marcx:subfield code="t">Lille Antonio Camborios tilfangetagelse på vejen til Sevilla</marcx:subfield>' + 
+               '<marcx:subfield code="t">Lille Antonio Camborios død</marcx:subfield>' + 
+               '<marcx:subfield code="t">Død af kærlighed</marcx:subfield>' + 
+               '<marcx:subfield code="t">Den ¤mærkede mand</marcx:subfield>' + 
+               '<marcx:subfield code="t">Romancen om den spanske civilgarde</marcx:subfield>' + 
+               '<marcx:subfield code="t">Skt. Eulalias martyrium</marcx:subfield>' + 
+               '<marcx:subfield code="t">Vittighed om don Pedro til hest</marcx:subfield>' + 
+               '<marcx:subfield code="t">Thamar og Amnon</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="652">' +
+               '<marcx:subfield code="n">82.7</marcx:subfield>' + 
+               '<marcx:subfield code="z">21</marcx:subfield>' + 
+            '</marcx:datafield>' +
+           '<marcx:datafield ind1="0" ind2="0" tag="652">' +
+               '<marcx:subfield code="o">sk</marcx:subfield>' + 
+            '</marcx:datafield>' +
+        '</marcx:record>';
+
+
+    var records = [
+        {
+            content: recordString,
+            children: []
+        }
+    ];
+
+    // TODO Find out what's expected
+    var expected;
+
+});
+
+UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed set, incl. 241 *u)", function() {
+
+
+});
