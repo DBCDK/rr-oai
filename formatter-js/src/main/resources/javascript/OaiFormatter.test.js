@@ -995,6 +995,8 @@ UnitTest.addFixture( "OaiFormatter.getAllowedFormats", function() {
 UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)", function() {
 
     var format = 'marcx'; // applies to all tests in this fixture
+
+    // Part 1: Include 241u when allowed sets contains BKM
     var allowedSets = [ "BKM", "NAT" ];
 
     var recordString =
@@ -1059,7 +1061,6 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)",
         }
     ];
 
-    // include 241u
     var expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="Bibliographic">' +
@@ -1111,15 +1112,76 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)",
                 '</marcx:datafield>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="241">' +
                     '<marcx:subfield code="a">Romancero gitano</marcx:subfield>' +
-                    '<marcx:subfield code="u">1928</marcx:subfield>' +
+                    '<marcx:subfield code="u">1928</marcx:subfield>' + // 241u
                 '</marcx:datafield>' +
             '</marcx:record>' +
         '</marcx:collection>';
 
     var actual = OaiFormatter.formatRecords( records, format, allowedSets );
-
     var testName = "Format single record to marcxchange + bkm allowed set + show subfield 241 *u";
+    Assert.equalXml( testName, actual, expected );
 
+    // excluding 241u when allowed set is only NAT
+    allowedSets = ["NAT"];
+
+    expected =
+        '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
+        '<marcx:record format="danMARC2" type="Bibliographic">' +
+        '<marcx:leader>00000name 22000000  4500</marcx:leader>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="001">' +
+        '<marcx:subfield code="a">38240803</marcx:subfield>' +
+        '<marcx:subfield code="b">870970</marcx:subfield>' +
+        '<marcx:subfield code="c">20210216122929</marcx:subfield>' +
+        '<marcx:subfield code="d">20201022</marcx:subfield>' +
+        '<marcx:subfield code="f">a</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="004">' +
+        '<marcx:subfield code="r">n</marcx:subfield>' +
+        '<marcx:subfield code="a">e</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="008">' +
+        '<marcx:subfield code="t">s</marcx:subfield>' +
+        '<marcx:subfield code="u">f</marcx:subfield>' +
+        '<marcx:subfield code="a">2020</marcx:subfield>' +
+        '<marcx:subfield code="b">dk</marcx:subfield>' +
+        '<marcx:subfield code="d">x</marcx:subfield>' +
+        '<marcx:subfield code="j">p</marcx:subfield>' +
+        '<marcx:subfield code="l">dan</marcx:subfield>' +
+        '<marcx:subfield code="v">0</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="009">' +
+        '<marcx:subfield code="a">a</marcx:subfield>' +
+        '<marcx:subfield code="g">xx</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="021">' +
+        '<marcx:subfield code="e">9788793871472</marcx:subfield>' +
+        '<marcx:subfield code="c">hf.</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="032">' +
+        '<marcx:subfield code="x">ACC202043</marcx:subfield>' +
+        '<marcx:subfield code="a">DBF202048</marcx:subfield>' +
+        '<marcx:subfield code="x">BKM202048</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="041">' +
+        '<marcx:subfield code="a">dan</marcx:subfield>' +
+        '<marcx:subfield code="c">spa</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="100">' +
+        '<marcx:subfield code="5">870979</marcx:subfield>' +
+        '<marcx:subfield code="6">68339480</marcx:subfield>' +
+        '<marcx:subfield code="a">García Lorca</marcx:subfield>' +
+        '<marcx:subfield code="h">Federico</marcx:subfield>' +
+        '<marcx:subfield code="4">aut</marcx:subfield>' +
+        '</marcx:datafield>' +
+        '<marcx:datafield ind1="0" ind2="0" tag="241">' +
+        '<marcx:subfield code="a">Romancero gitano</marcx:subfield>' +
+        // no subfield 241u
+        '</marcx:datafield>' +
+        '</marcx:record>' +
+        '</marcx:collection>';
+
+    actual = OaiFormatter.formatRecords( records, format, allowedSets );
+    testName = "Format single record to marcxchange + bkm not allowed set + hide subfield 241 *u";
     Assert.equalXml( testName, actual, expected );
 
 });
