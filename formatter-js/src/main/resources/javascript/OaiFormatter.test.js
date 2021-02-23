@@ -991,14 +991,14 @@ UnitTest.addFixture( "OaiFormatter.getAllowedFormats", function() {
 
 } );
 
-// SAHU: starting with unit tests
-UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, nat + bkm, subfield 241 *u)", function() {
+// TODO: starting with unit tests
+UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)", function() {
 
     var format = 'marcx'; // applies to all tests in this fixture
-    var allowedSets = [ "BKM", "NAT" ]; // applies to all tests in this fixture
+    var allowedSets = [ "BKM", "NAT" ];
 
     var recordString =
-       '<marcx:record format="danMARC2" type="Bibliographic">' +
+       '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
            '<marcx:leader>00000name 22000000  4500</marcx:leader>' +
            '<marcx:datafield ind1="0" ind2="0" tag="001">' +
                '<marcx:subfield code="a">38240803</marcx:subfield>' + 
@@ -1059,7 +1059,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, nat + bkm, subfi
         }
     ];
 
-    // TODO Find out what's expected
+    // include 241u
     var expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="Bibliographic">' +
@@ -1122,10 +1122,4 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, nat + bkm, subfi
 
     Assert.equalXml( testName, actual, expected );
 
-
 });
-
-// UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, bkm as allowed set, incl. 241 *u)", function() {
-//
-//
-// });
