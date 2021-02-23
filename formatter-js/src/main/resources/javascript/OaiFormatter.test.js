@@ -991,13 +991,10 @@ UnitTest.addFixture( "OaiFormatter.getAllowedFormats", function() {
 
 } );
 
-// TODO: starting with unit tests
+
 UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)", function() {
 
     var format = 'marcx'; // applies to all tests in this fixture
-
-    // Part 1: Include 241u when allowed sets contains BKM
-    var allowedSets = [ "BKM", "NAT" ];
 
     var recordString =
        '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
@@ -1061,6 +1058,9 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)",
         }
     ];
 
+    // Part 1: Include 241u when allowed sets contains BKM
+    var allowedSets = [ "BKM", "NAT" ];
+
     var expected =
         '<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
             '<marcx:record format="danMARC2" type="Bibliographic">' +
@@ -1112,16 +1112,16 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)",
                 '</marcx:datafield>' +
                 '<marcx:datafield ind1="0" ind2="0" tag="241">' +
                     '<marcx:subfield code="a">Romancero gitano</marcx:subfield>' +
-                    '<marcx:subfield code="u">1928</marcx:subfield>' + // 241u
+                    '<marcx:subfield code="u">1928</marcx:subfield>' + // subfield 241u
                 '</marcx:datafield>' +
             '</marcx:record>' +
         '</marcx:collection>';
 
     var actual = OaiFormatter.formatRecords( records, format, allowedSets );
-    var testName = "Format single record to marcxchange + bkm allowed set + show subfield 241 *u";
+    var testName = "Format single record to marcxchange + bkm allowed set + show subfield 241u";
     Assert.equalXml( testName, actual, expected );
 
-    // excluding 241u when allowed set is only NAT
+    // Part 2: Excluding 241u when allowed set is only NAT
     allowedSets = ["NAT"];
 
     expected =
@@ -1181,7 +1181,7 @@ UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, subfield 241u)",
         '</marcx:collection>';
 
     actual = OaiFormatter.formatRecords( records, format, allowedSets );
-    testName = "Format single record to marcxchange + bkm not allowed set + hide subfield 241 *u";
+    testName = "Format single record to marcxchange + bkm not allowed set + hide subfield 241u";
     Assert.equalXml( testName, actual, expected );
 
 });
