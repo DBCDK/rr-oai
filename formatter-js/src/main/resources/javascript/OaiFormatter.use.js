@@ -87,6 +87,7 @@ var OaiFormatter = function() {
                     marcRecord = MarcXchangeToOaiMarcX.removeField665( marcRecord ); //Search US#2373. Remove this call when 665 is official field.
                     if ( !bkmRecordAllowed ) {
                         marcRecord = MarcXchangeToOaiMarcX.removeBkmFields( marcRecord );
+                        marcRecord = MarcXchangeToOaiMarcX.removeSubfield241u( marcRecord ); // US#OAI-9
                     }
                     marcRecord = MarcXchangeToOaiMarcX.removeLocalSubfieldsIfAny( marcRecord );
                     var marcXDoc = MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType( marcRecord );
