@@ -991,7 +991,7 @@ UnitTest.addFixture( "OaiFormatter.getAllowedFormats", function() {
 
 } );
 
-// SAHU Unit test to ensure show/hide subfield 241u
+// Search US#OAI-9
 UnitTest.addFixture( "OaiFormatter.formatRecords (format marcx, nat and/or bkm, subfield 241u)", function() {
 
     var format = 'marcx'; // applies to all tests in this fixture
