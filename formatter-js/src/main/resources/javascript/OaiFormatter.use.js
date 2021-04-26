@@ -88,6 +88,7 @@ var OaiFormatter = function() {
                     if ( !bkmRecordAllowed ) {
                         marcRecord = MarcXchangeToOaiMarcX.removeBkmFields( marcRecord );
                         marcRecord = MarcXchangeToOaiMarcX.removeSubfield241u( marcRecord ); // US#OAI-9
+                        marcRecord = MarcXchangeToOaiMarcX.removeSubfield0of5XXFields ( marcRecord ); //US#OAI-10
                     }
                     marcRecord = MarcXchangeToOaiMarcX.removeLocalSubfieldsIfAny( marcRecord );
                     var marcXDoc = MarcXchangeToOaiMarcX.createMarcXmlWithRightRecordType( marcRecord );

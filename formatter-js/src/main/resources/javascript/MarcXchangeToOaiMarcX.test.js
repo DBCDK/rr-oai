@@ -527,6 +527,60 @@ UnitTest.addFixture( "MarcXchangeToOaiMarcX.removeField665", function() {
 
 } );
 
+UnitTest.addFixture( "MarcXchangeToOaiMarcX.removeSubfield0of5XXFields", function() {
+
+    var inputRecord = new Record();
+    inputRecord.fromString(
+        '001 00 *a20049278 *b870970\n' +
+        '004 00 *rn *ae\n' +
+        '008 00 *a1992 *z2016\n' +
+        '009 00 *aa *gxx\n' +
+        '032 00 *aDBF201709 *xBKM201709\n' +
+        '100 00 *aMadsen *hPeter\n' +
+        '245 00 *aFrejas smykke\n' +
+        '300 00 *a48 sider\n' +
+        '440 00 *0 *aValhalla *v8\n' +
+        '504 00 *&1 *aKaerlighedsgudinden Freja er i besiddelse af et kostbart halssmykke\n' +
+        '512 00 *0pro *a Katalogiseret efter omslaget' + // dette felt der testes
+        '520 00 *&1 *aOriginaludgave: 1992\n' +
+        '520 00 *aTidligere: 1. udgave. 1992\n' +
+        '521 00 *b4. oplag *c2016\n' +
+        '652 00 *osk\n' +
+        '700 00 *aKure *hHenning\n' +
+        '945 00 *aPeter Madsens Valhalla *z440(a)\n' +
+        '996 00 *aDBC'
+    );
+
+    var expected = new Record();
+    expected.fromString(
+        '001 00 *a20049278 *b870970\n' +
+        '004 00 *rn *ae\n' +
+        '008 00 *a1992 *z2016\n' +
+        '009 00 *aa *gxx\n' +
+        '032 00 *aDBF201709 *xBKM201709\n' +
+        '100 00 *aMadsen *hPeter\n' +
+        '245 00 *aFrejas smykke\n' +
+        '300 00 *a48 sider\n' +
+        '440 00 *0 *aValhalla *v8\n' +
+        '504 00 *&1 *aKaerlighedsgudinden Freja er i besiddelse af et kostbart halssmykke\n' +
+        '512 00 *a Katalogiseret efter omslaget' + // dette felt der testes
+        '520 00 *&1 *aOriginaludgave: 1992\n' +
+        '520 00 *aTidligere: 1. udgave. 1992\n' +
+        '521 00 *b4. oplag *c2016\n' +
+        '652 00 *osk\n' +
+        '700 00 *aKure *hHenning\n' +
+        '945 00 *aPeter Madsens Valhalla *z440(a)\n' +
+        '996 00 *aDBC'
+    );
+
+    var actual = MarcXchangeToOaiMarcX.removeSubfield0of5XXFields( inputRecord );
+    var testName = "remove subfield 0 of fields with 3 digits beginning with 5";
+
+    Assert.equalValue( testName, actual.toString(), expected.toString() );
+
+
+} );
+
 
 UnitTest.addFixture( "MarcXchangeToOaiMarcX.getRecordType", function() {
 
