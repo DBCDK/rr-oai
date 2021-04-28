@@ -189,6 +189,38 @@ var MarcXchangeToOaiMarcX = function() {
     }
 
     /**
+     * Function that removes subfield 0 in 5xx-fields in the marc record if it exists.
+     * Search US#OAI-10
+     * @syntax MarcXchangeToOaiMarcX.removeSubfield0of5XXFields( marcRecord )
+     * @param {Record} marcRecord the marc record to check for subfield 5XX *0
+     * @return {Record} a new record without subfields 0 in 5XX-fields
+     * @type {function}
+     * @function
+     * @name MarcXchangeToOaiMarcX.removeSubfield0of5XXFields
+     */
+    function removeSubfield0of5XXFields( marcRecord ) {
+
+        Log.trace( "Entering MarcXchangeToOaiMarcX.removeSubfield0of5XXFields" );
+
+        var modifiedRecord = marcRecord.clone();
+
+        modifiedRecord.eachField( /./, function( field ) {
+            if( field.name.length === 3 && field.name.startsWith("5", 0)) {
+                var subfieldMatcher = {
+                    matchSubField: function (field, subfield) {
+                        return (subfield.name === '0');
+                    }
+                };
+                field.removeWithMatcher(subfieldMatcher);
+            }
+        } );
+
+        Log.trace( "Leaving MarcXchangeToOaiMarcX.removeSubfield0of5XXFields" );
+
+        return modifiedRecord;
+    }
+
+    /**
      * Function that removes field 665 from the marc record if it exists.
      * This is a function for temporary use - until field 665 is an official
      * danMARC2 field. Search US #2373.
@@ -266,6 +298,7 @@ var MarcXchangeToOaiMarcX = function() {
         removeLocalSubfieldsIfAny: removeLocalSubfieldsIfAny,
         removeSubfield241u: removeSubfield241u,
         removeField665: removeField665,
+        removeSubfield0of5XXFields: removeSubfield0of5XXFields,
         getRecordType: getRecordType
     }
 
