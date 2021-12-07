@@ -39,7 +39,6 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.ws.WebServiceException;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,8 +139,8 @@ public class ParallelFetch {
                     } catch (ExecutionException ex) {
                         Throwable cause = ex.getCause();
                         if (cause != null &&
-                            cause instanceof WebServiceException) {
-                            throw (WebServiceException) cause;
+                            cause instanceof RuntimeException) {
+                            throw (RuntimeException) cause;
                         }
                         log.error("Error executing parallel fetch: {}", ex.getMessage());
                         log.debug("Error executing parallel fetch: ", ex);
@@ -183,10 +182,6 @@ public class ParallelFetch {
                         throw new InterruptedException("During get(url)");
                     return lease.get().parse(is);
                 }
-            } catch (WebServiceException ex) {
-                log.error("Error getting content from {}: {}", req, ex.getMessage());
-                log.debug("Error getting content from {}: ", req, ex);
-                throw new ServerErrorException("Cannot format record (parse xml)", Response.Status.INTERNAL_SERVER_ERROR);
             } catch (ProcessingException | SAXException | IOException ex) {
                 log.error("Cannot parse XML from formatter url: {}: {}", req, ex.getMessage());
                 log.debug("Cannot parse XML from formatter url: {}: ", req, ex);
