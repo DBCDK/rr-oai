@@ -20,6 +20,7 @@ pipeline {
     agent { label "devel10" }
     tools {
         maven "maven 3.5"
+        jdk "jdk11"
     }
     environment {
         MAVEN_OPTS = "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
@@ -47,7 +48,7 @@ pipeline {
 
                     // We want code-coverage and pmd/findbugs even if unittests fails
                     def statusAnalysis = sh returnStatus: true, script:  """
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd findbugs:findbugs javadoc:aggregate
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd javadoc:aggregate spotbugs:spotbugs -Dspotbugs.excludeFilterFile=src/test/spotbugs/spotbugs-exclude.xml
                     """
 
                     junit testResults: '**/target/*-reports/TEST-*.xml'

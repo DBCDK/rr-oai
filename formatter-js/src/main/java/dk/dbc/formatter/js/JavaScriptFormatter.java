@@ -29,9 +29,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.script.Bindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class JavaScriptFormatter {
     };
 
     private final Environment environment;
-    private final HashSet<String> allowedFormats;
+    private final Set<String> allowedFormats;
 
     public JavaScriptFormatter() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -106,10 +107,9 @@ public class JavaScriptFormatter {
         return allowedFormats.contains(format);
     }
 
-    private HashSet<String> getAllowedFormats() throws Exception {
-        return new HashSet<>(
-                Arrays.asList(( (ScriptObjectMirror) environment.callMethod(ALLOWED_FORMATS_METHOD, new Object[] {}) ).to(String[].class))
-        );
+   private Set<String> getAllowedFormats() throws Exception {
+        Bindings obj = (Bindings) environment.callMethod(ALLOWED_FORMATS_METHOD, new Object[] {});
+        return obj.values().stream().map(String::valueOf).collect(Collectors.toSet());
     }
 
 }
