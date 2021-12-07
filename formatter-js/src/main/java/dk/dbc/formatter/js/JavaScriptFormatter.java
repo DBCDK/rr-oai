@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
  */
+@SuppressWarnings("deprecation")
 public class JavaScriptFormatter {
 
     private static final Logger log = LoggerFactory.getLogger(JavaScriptFormatter.class);
@@ -106,7 +107,6 @@ public class JavaScriptFormatter {
         return allowedFormats.contains(format);
     }
 
-    @SuppressWarnings("deprecation")
     private HashSet<String> getAllowedFormats() throws Exception {
         return new HashSet<>(
                 Arrays.asList(( (ScriptObjectMirror) environment.callMethod(ALLOWED_FORMATS_METHOD, new Object[] {}) ).to(String[].class))
