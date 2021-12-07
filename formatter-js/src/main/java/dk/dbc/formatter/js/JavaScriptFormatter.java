@@ -106,6 +106,7 @@ public class JavaScriptFormatter {
         return allowedFormats.contains(format);
     }
 
+    @SuppressWarnings("deprecation")
     private HashSet<String> getAllowedFormats() throws Exception {
         return new HashSet<>(
                 Arrays.asList(( (ScriptObjectMirror) environment.callMethod(ALLOWED_FORMATS_METHOD, new Object[] {}) ).to(String[].class))
