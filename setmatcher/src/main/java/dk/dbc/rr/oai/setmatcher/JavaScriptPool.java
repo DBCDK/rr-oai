@@ -80,6 +80,19 @@ public class JavaScriptPool {
     }
 
     /**
+     * Delegate call to a JavaScriptInstance
+     *
+     * @param agencyId agency id
+     * @return if agency is eligible for setmatching
+     * @throws Exception If JavaScript fails
+     */
+    public boolean isEligible(int agencyId) throws Exception {
+        try (Lease lease = new Lease()) {
+            return lease.get().isElibible(agencyId);
+        }
+    }
+
+    /**
      * Has something gone wrong with the pool or the JavaScript environments
      *
      * @return are we in a failed state

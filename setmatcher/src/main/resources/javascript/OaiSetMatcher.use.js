@@ -27,6 +27,28 @@ var OaiSetMatcher = function() {
     Log.info( "Entering OaiSetMatcher module" );
 
     /**
+     * Function that checks if an agebcy is eligible for setmatching
+     *
+     * @syntax OaiSetMatcher.isEligible( agencyId )
+     * @param {Number} agencyId The agency that the record belongs to
+     * @return {boolean}
+     * @type {function}
+     * @function
+     * @name OaiSetMatcher.isEligible
+     */
+    function isEligible( agencyId ) {
+
+        Log.trace( "Entering OaiSetMatcher.isEligible ", agencyId );
+
+        var eligible = agencyId === 870970 || agencyId === 870971;
+
+        Log.trace( "Leaving SetMatcher.isEligible ", agencyId, " ", eligible );
+
+        return eligible;
+
+    }
+
+    /**
      * Returns the names of OAI sets, in which the given MarcX record 
      * should be contained in.
      *
@@ -368,6 +390,7 @@ var OaiSetMatcher = function() {
     Log.info( "Leaving OaiSetMatcher module" );
 
     return {
+        isEligible: isEligible,
         getOaiSets: getOaiSets,
         setRecordVariables: setRecordVariables,
         isPartOfART: isPartOfART,

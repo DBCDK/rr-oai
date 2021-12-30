@@ -23,6 +23,16 @@ use( "Log" );
 use( "OaiSetMatcher" );
 
 /**
+ * Determines ia an agencyIs is elibible for setmatching.
+ *
+ * @param {String} agencyId
+ * @returns {Boolean} If the record could be setmatched
+ */
+var oaiIsEligible = function( agencyId ) {
+    return OaiSetMatcher.isEligible( agencyId );
+};
+
+/**
  * Determines which sets a MarcX record belongs to.
  * 
  * @param {String} agencyId

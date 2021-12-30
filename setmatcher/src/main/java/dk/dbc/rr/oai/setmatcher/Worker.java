@@ -201,6 +201,10 @@ public class Worker {
                     int agencyId = job.getAgencyId();
                     String bibliographicRecordId = job.getBibliographicRecordId();
                     String pid = agencyId + "-" + bibliographicRecordId;
+                    if (!js.isEligible(agencyId)) {
+                        log.info("Skipping pid: {} (not eligible)", pid);
+                        continue;
+                    }
                     log.info("Processing pid: {}", pid);
                     RecordData recordData = rr.getContentFor(agencyId, bibliographicRecordId);
                     boolean deleted = recordData.isDeleted();
