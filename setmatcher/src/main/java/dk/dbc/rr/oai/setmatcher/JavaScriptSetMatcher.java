@@ -32,8 +32,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Collections.EMPTY_SET;
-
 /**
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
@@ -43,6 +41,7 @@ public class JavaScriptSetMatcher {
     private static final Logger log = LoggerFactory.getLogger(JavaScriptSetMatcher.class);
 
     private static final String OAI_SET_MATCHER_SCRIPT = "oaiSetMatcher.js";
+    private static final String OAI_AGENCY_ELIGIBLE_METHOD = "oaiIsEligible";
     private static final String OAI_SET_MATCHER_METHOD = "oaiSetMatcher";
 
     private static final String[] SEARCH_PATHS = new String[] {
@@ -89,17 +88,25 @@ public class JavaScriptSetMatcher {
      * Call JavaScript function that determines which sets to include record in
      *
      * @param agencyId Library number
-     * @param content MarcXChange record as string
+     * @param content  MarcXChange record as string
      * @return Set of sets that include this record
      * @throws Exception In case of JavaScript Errors
      */
     public Set<String> getOaiSets(int agencyId, String content) throws Exception {
-        if (agencyId == 870970 || agencyId == 870971) {
-            return environment.getJavascriptObjectAsStringSet(
-                    environment.callMethod(OAI_SET_MATCHER_METHOD, new Object[] {agencyId, content})
-            );
-        } else {
-            return EMPTY_SET;
-        }
+        return environment.getJavascriptObjectAsStringSet(
+                environment.callMethod(OAI_SET_MATCHER_METHOD, new Object[] {agencyId, content})
+        );
     }
+
+    /**
+     * Call JavaScript function that determines is the agency can be part of any set
+     *
+     * @param agencyId Library number
+     * @return if it is eligible for matching through {@link #getOaiSets(int, java.lang.String)}
+     * @throws Exception In case of JavaScript Errors
+     */
+    public boolean isElibible(int agencyId) throws Exception {
+        return (boolean) environment.callMethod(OAI_AGENCY_ELIGIBLE_METHOD, new Object[] {agencyId});
+    }
+
 }

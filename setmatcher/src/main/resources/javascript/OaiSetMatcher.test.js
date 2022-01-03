@@ -10,6 +10,19 @@
 use( "OaiSetMatcher" );
 use( "UnitTest" );
 
+UnitTest.addFixture( "test OaiSetMatcher.isEligible", function( ) {
+
+    var actual = OaiSetMatcher.isEligible( 870970 );
+
+    Assert.equalValue( "Agency is eligible for setmatching", actual, true );
+
+
+    var actual = OaiSetMatcher.isEligible( 710100 );
+
+    Assert.equalValue( "Agency is not eligible for setmatching", actual, false );
+
+} );
+
 UnitTest.addFixture( "test OaiSetMatcher.getOaiSets", function( ) {
 
     var recordString = (
@@ -262,7 +275,6 @@ UnitTest.addFixture( "test OaiSetMatcher.getOaiSets", function( ) {
 
     Assert.equalValue( "Record is part of BCI sets", actual, expected );
     
-
 } );
 
 UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
@@ -914,7 +926,6 @@ UnitTest.addFixture( "test OaiSetMatcher.isPartOfBCI", function( ) {
     };
     var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
     Assert.equalValue( "Record is not BCI, 1b is not 870970", actual, false );
-
 
 } );
 

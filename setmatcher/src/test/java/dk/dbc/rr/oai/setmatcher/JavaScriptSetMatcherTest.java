@@ -44,6 +44,21 @@ public class JavaScriptSetMatcherTest {
     }
 
     @Test(timeout = 2_000L)
+    public void testEligible() throws Exception {
+        System.out.println("testEligible");
+        boolean elibgible;
+        elibgible = JSSM.isElibible(870970);
+        System.out.println("elibgible(870970) = " + elibgible);
+        assertThat(elibgible, is(true));
+        elibgible = JSSM.isElibible(870971);
+        System.out.println("elibgible(870971) = " + elibgible);
+        assertThat(elibgible, is(true));
+        elibgible = JSSM.isElibible(710100);
+        System.out.println("elibgible(710100) = " + elibgible);
+        assertThat(elibgible, is(false));
+    }
+
+    @Test(timeout = 2_000L)
     public void testNat() throws Exception {
         System.out.println("testNat");
         String content = getResource("870971-47366054.xml");
