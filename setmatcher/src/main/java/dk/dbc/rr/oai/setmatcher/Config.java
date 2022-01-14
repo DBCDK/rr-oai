@@ -57,6 +57,7 @@ public class Config {
     private String queueName;
     private String rawrepoRecordService;
     private int threads;
+    private int queueStalledAfter;
     private List<ThrottleRule> throttle;
 
     public Config() {
@@ -89,6 +90,7 @@ public class Config {
         this.threads = getenv("THREADS").asInt().min(1).get();
         this.throttle = getenv("THROTTLE")
                 .convert(Config::parseThrottleRules);
+        this.queueStalledAfter = getenv("QUEUE_STALLED_AFTER").asInt().min(1).get();
     }
 
     public Client getHttpClient() {
@@ -105,6 +107,10 @@ public class Config {
 
     public String getQueueName() {
         return queueName;
+    }
+
+    public int getQueueStalledAfter() {
+        return queueStalledAfter;
     }
 
     public String getRawrepoRecordService() {
