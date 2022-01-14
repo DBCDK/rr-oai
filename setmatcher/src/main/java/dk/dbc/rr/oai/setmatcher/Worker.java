@@ -137,17 +137,17 @@ public class Worker {
     public boolean queueStalled() {
         int queueStalledAfter = config.getQueueStalledAfter();
         if (System.currentTimeMillis() - lastDequeue.get() < queueStalledAfter * 1_000L) {
-            return false; // dequeued within the last 10 min.
+            return false; // dequeued within the last n sec.
         }
         try (Connection connection = rawRepo.getConnection() ;
-             PreparedStatement stmt = connection.prepareStatement("SELECT EXTRACT('EPOCH' FROM NOW() - queued)::INT FROM queue WHERE worker = 'oai-set-matcher' ORDER BY queued LIMIT 1")) {
+             PreparedStatement stmt = connection.prepareStatement("SELECT EXTRACT('EPOCH' FROM NOW() - queued)::INT FROM queue WHERE worker = ? ORDER BY queued LIMIT 1")) {
             stmt.setString(1, config.getQueueName());
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
                     int seconds = resultSet.getInt(1);
                     if (seconds > queueStalledAfter) {
                         log.warn("Queue stalled for: {} seconds", seconds);
-                        return true; // Nothing dequeued within last 10 min, and oldest id more that 10 min old
+                        return true; // Nothing dequeued within last n sec, and oldest id more that n sec old
                     }
                 }
             }
