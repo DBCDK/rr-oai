@@ -24,6 +24,7 @@ import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Locale;
@@ -32,13 +33,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ejb.TransactionManagement;
 import javax.inject.Inject;
 import javax.sql.DataSource;
+import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +70,7 @@ public class Worker {
 
     @Inject
     public Config config;
+
     @Inject
     public JavaScriptPool js;
 
@@ -74,6 +79,8 @@ public class Worker {
 
     @Inject
     public Throttle throttle;
+
+    private AtomicLong lastDequeue = new AtomicLong(System.currentTimeMillis());
 
     @Resource(lookup = "jdbc/rawrepo")
     DataSource rawRepo;
@@ -127,6 +134,31 @@ public class Worker {
      */
     public boolean isInBadState() {
         return inBadState;
+    }
+
+    public boolean queueStalled() {
+        int queueStalledAfter = config.getQueueStalledAfter();
+        if (System.currentTimeMillis() - lastDequeue.get() < queueStalledAfter * 1_000L) {
+            return false; // dequeued within the last 10 min.
+        }
+        try (Connection connection = rawRepo.getConnection() ;
+             PreparedStatement stmt = connection.prepareStatement("SELECT EXTRACT('EPOCH' FROM NOW() - queued)::INT FROM queue WHERE worker = 'oai-set-matcher' ORDER BY queued LIMIT 1")) {
+            stmt.setString(1, config.getQueueName());
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    int seconds = resultSet.getInt(1);
+                    if (seconds > queueStalledAfter) {
+                        log.warn("Queue stalled for: {} seconds", seconds);
+                        return true; // Nothing dequeued within last 10 min, and oldest id more that 10 min old
+                    }
+                }
+            }
+            return false;
+        } catch (SQLException ex) {
+            log.error("Error querying rawrepo oldest queue entry: {}", ex.getMessage());
+            log.debug("Error querying rawrepo oldest queue entry: ", ex);
+            return true; // Queue is probably bad.
+        }
     }
 
     /**
@@ -198,6 +230,7 @@ public class Worker {
             while (!inBadState) {
                 job = throttle.fetchJob(dao);
                 if (job != null) {
+                    lastDequeue.set(System.currentTimeMillis());
                     int agencyId = job.getAgencyId();
                     String bibliographicRecordId = job.getBibliographicRecordId();
                     String pid = agencyId + "-" + bibliographicRecordId;

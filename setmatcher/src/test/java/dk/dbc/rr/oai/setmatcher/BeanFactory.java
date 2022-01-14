@@ -49,6 +49,7 @@ public class BeanFactory {
                 "POOL_MIN_IDLE=1",
                 "POOL_MAX_IDLE=10",
                 "QUEUE_NAME=" + DB.QUEUE_NAME,
+                "QUEUE_STALLED_AFTER=120",
                 "RAWREPO_RECORD_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_RECORD_SERVICE_URL", "http://localhost/rawrepo-record-service"),
                 "THREADS=2",
                 "THROTTLE=25ms/5,125ms",

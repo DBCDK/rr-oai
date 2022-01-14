@@ -61,6 +61,10 @@ public class StatusBean {
             log.warn("Worker is sick");
             return Response.serverError().entity(new Resp("Worker is unhealthy")).build();
         }
+        if(worker.queueStalled()) {
+            log.warn("Queue stalled");
+            return Response.serverError().entity(new Resp("Queue stalled")).build();
+        }
         if (!rr.ping()) {
             log.warn("RawRepo cannot be ping'ed");
             return Response.serverError().entity(new Resp("Cannot ping rawrepo-record-service")).build();
