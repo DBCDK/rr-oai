@@ -134,6 +134,11 @@ public class Worker {
         return inBadState;
     }
 
+    /**
+     * Determine if queue is stalled
+     *
+     * @return if queue is stalled, and service should answer "liveness-failed"
+     */
     public boolean queueStalled() {
         int queueStalledAfter = config.getQueueStalledAfter();
         if (System.currentTimeMillis() - lastDequeue.get() < queueStalledAfter * 1_000L) {
@@ -149,6 +154,8 @@ public class Worker {
                         log.warn("Queue stalled for: {} seconds", seconds);
                         return true; // Nothing dequeued within last n sec, and oldest id more that n sec old
                     }
+                } else { // Queue is empty, reset check time
+                    lastDequeue.set(System.currentTimeMillis());
                 }
             }
             return false;
