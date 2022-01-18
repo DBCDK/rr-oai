@@ -46,7 +46,7 @@ import static java.util.stream.Collectors.*;
  */
 @Singleton
 @Startup
-@DependsOn("DatabaseMIgrator")
+@DependsOn("DatabaseMigrator")
 @Lock(LockType.READ)
 public class OaiDatabaseMetadata {
 
