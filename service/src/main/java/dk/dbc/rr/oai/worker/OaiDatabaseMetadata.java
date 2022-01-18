@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.DependsOn;
 import javax.ejb.EJBException;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -45,6 +46,7 @@ import static java.util.stream.Collectors.*;
  */
 @Singleton
 @Startup
+@DependsOn("DatabaseMIgrator")
 @Lock(LockType.READ)
 public class OaiDatabaseMetadata {
 
