@@ -1,5 +1,8 @@
 FROM docker.dbc.dk/payara5-micro:latest
 
+ENV \
+    READ_ONLY_DATABASE=true
+
 LABEL \
     ADMIN_EMAIL="Official email used in Identify call (required)" \
     AUTHENTICATION_DISABLED="Disable authentication and have all sets allowed for everybody (boolean, default: false)" \
@@ -16,6 +19,7 @@ LABEL \
     POOL_MAX_IDLE="Maximum number of unused DOM Parsers (number, required)" \
     RAWREPO_OAI_FORMATTER_SERVICE_URL="Url of rawrepo format service (required)" \
     RAWREPO_OAI_POSTGRES_URL="Database url (user:pass@host:port/base) for the set descriptions, can be readonly (required)" \
+    READ_ONLY_DATABASE="boolean true/false for readonly database connection (default: true)" \
     REPOSITORY_NAME="Name of repository for Identify call (required)" \
     RESUMPTION_TOKEN_TIMEOUT="How long time-to-live for resumption token n{d|h|m|s} (required)" \
     SCOPE="Environment (test/stg/prod) for cache name (required)" \

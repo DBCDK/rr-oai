@@ -2,7 +2,7 @@
     "appName": "rawrepo-oai-service",
     "jdbc": {
         "jdbc/rawrepo-oai": {
-            "readOnly": "true",
+            "readOnly": "${READ_ONLY_DATABASE}",
             "url": "${RAWREPO_OAI_POSTGRES_URL}",
             "maxSize": "${MAX_POOL_SIZE}"
         }
