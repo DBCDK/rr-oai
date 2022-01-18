@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.DependsOn;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 @Singleton
 @Startup
+@DependsOn("DatabaseMigrator")
 public class ForsRightsConfigValidator {
 
     private static final Logger log = LoggerFactory.getLogger(ForsRightsConfigValidator.class);
