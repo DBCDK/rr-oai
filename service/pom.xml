@@ -24,6 +24,27 @@
 
         <dependency>
             <groupId>dk.dbc</groupId>
+            <artifactId>idpcommon</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <classifier>idp-client</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>dk.dbc</groupId>
+                    <artifactId>dbc-commons-testutil-jpa</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.testcontainers</groupId>
+                    <artifactId>junit-jupiter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-log</artifactId>
             <version>1.3-SNAPSHOT</version>
         </dependency>
@@ -111,13 +132,11 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>${jersey.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
-            <version>${jersey.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -156,7 +175,7 @@
                         </goals>
                         <configuration>
                             <dir>${basedir}/src/test/resources/wiremock</dir>
-                            <params>--port=${wiremock.port} --proxy-all=http://localhost/ --record-mappings</params>
+                            <params>--port=${wiremock.port} --proxy-all=http://localhost:8000/ --record-mappings</params>
                         </configuration>
                     </execution>
                 </executions>
@@ -198,7 +217,7 @@
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                     <environmentVariables>
                         <RAWREPO_OAI_FORMATTER_SERVICE_URL>http://localhost:${wiremock.port}/rawrepo-oai-formatter-service</RAWREPO_OAI_FORMATTER_SERVICE_URL>
-                        <FORS_RIGHTS_URL>http://localhost:${wiremock.port}/forsrights</FORS_RIGHTS_URL>
+                        <IDP_URL>http://localhost:${wiremock.port}/idp</IDP_URL>
                         <RAWREPO_OAI_POSTGRESQL_URL>localhost:${postgresql.port}/rroai</RAWREPO_OAI_POSTGRESQL_URL>
                     </environmentVariables>
                     <systemProperties>

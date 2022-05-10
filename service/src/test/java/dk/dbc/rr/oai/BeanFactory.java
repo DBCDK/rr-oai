@@ -19,8 +19,8 @@
 package dk.dbc.rr.oai;
 
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
+import dk.dbc.rr.oai.fetch.IdpRights;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
-import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.worker.OaiDatabaseMetadata;
 import dk.dbc.rr.oai.worker.OaiDatabaseWorker;
@@ -56,8 +56,8 @@ public class BeanFactory {
                 "AUTHENTICATION_DISABLED=false",
                 "ADMIN_EMAIL=user@example.com",
                 "EXPOSED_URL=http://foo/bar",
-                "FORS_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
-                "FORS_RIGHTS_URL=" + System.getenv().getOrDefault("FORS_RIGHTS_URL", "http://localhost:8008/forsrights"),
+                "IDP_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
+                "IDP_URL=" + System.getenv().getOrDefault("IDP_URL", "http://localhost:8008/idp/"),
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost:8008/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=8",
                 "FETCH_TIMEOUT_IN_SECONDS=30",
@@ -94,10 +94,11 @@ public class BeanFactory {
         return documentBuilderPool;
     }
 
-    public static ForsRights newForsRights(Config config) {
-        ForsRights forsRights = new ForsRights();
-        forsRights.config = config;
-        return forsRights;
+    public static IdpRights newIdpRights(Config config) {
+        IdpRights idpRights = new IdpRights();
+        idpRights.config = config;
+        idpRights.init();
+        return idpRights;
     }
 
     public static ParallelFetch newParallelFetch(Config config) {
@@ -120,13 +121,13 @@ public class BeanFactory {
 
     public static OaiBean newOaiBean(Config config, DataSource dataSource) {
         OaiIOBean ioBean = newOaiIOBean(config);
-        return newOaiBean(config, newForsRights(config), newIndexHtml(), newRemoteIp(config), ioBean, newOaiWorker(config, dataSource, ioBean));
+        return newOaiBean(config, newIdpRights(config), newIndexHtml(), newRemoteIp(config), ioBean, newOaiWorker(config, dataSource, ioBean));
     }
 
-    public static OaiBean newOaiBean(Config config, ForsRights forsRights, IndexHtml indexHtml, RemoteIp remoteIp, OaiIOBean oiIOBean, OaiWorker oaiWorker) {
+    public static OaiBean newOaiBean(Config config, IdpRights idpRights, IndexHtml indexHtml, RemoteIp remoteIp, OaiIOBean oiIOBean, OaiWorker oaiWorker) {
         OaiBean oaiBean = new OaiBean();
         oaiBean.config = config;
-        oaiBean.forsRights = forsRights;
+        oaiBean.idpRights = idpRights;
         oaiBean.indexHtml = indexHtml;
         oaiBean.remoteIp = remoteIp;
         oaiBean.oaiIO = oiIOBean;
@@ -165,11 +166,11 @@ public class BeanFactory {
         return oaiDatabaseMetadata;
     }
 
-    public static ForsRightsConfigValidator newForsRightsConfigValidator(Config config, DataSource rawRepoOaiDs) {
-        ForsRightsConfigValidator forsRightsConfigValidator = new ForsRightsConfigValidator();
-        forsRightsConfigValidator.config = config;
-        forsRightsConfigValidator.rawRepoOaiDs = rawRepoOaiDs;
-        forsRightsConfigValidator.init();
-        return forsRightsConfigValidator;
+    public static IdpRightsConfigValidator newIdpRightsConfigValidator(Config config, DataSource rawRepoOaiDs) {
+        IdpRightsConfigValidator idpRightsConfigValidator = new IdpRightsConfigValidator();
+        idpRightsConfigValidator.config = config;
+        idpRightsConfigValidator.rawRepoOaiDs = rawRepoOaiDs;
+        idpRightsConfigValidator.init();
+        return idpRightsConfigValidator;
     }
 }

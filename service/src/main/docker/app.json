@@ -14,11 +14,11 @@
                 "timeout": "1",
                 "timeUnit": "Minutes"
             },
-            "forsRights": {
+            "idpRights": {
                 "timeout": "${CACHE_SUCCESS_MINUTES}",
                 "timeUnit": "Minutes"
             },
-            "forsRightsFailure": {
+            "idpRightsFailure": {
                 "timeout": "${CACHE_FAILURE_MINUTES}",
                 "timeUnit": "Minutes"
             }

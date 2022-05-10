@@ -1,0 +1,24 @@
+{
+  "id": "78388fe2-9491-3916-bede-818fc7ec7246",
+  "request": {
+    "url": "/idp/authorize",
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"userIdAut\":\"unknown\",\"passwordAut\":\"xxx\",\"agencyId\":\"xxx\"}",
+        "ignoreArrayOrder": true,
+        "ignoreExtraElements": true
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "body-idp_authorize_unknown.json",
+    "headers": {
+      "server": "Payara Micro #badassfish",
+      "content-type": "application/json",
+      "x-frame-options": "SAMEORIGIN"
+    }
+  },
+  "uuid": "78388fe2-9491-3916-bede-818fc7ec7246"
+}

@@ -6,12 +6,12 @@ ENV \
 LABEL \
     ADMIN_EMAIL="Official email used in Identify call (required)" \
     AUTHENTICATION_DISABLED="Disable authentication and have all sets allowed for everybody (boolean, default: false)" \
-    CACHE_SUCCESS_MINUTES="Number of minutes a good result from forsRights is cached (required)" \
-    CACHE_FAILURE_MINUTES="Number of minutes a bad result from forsRights is cached (required)" \
+    CACHE_SUCCESS_MINUTES="Number of minutes a good result from IDP is cached (required)" \
+    CACHE_FAILURE_MINUTES="Number of minutes a bad result from IDP is cached (required)" \
     EXPOSED_URL="Full external url of this service (required)" \
     FETCH_TIMEOUT_IN_SECONDS="Max number of seconds (walltime) to use to parallel fetch records (number, required)" \
-    FORS_RIGHTS_RULES=";-seperated list of rule{name,right or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \
-    FORS_RIGHTS_URL="Url of forsrights service (required)" \
+    IDP_RIGHTS_RULES=";-seperated list of rule{product,name or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \
+    IDP_URL="Url of idp service (required)" \
     MAX_POOL_SIZE="Database pool size  (number, required)" \
     MAX_ROWS_PR_REQUEST="Max numbre of rows in ListIdentifers/ListRecords (number, required)" \
     PARALLEL_FETCH="How many records to format in parallel (number, required)" \

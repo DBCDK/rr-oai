@@ -65,9 +65,9 @@ public class Config {
     private String exposedUrl;
     private int fetchTimeoutInSeconds;
     private UriBuilder formatServiceUri;
-    private Map<String, List<String>> forsRightsRules;
-    private UriBuilder forsRightsUrl;
     private Client httpClient;
+    private Map<String, List<String>> idpRightsRules;
+    private UriBuilder idpUrl;
     private int maxRowsPrRequest;
     private Integer parallelFetch;
     private Integer poolMinIdle;
@@ -101,10 +101,10 @@ public class Config {
         this.formatServiceUri = getenv("RAWREPO_OAI_FORMATTER_SERVICE_URL")
                 .isNot("not empty", String::isEmpty)
                 .convert(UriBuilder::fromUri);
-        this.forsRightsRules = getenv("FORS_RIGHTS_RULES")
+        this.idpRightsRules = getenv("IDP_RIGHTS_RULES")
                 .isNot("not empty", String::isEmpty)
-                .convert(Config::forsRights);
-        this.forsRightsUrl = getenv("FORS_RIGHTS_URL")
+                .convert(Config::idpRights);
+        this.idpUrl = getenv("IDP_URL")
                 .isNot("not empty", String::isEmpty)
                 .convert(UriBuilder::fromUri);
         this.httpClient = getenv("USER_AGENT", "RawRepoOaiService/1.0")
@@ -161,23 +161,23 @@ public class Config {
         return formatServiceUri.clone();
     }
 
-    public Map<String, List<String>> getForsRightsRules() {
-        return forsRightsRules;
+    public Client getHttpClient() {
+        return httpClient;
     }
 
-    public Set<String> getAllForsRightsSets() {
-        return forsRightsRules.values()
+    public Map<String, List<String>> getIdpRightsRules() {
+        return idpRightsRules;
+    }
+
+    public Set<String> getAllIdpRightsSets() {
+        return idpRightsRules.values()
                 .stream()
                 .flatMap(List::stream)
                 .collect(toSet());
     }
 
-    public UriBuilder getForsRightsUrl() {
-        return forsRightsUrl.clone();
-    }
-
-    public Client getHttpClient() {
-        return httpClient;
+    public UriBuilder getIdpUrl() {
+        return idpUrl.clone();
     }
 
     public int getMaxRowsPrRequest() {
@@ -219,7 +219,7 @@ public class Config {
 
     //***********************************************************************
     // Convert rule=e[,e][;rule=e[,e]] to map of rule to list of e
-    protected static Map<String, List<String>> forsRights(String rule) {
+    protected static Map<String, List<String>> idpRights(String rule) {
         return Stream.of(rule.split(";"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())

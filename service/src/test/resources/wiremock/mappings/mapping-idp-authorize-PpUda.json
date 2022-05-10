@@ -1,0 +1,22 @@
+{
+  "id" : "63a221ce-a40c-3dfb-ac0a-361818addd77",
+  "request" : {
+    "url" : "/idp/authorize",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"ip\":\"127.0.0.1\"}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-idp-authorize-PpUda.json",
+    "headers" : {
+      "server" : "Payara Micro #badassfish",
+      "content-type" : "application/json",
+      "x-frame-options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "63a221ce-a40c-3dfb-ac0a-361818addd77"
+}

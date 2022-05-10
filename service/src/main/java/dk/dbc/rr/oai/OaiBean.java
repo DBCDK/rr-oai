@@ -21,14 +21,13 @@ package dk.dbc.rr.oai;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.log.LogWith;
 import dk.dbc.oai.pmh.VerbType;
-import dk.dbc.rr.oai.fetch.forsrights.ForsRights;
+import dk.dbc.rr.oai.fetch.IdpRights;
 import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
 import dk.dbc.rr.oai.worker.OaiWorker;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import javax.ejb.Stateless;
@@ -66,7 +65,7 @@ public class OaiBean {
     public Config config;
 
     @Inject
-    public ForsRights forsRights;
+    public IdpRights idpRights;
 
     @Inject
     public IndexHtml indexHtml;
@@ -99,7 +98,7 @@ public class OaiBean {
         if (trackingId == null)
             trackingId = UUID.randomUUID().toString();
 
-        try (LogWith logWith = LogWith.track(trackingId)) {
+        try ( LogWith logWith = LogWith.track(trackingId)) {
             String triple = params.getFirst("identity");
             if (triple == null || triple.split(":", 3).length != 3)
                 triple = headers.getHeaderString("Identity");
@@ -132,7 +131,7 @@ public class OaiBean {
         OaiRequest request = response.getRequest();
         VerbType verb = request.getVerb();
         if (verb != null) {
-            try (DBCTrackedLogContext logWith = LogWith.track(trackingId)
+            try ( DBCTrackedLogContext logWith = LogWith.track(trackingId)
                     .with("verb", verb.toString())) {
                 switch (verb) {
                     case GET_RECORD:
@@ -170,7 +169,7 @@ public class OaiBean {
     }
 
     /**
-     * Look up using ForsRights the allowed sets for the current user
+     * Look up using IdpRights the allowed sets for the current user
      * <p>
      * This returns an empty set if a login has been presented, but fails.
      * If no triple has ben supplied then the default set will be returned.
@@ -178,27 +177,22 @@ public class OaiBean {
      * @param triple   optional user:group:password
      * @param clientIp remote ip
      * @return collection of setspec names
-     * @throws ServerErrorException If ForsRights could not be contacted
+     * @throws ServerErrorException If IdpRights could not be contacted
      */
     Set<String> getAllowedSets(String triple, String clientIp) throws ServerErrorException {
         Set<String> allowedSets = EMPTY_SET;
         if (config.isAuthenticationDisabled()) {
-            allowedSets = config.getAllForsRightsSets();
+            allowedSets = config.getAllIdpRightsSets();
             log.debug("allowedSets = {} (default)", allowedSets);
         } else {
             try {
-                // This is returns empty if invalid login and no ip-based access
-                allowedSets = forsRights.authorized(triple, clientIp);
+                allowedSets = idpRights.authorized(triple, clientIp);
+                log.debug("allowedSets = {}", allowedSets);
             } catch (IOException | WebApplicationException ex) {
                 log.error("Error validating user: {}", ex.getMessage());
                 log.debug("Error validating user: ", ex);
                 throw new ServerErrorException("Error validating user", INTERNAL_SERVER_ERROR);
             }
-            // Anonymous access (no login/ip-based access)
-            if (allowedSets.isEmpty() && triple == null)
-                allowedSets = new HashSet<>(config.getForsRightsRules()
-                        .getOrDefault("*", EMPTY_LIST));
-            log.debug("allowedSets = {}", allowedSets);
         }
         return allowedSets;
     }
