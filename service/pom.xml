@@ -29,16 +29,8 @@
             <classifier>idp-client</classifier>
             <exclusions>
                 <exclusion>
-                    <groupId>dk.dbc</groupId>
-                    <artifactId>dbc-commons-testutil-jpa</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.testcontainers</groupId>
-                    <artifactId>junit-jupiter</artifactId>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
