@@ -63,6 +63,7 @@ public class IdpRights {
      * @param triple username:group:password
      * @param ip     remote-ip
      * @return Set of rights - if empty no rights where found (bad login)
+     * @throws IOException If TCP communication or JSON (un-)marshalling fails
      * @throws ServerErrorException If the IDP service is down
      */
     @CacheResult(cacheName = "idpRights",
