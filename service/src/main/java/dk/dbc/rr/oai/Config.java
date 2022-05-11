@@ -101,7 +101,7 @@ public class Config {
         this.formatServiceUri = getenv("RAWREPO_OAI_FORMATTER_SERVICE_URL")
                 .isNot("not empty", String::isEmpty)
                 .convert(UriBuilder::fromUri);
-        this.idpRightsRules = getenv("IDP_RIGHTS_RULES")
+        this.idpRightsRules = getenv("IDP_RULES")
                 .isNot("not empty", String::isEmpty)
                 .convert(Config::idpRights);
         this.idpUrl = getenv("IDP_URL")

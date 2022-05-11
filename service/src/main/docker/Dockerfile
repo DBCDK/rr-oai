@@ -10,7 +10,7 @@ LABEL \
     CACHE_FAILURE_MINUTES="Number of minutes a bad result from IDP is cached (required)" \
     EXPOSED_URL="Full external url of this service (required)" \
     FETCH_TIMEOUT_IN_SECONDS="Max number of seconds (walltime) to use to parallel fetch records (number, required)" \
-    IDP_RIGHTS_RULES=";-seperated list of rule{product,name or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \
+    IDP_RULES=";-seperated list of rule{product,name or */default} = set [, set]. ex *=nat;danbib,502=bkm,onl (required)" \
     IDP_URL="Url of idp service (required)" \
     MAX_POOL_SIZE="Database pool size  (number, required)" \
     MAX_ROWS_PR_REQUEST="Max numbre of rows in ListIdentifers/ListRecords (number, required)" \
