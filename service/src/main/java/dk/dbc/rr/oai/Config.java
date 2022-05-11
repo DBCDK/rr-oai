@@ -224,7 +224,7 @@ public class Config {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(s -> s.split("=", 2))
-                .collect(toMap(a -> a[0].trim(),
+                .collect(toMap(a -> a[0].trim().toLowerCase(Locale.ROOT),
                                a -> Stream.of(a[1].split(","))
                                        .map(String::trim)
                                        .filter(s -> !s.isEmpty())
