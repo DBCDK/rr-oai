@@ -62,20 +62,15 @@ public class StatusBean {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response status() {
-        Optional<String> err = this.testDb();
-        if (!err.isPresent())
-            err = testFormatService();
-        if (!err.isPresent())
-            err = testForsRightsService();
+        Optional<String> err = this.testDb()
+                .or(this::testFormatService);
         return err.map(Resp::new)
                 .orElse(Resp.OK)
                 .asResponse();
     }
 
     private Optional<String> testDb() {
-        try (Connection connection = ds.getConnection() ;
-             Statement stmt = connection.createStatement() ;
-             ResultSet resultSet = stmt.executeQuery("SELECT NOW()")) {
+        try ( Connection connection = ds.getConnection();   Statement stmt = connection.createStatement();   ResultSet resultSet = stmt.executeQuery("SELECT NOW()")) {
             if (resultSet.next())
                 return Optional.empty();
             log.error("No result from SELECT NOW()");
@@ -98,24 +93,6 @@ public class StatusBean {
                 return Optional.empty();
             log.error("Error parsing formatter response: {}", json);
         } catch (IOException | RuntimeException ex) {
-            log.error("Error pinging formatter: {}", ex.getMessage());
-            log.debug("Error pinging formatter: ", ex);
-        }
-        return Optional.of("Error pinging formatter");
-    }
-
-    private Optional<String> testForsRightsService() {
-        try {
-            URI uri = config.getForsRightsUrl().build();
-            log.debug("uri = {}", uri);
-            String resp = config.getHttpClient()
-                    .target(uri.toASCIIString() + "?HowRU")
-                    .request(MediaType.APPLICATION_JSON_TYPE)
-                    .get(String.class);
-            if (resp.contains("Gr8"))
-                return Optional.empty();
-            log.error("Error parsing ForsRights response: {}", resp);
-        } catch (RuntimeException ex) {
             log.error("Error pinging formatter: {}", ex.getMessage());
             log.debug("Error pinging formatter: ", ex);
         }

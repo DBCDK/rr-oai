@@ -1,0 +1,24 @@
+{
+  "id": "9bccc844-9e62-3d7d-9494-756463cca09c",
+  "request": {
+    "url": "/idp/authorize",
+    "method": "POST",
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"userIdAut\":\"abno\",\"passwordAut\":\"yyy\",\"agencyId\":\"xxx\"}",
+        "ignoreArrayOrder": true,
+        "ignoreExtraElements": true
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "body-idp-authorize-abno.json",
+    "headers": {
+      "server": "Payara Micro #badassfish",
+      "content-type": "application/json",
+      "x-frame-options": "SAMEORIGIN"
+    }
+  },
+  "uuid": "9bccc844-9e62-3d7d-9494-756463cca09c"
+}

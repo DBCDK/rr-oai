@@ -36,17 +36,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Test that all FORS_RIGHTS_RULES exposed sets are present in the database, and
- * that all the sets in the database are exposed via FORS_RIGHTS_RULES.
+ * Test that all IDP_RIGHTS_RULES exposed sets are present in the database, and
+ * that all the sets in the database are exposed via IDP_RIGHTS_RULES.
  *
  * @author Morten Bøgeskov (mb@dbc.dk)
  */
 @Singleton
 @Startup
 @DependsOn("DatabaseMigrator")
-public class ForsRightsConfigValidator {
+public class IdpRightsConfigValidator {
 
-    private static final Logger log = LoggerFactory.getLogger(ForsRightsConfigValidator.class);
+    private static final Logger log = LoggerFactory.getLogger(IdpRightsConfigValidator.class);
 
     @Resource(lookup = "jdbc/rawrepo-oai")
     public DataSource rawRepoOaiDs;
@@ -56,9 +56,9 @@ public class ForsRightsConfigValidator {
 
     @PostConstruct
     public void init() {
-        log.info("Checking forsrights configuration");
+        log.info("Checking idprights configuration");
 
-        Set<String> allSets = new HashSet<>(config.getAllForsRightsSets());
+        Set<String> allSets = new HashSet<>(config.getAllIdpRightsSets());
         log.trace("allSets = {}", allSets);
 
         try (Connection connection = rawRepoOaiDs.getConnection() ;
@@ -73,12 +73,12 @@ public class ForsRightsConfigValidator {
             }
             log.trace("allSets = {}", allSets);
             if (!allSets.isEmpty())
-                throw new EJBException("Set(s) `" + allSets + "` is/are declared in FORS_RIGHTS_RULES but not in the database");
+                throw new EJBException("Set(s) `" + allSets + "` is/are declared in IDP_RIGHTS_RULES but not in the database");
 
         } catch (SQLException ex) {
             log.error("Cannot read setspecs: {}", ex.getMessage());
             log.debug("Cannot read setspecs: ", ex);
-            throw new EJBException("Cannot check FORS_RIGHTS_RULES");
+            throw new EJBException("Cannot check IDP_RIGHTS_RULES");
         }
     }
 }
