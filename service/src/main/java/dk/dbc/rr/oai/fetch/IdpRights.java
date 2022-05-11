@@ -86,7 +86,7 @@ public class IdpRights {
             AuthenticationRequest req = new AuthenticationRequest();
             req.setUserIdAut(parts[0]);
             req.setAgencyId(parts[1]);
-            req.setPasswordAut(parts[1]);
+            req.setPasswordAut(parts[2]);
             AuthenticationResponse res = authorize(req);
 
             if (!res.isAuthenticated()) {

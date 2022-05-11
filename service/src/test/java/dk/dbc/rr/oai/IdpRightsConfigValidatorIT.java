@@ -33,28 +33,28 @@ public class IdpRightsConfigValidatorIT extends DB {
     @Test(timeout = 2_000L)
     public void testOk() throws Exception {
         System.out.println("testOk");
-        Config config = newConfig("IDP_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl;bob/300=fdepot");
+        Config config = newConfig("IDP_RULES=*=nat,art;foo/100=bkm,onl;bob/300=fdepot");
         newIdpRightsConfigValidator(config, ds);
     }
 
     @Test(timeout = 2_000L)
     public void testOkWithMultipleRulesForSameSet() throws Exception {
         System.out.println("testOkWithMultipleRulesForSameSet");
-        Config config = newConfig("IDP_RIGHTS_RULES=*=nat,art;foo/100=bkm,onl;bar/200=onl;bob/300=fdepot");
+        Config config = newConfig("IDP_RULES=*=nat,art;foo/100=bkm,onl;bar/200=onl;bob/300=fdepot");
         newIdpRightsConfigValidator(config, ds);
     }
 
     @Test(timeout = 2_000L, expected = EJBException.class)
     public void testInDatabaseButNotInRules() throws Exception {
         System.out.println("testInDatabaseButNotInRules");
-        Config config = newConfig("IDP_RIGHTS_RULES=*=nat;foo/100=bkm,onl");
+        Config config = newConfig("IDP_RULES=*=nat;foo/100=bkm,onl");
         newIdpRightsConfigValidator(config, ds);
     }
 
     @Test(timeout = 2_000L, expected = EJBException.class)
     public void testInRulesButNotInDatabase() throws Exception {
         System.out.println("testInRulesButNotInDatabase");
-        Config config = newConfig("IDP_RIGHTS_RULES=*=nat,unknown;foo/100=bkm,onl");
+        Config config = newConfig("IDP_RULES=*=nat,unknown;foo/100=bkm,onl");
         newIdpRightsConfigValidator(config, ds);
     }
 }

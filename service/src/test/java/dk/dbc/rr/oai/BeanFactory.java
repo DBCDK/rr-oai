@@ -56,7 +56,7 @@ public class BeanFactory {
                 "AUTHENTICATION_DISABLED=false",
                 "ADMIN_EMAIL=user@example.com",
                 "EXPOSED_URL=http://foo/bar",
-                "IDP_RIGHTS_RULES=*=art,nat;danbib,502=bkm,onl",
+                "IDP_RULES=*=art,nat;danbib,502=bkm,onl",
                 "IDP_URL=" + System.getenv().getOrDefault("IDP_URL", "http://localhost:8008/idp/"),
                 "RAWREPO_OAI_FORMATTER_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_OAI_FORMATTER_SERVICE_URL", "http://localhost:8008/rawrepo-oai-formatter-service"),
                 "PARALLEL_FETCH=8",
