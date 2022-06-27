@@ -24,8 +24,51 @@ UnitTest.addFixture( "test OaiSetMatcher.isEligible", function( ) {
 } );
 
 UnitTest.addFixture( "test OaiSetMatcher.getOaiSets", function( ) {
-
     var recordString = (
+        '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
+        '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="001">' +
+                '<marcx:subfield code="a">23645564</marcx:subfield>' +
+                '<marcx:subfield code="b">870970</marcx:subfield>' +
+                '<marcx:subfield code="c">20160525133413</marcx:subfield>' +
+                '<marcx:subfield code="d">20010824</marcx:subfield>' +
+                '<marcx:subfield code="f">a</marcx:subfield>' +
+            '</marcx:datafield>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="004">' +
+                '<marcx:subfield code="r">n</marcx:subfield>' +
+                '<marcx:subfield code="a">e</marcx:subfield>' +
+                '<marcx:subfield code="n">f</marcx:subfield>' +
+            '</marcx:datafield>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="009">' +
+                '<marcx:subfield code="a">a</marcx:subfield>' +
+                '<marcx:subfield code="g">xx</marcx:subfield>' +
+            '</marcx:datafield>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="032">' +
+                '<marcx:subfield code="a">DBF200338</marcx:subfield>' +
+                '<marcx:subfield code="x">SFD200338</marcx:subfield>' +
+                '<marcx:subfield code="x">ACC200134</marcx:subfield>' +
+                '<marcx:subfield code="x">ACC200332</marcx:subfield>' +
+                '<marcx:subfield code="x">DAT201623</marcx:subfield>' +
+            '</marcx:datafield>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="100">' +
+                '<marcx:subfield code="a">Murakami</marcx:subfield>' +
+                '<marcx:subfield code="h">Haruki</marcx:subfield>' +
+            '</marcx:datafield>' +
+            '<marcx:datafield ind1="0" ind2="0" tag="245">' +
+            '<marcx:subfield code="a">Traekopfuglens kroenike</marcx:subfield>' +
+            '<marcx:subfield code="e">Haruki Murakami</marcx:subfield>' +
+            '<marcx:subfield code="f">oversat af Mette Holm</marcx:subfield>' +
+            '</marcx:datafield>' +
+        '</marcx:record>'
+    );
+
+    var expected = [ ];
+
+    var actual = OaiSetMatcher.getOaiSets( 870970, recordString );
+
+    Assert.equalValue( "Record is blocked from export by 004n=f", actual, expected );
+
+    recordString = (
         '<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">' +
         '<marcx:leader>00000n    2200000   4500</marcx:leader>' +
             '<marcx:datafield ind1="0" ind2="0" tag="001">' +
@@ -281,6 +324,65 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
 
     var record = new Record( );
     record.fromString(
+        '001 00 *a 62497203 *b 870970 *c 20220417090005 *d 20220417 *f a\n' +
+        '004 00 *r n *a e *n f\n' +
+        '006 00 *d 7 *2 b\n' +
+        '008 00 *t m *u f *a 2022 *b dk *l dan *n b *v 5\n' +
+        '009 00 *a m *g xe\n' +
+        '032 00 *x ACC202215 *a DBI999999 *x BKM999999\n' +
+        '041 00 *a dan *u dan\n' +
+        '239 00 *t Venuseffekten\n' +
+        '245 00 *a Venuseffekten\n' +
+        '260 00 *b [Scanbox] *c [2022]\n' +
+        '300 00 *l 105 min.\n' +
+        '504 00 *& 1 *a Liv lever i tæt symbiose med sine forældre i provinsen. Da hun møder den lesbiske kunstner Andrea, går det op for hende, at kærligheds- og familieliv ikke kommer i en bestemt form. For alle, der holder af hjertevarme, danske komedier\n' +
+        '508 00 *a Undertekster på dansk\n' +
+        '512 00 *a Produktion: Motor (Danmark), 2021\n' +
+        '512 00 *0 pro *a Beskrivelsen baseret på det fysiske forlæg\n' +
+        '517 00 *& 1 *a Mærkning: Tilladt for alle men frarådes børn under 7 år\n' +
+        '652 00 *m 77.7\n' +
+        '666 00 *s familien\n' +
+        '666 00 *s identitet\n' +
+        '666 00 *s forelskelse\n' +
+        '666 00 *s kærlighed\n' +
+        '666 00 *s frigørelse\n' +
+        '666 00 *q Danmark\n' +
+        '666 00 *i 2020-2029\n' +
+        '666 00 *o komedier\n' +
+        '666 00 *o danske film\n' +
+        '666 00 *o spillefilm\n' +
+        '700 00 *a Haudal *h Anna Emma *6 19320928 *4 drt *4 aus\n' +
+        '700 00 *a Leisner *h Valdemar Cold Winge *6 69572936 *4 cng900 00   *a Cold Winge Leisner *h Valdemar900 00   *a Winge Leisner *h Valdemar Cold\n' +
+        '720 00 *o Johanne Milland Pedersen *4 act\n' +
+        '720 00 *o Josephine Park *4 act\n' +
+        '720 00 *o Sofie Gråbøl *4 act\n' +
+        '720 00 *o Lars Mikkelsen *4 act\n' +
+        '720 00 *o Morten Hee Andersen *4 act\n' +
+        '720 00 *o Anne Sofie Wanstrup *4 act\n' +
+        '720 00 *o Anette Støvelbæk *4 act\n' +
+        '856 00 *z Filmstriben - Se film hjemmefra *u http://www.filmstriben.dk/fjernleje/film/details.aspx?id=9000005896\n' +
+        '990 00 *b v *u nt\n' +
+        '996 00 *a DBC'
+    );
+
+    var actual = OaiSetMatcher.setRecordVariables( 870970, record );
+
+    var expected = {
+        agencyId: 870970,
+        valuesOf001b : [ '870970' ],
+        valuesOf004n : [ 'f' ],
+        valuesOf009g : [ 'xe' ],
+        valuesOf014x : [ ],
+        codesIn032a : [ 'DBI' ],
+        codesIn032x : [ 'ACC', 'BKM' ],
+        exist856u : true,
+        valuesOf996a : [ 'DBC' ]
+    };
+
+    Assert.equalValue( "set record variables for record without field 04f", actual, expected );
+
+    var record = new Record( );
+    record.fromString(
         '001 00 *a23645564 *b870970 *c20160525133413 *d20010824 *fa\n' +
         '004 00 *rn *ae\n' +
         '009 00 *aa *gxx\n' +
@@ -294,6 +396,7 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
     var expected = {
         agencyId: 870970,
         valuesOf001b : [ '870970' ],
+        valuesOf004n : [ ],
         valuesOf009g : [ 'xx' ],
         valuesOf014x : [ ],
         codesIn032a : [ 'DBF' ],
@@ -320,6 +423,7 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
     expected = {
         agencyId: 870971,
         valuesOf001b : [ '870971' ],
+        valuesOf004n : [ ],
         valuesOf009g : [ 'xx' ],
         valuesOf014x : [ 'ANM' ],
         codesIn032a : [ 'ANU', 'DAN' ],
@@ -354,6 +458,7 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
     expected = {
         agencyId: 870970,
         valuesOf001b : [ '870970' ],
+        valuesOf004n : [ ],
         valuesOf009g : [ ],
         valuesOf014x : [ ],
         codesIn032a : [ 'DBF' ],
@@ -391,6 +496,7 @@ UnitTest.addFixture( "test OaiSetMatcher.setRecordVariables", function( ) {
     expected = {
         agencyId: 870970,
         valuesOf001b : [ '870970' ],
+        valuesOf004n : [ ],
         valuesOf009g : [ 'xx'],
         valuesOf014x : [ ],
         codesIn032a : [ ],
@@ -926,6 +1032,24 @@ UnitTest.addFixture( "test OaiSetMatcher.isPartOfBCI", function( ) {
     };
     var actual = OaiSetMatcher.isPartOfBCI( recordVariables );
     Assert.equalValue( "Record is not BCI, 1b is not 870970", actual, false );
+
+} );
+
+UnitTest.addFixture( "test OaiSetMatcher.isPartOfCommon", function( ) {
+
+    var recordVariables = {
+        agencyId : 870970,
+        valuesOf004n : [  ],
+    };
+    var actual = OaiSetMatcher.isPartOfCommon( recordVariables );
+    Assert.equalValue( "Record is part of common", actual, true );
+
+    var recordVariables = {
+        agencyId : 870970,
+        valuesOf004n : [ 'f' ],
+    };
+    var actual = OaiSetMatcher.isPartOfCommon( recordVariables );
+    Assert.equalValue( "Record is not part of common", actual, false );
 
 } );
 

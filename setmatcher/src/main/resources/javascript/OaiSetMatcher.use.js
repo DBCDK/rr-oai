@@ -77,6 +77,11 @@ var OaiSetMatcher = function() {
         var marcRecord = MarcXchange.marcXchangeToMarcRecord( marcXrecord );
         var recordVariables = OaiSetMatcher.setRecordVariables( agencyId, marcRecord );
 
+        if ( !OaiSetMatcher.isPartOfCommon( recordVariables ) ) {
+            Log.trace( "Leaving OaiSetMatcher.getOaiSets - filtered record because it is blocked from export" );
+            return oaiSets;
+        }
+
         if ( OaiSetMatcher.isPartOfNAT( recordVariables ) ) {
             oaiSets.push( "NAT" );
         }
@@ -128,6 +133,7 @@ var OaiSetMatcher = function() {
         var recordVariables = {
             agencyId: agencyId,
             valuesOf001b : [ ],
+            valuesOf004n : [ ],
             valuesOf009g : [ ],
             valuesOf014x : [ ],
             codesIn032a : [ ],
@@ -141,6 +147,10 @@ var OaiSetMatcher = function() {
         // Is the 001b value the same value as "agencyId" value? If so, this can be skipped
         map.put( "001", function( field ) {
             recordVariables.valuesOf001b = field.getValueAsArray( "b" );
+        } );
+
+        map.put( "004", function( field ) {
+            recordVariables.valuesOf004n = field.getValueAsArray( "n" );
         } );
 
         map.put( "009", function( field ) {
@@ -180,6 +190,34 @@ var OaiSetMatcher = function() {
 
     }
 
+    /**
+     * Function that checks if recordVariables match criteria for blocking for 
+     * including the record.
+     *
+     * DI-413 Frafiltrering af visse poster i OAI
+     * Record with 004n==f are blocked from export
+     *
+     * @syntax OaiSetMatcher.isPartOfCommon( recordVariables )
+     * @param {Object} recordVariables An object with necessary variables extracted from the marc record
+     * @return {Boolean} true if the record should be part of common set, otherwise false
+     * @type {function}
+     * @function
+     * @name OaiSetMatcher.isPartOfCommon
+     */
+    function isPartOfCommon( recordVariables ) {
+
+        Log.trace( "Entering OaiSetMatcher.isPartOfCommon" );
+
+        var result = true;
+
+        if ( -1 !== recordVariables.valuesOf004n.indexOf( "f" ) ) {
+            result = false;
+        }
+
+        Log.trace( "Leaving OaiSetMatcher.isPartOfCommon with ", result );
+
+        return result;
+    }
 
     /**
      * Function that checks if recordVariables match criteria for including the
@@ -393,6 +431,7 @@ var OaiSetMatcher = function() {
         isEligible: isEligible,
         getOaiSets: getOaiSets,
         setRecordVariables: setRecordVariables,
+        isPartOfCommon: isPartOfCommon,
         isPartOfART: isPartOfART,
         isPartOfBCI: isPartOfBCI,
         isPartOfBKM: isPartOfBKM,
