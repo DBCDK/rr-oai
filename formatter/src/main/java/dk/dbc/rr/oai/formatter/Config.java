@@ -18,18 +18,19 @@
  */
 package dk.dbc.rr.oai.formatter;
 
-import java.util.Map;
-import java.util.function.Function;
-import javax.annotation.PostConstruct;
-import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  *

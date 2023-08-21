@@ -19,15 +19,16 @@
 package dk.dbc.rr.oai.io;
 
 import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import org.junit.Test;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import javax.ws.rs.core.MultivaluedHashMap;
-import org.junit.Test;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**

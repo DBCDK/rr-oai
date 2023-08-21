@@ -22,20 +22,23 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import dk.dbc.rr.oai.Config;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.ServerErrorException;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.client.Client;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
 
-import static dk.dbc.rr.oai.BeanFactory.*;
-import static java.util.stream.Collectors.*;
-import static org.hamcrest.CoreMatchers.*;
+import static dk.dbc.rr.oai.BeanFactory.configMapWithDefaults;
+import static dk.dbc.rr.oai.BeanFactory.newConfig;
+import static dk.dbc.rr.oai.BeanFactory.newParallelFetch;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**

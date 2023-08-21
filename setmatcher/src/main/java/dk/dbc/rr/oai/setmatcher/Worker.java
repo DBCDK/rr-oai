@@ -18,10 +18,20 @@
  */
 package dk.dbc.rr.oai.setmatcher;
 
-import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,15 +44,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import javax.sql.DataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -244,7 +245,7 @@ public class Worker {
                         continue;
                     }
                     log.info("Processing pid: {}", pid);
-                    RecordData recordData = rr.getContentFor(agencyId, bibliographicRecordId);
+                    RecordDTO recordData = rr.getContentFor(agencyId, bibliographicRecordId);
                     boolean deleted = recordData.isDeleted();
                     Set<String> sets = js.getOaiSets(agencyId, recordData.getContent());
                     setPidInDatabase(pid, deleted, sets, rroaiConnection);

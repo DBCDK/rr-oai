@@ -21,6 +21,18 @@ package dk.dbc.rr.oai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Connection;
@@ -28,18 +40,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.sql.DataSource;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -119,7 +119,7 @@ public class StatusBean {
         }
 
         public Response asResponse() {
-            return Response.status(ok ? Status.OK : Status.INTERNAL_SERVER_ERROR)
+            return Response.status(ok ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(this)
                     .build();
         }

@@ -21,14 +21,15 @@ package dk.dbc.rr.oai.setmatcher;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
-import java.util.Iterator;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
+import jakarta.ejb.Lock;
+import jakarta.ejb.LockType;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *

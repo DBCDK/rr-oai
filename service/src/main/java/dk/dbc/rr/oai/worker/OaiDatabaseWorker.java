@@ -22,21 +22,22 @@ import dk.dbc.rr.oai.Config;
 import dk.dbc.rr.oai.io.OaiIdentifier;
 import dk.dbc.rr.oai.io.OaiResumptionToken;
 import dk.dbc.rr.oai.io.OaiTimestamp;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.LinkedList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Set;
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.sql.DataSource;
-import org.eclipse.microprofile.metrics.annotation.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.singleton;
 

@@ -22,13 +22,16 @@ import dk.dbc.oai.pmh.OAIPMH;
 import dk.dbc.oai.pmh.OAIPMHerrorType;
 import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
 import dk.dbc.oai.pmh.VerbType;
-import java.util.List;
-import java.util.function.Function;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static dk.dbc.oai.pmh.OAIPMHerrorcodeType.*;
+import java.util.List;
+import java.util.function.Function;
+
+import static dk.dbc.oai.pmh.OAIPMHerrorcodeType.BAD_ARGUMENT;
+import static dk.dbc.oai.pmh.OAIPMHerrorcodeType.BAD_RESUMPTION_TOKEN;
+import static dk.dbc.oai.pmh.OAIPMHerrorcodeType.BAD_VERB;
 import static dk.dbc.rr.oai.io.OaiResponse.O;
 
 /**

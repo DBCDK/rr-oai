@@ -18,11 +18,12 @@
  */
 package dk.dbc.rr.oai.formatter;
 
+import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.ws.rs.client.ClientBuilder;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import static java.util.stream.Collectors.toMap;
 

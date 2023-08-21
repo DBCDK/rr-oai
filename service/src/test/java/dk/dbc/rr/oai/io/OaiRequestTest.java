@@ -19,23 +19,25 @@
 package dk.dbc.rr.oai.io;
 
 import dk.dbc.rr.oai.Config;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import javax.ws.rs.core.MultivaluedHashMap;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
-import static dk.dbc.rr.oai.BeanFactory.*;
-import static java.nio.charset.StandardCharsets.*;
+import static dk.dbc.rr.oai.BeanFactory.newOaiIOBean;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_MAP;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**

@@ -19,17 +19,21 @@
 package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.MarcXChangeWrapper;
-import dk.dbc.rawrepo.RecordId;
-import java.util.Arrays;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.InternalServerErrorException;
+import java.util.Arrays;
 
-import static dk.dbc.rr.oai.formatter.BeanFactory.*;
-import static org.hamcrest.CoreMatchers.*;
+import static dk.dbc.rr.oai.formatter.BeanFactory.newConfig;
+import static dk.dbc.rr.oai.formatter.BeanFactory.newRawRepo;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 /**
  *
@@ -70,7 +74,7 @@ public class RawRepoIT {
         assertThat(wrappers[0].children.length, is(0));
         assertThat(wrappers[1].content, containsString("<datafield ind1='0' ind2='0' tag='001'><subfield code='a'>28413882</subfield>"));
         assertThat(wrappers[1].children.length, not(is(0)));
-        assertThat(Arrays.asList(wrappers[1].children), hasItem(new RecordId(id, 870970)));
+        assertThat(Arrays.asList(wrappers[1].children), hasItem(new RecordIdDTO(id, 870970)));
     }
 
     @Test(timeout = 4_000L)

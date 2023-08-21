@@ -20,6 +20,20 @@ package dk.dbc.rr.oai.fetch;
 
 import dk.dbc.log.LogWith;
 import dk.dbc.rr.oai.Config;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -32,19 +46,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.eclipse.microprofile.metrics.annotation.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import static java.util.stream.Collectors.toList;
 

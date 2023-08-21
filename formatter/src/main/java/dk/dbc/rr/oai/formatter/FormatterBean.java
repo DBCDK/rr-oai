@@ -20,19 +20,19 @@ package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.MarcXChangeWrapper;
 import dk.dbc.log.LogWith;
-import java.util.UUID;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 /**
  *
@@ -57,11 +57,11 @@ public class FormatterBean {
                            @QueryParam("sets") String sets,
                            @QueryParam("trackingId") String trackingId) {
         if (id == null || id.isEmpty())
-            throw new ClientErrorException("Missing query param 'id'", Status.BAD_REQUEST);
+            throw new ClientErrorException("Missing query param 'id'", Response.Status.BAD_REQUEST);
         if (format == null || format.isEmpty())
-            throw new ClientErrorException("Missing query param 'format'", Status.BAD_REQUEST);
+            throw new ClientErrorException("Missing query param 'format'", Response.Status.BAD_REQUEST);
         if (sets == null || sets.isEmpty())
-            throw new ClientErrorException("Missing query param 'sets'", Status.BAD_REQUEST);
+            throw new ClientErrorException("Missing query param 'sets'", Response.Status.BAD_REQUEST);
 
         if (trackingId == null)
             trackingId = UUID.randomUUID().toString();
@@ -78,14 +78,14 @@ public class FormatterBean {
                 if (recordId.isEmpty())
                     throw new IllegalStateException("Empty record part");
             } catch (RuntimeException ex) {
-                throw new ClientErrorException("Query param 'id' has wrong format (agency:recordid)", Status.BAD_REQUEST);
+                throw new ClientErrorException("Query param 'id' has wrong format (agency:recordid)", Response.Status.BAD_REQUEST);
             }
 
             logWith.agencyId(agencyId)
                     .bibliographicRecordId(recordId);
 
             if (!jsPool.checkFormat(format))
-                throw new ClientErrorException("Query param 'format' contains an unknown format", Status.BAD_REQUEST);
+                throw new ClientErrorException("Query param 'format' contains an unknown format", Response.Status.BAD_REQUEST);
             log.debug("Fetching records");
             MarcXChangeWrapper[] records = rr.getRecordsFor(agencyId, recordId);
             log.debug("formatting");

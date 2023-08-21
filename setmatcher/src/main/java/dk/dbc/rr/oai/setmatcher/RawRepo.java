@@ -18,13 +18,13 @@
  */
 package dk.dbc.rr.oai.setmatcher;
 
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class RawRepo {
      * @return content object (including deleted status)
      * @throws RecordServiceConnectorException In case the communication fails
      */
-    public RecordData getContentFor(int agencyId, String bibliographicRecordId) throws RecordServiceConnectorException {
+    public RecordDTO getContentFor(int agencyId, String bibliographicRecordId) throws RecordServiceConnectorException {
         return connector.getRecordData(agencyId, bibliographicRecordId, PARAMS);
     }
 
