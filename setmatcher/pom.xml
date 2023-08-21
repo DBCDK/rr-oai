@@ -23,7 +23,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-jslib</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <version>2.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -141,22 +141,20 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>javascript-unpack</id>
-                        <phase>process-resources</phase>
+                        <id>unpack-jscommon</id>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
+                        <phase>process-resources</phase>
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>dk.dbc</groupId>
-                                    <artifactId>jscommon</artifactId>
-                                    <version>2012.1-SNAPSHOT</version>
-                                    <classifier>javascript</classifier>
-                                    <type>zip</type>
+                                    <artifactId>nashorn-js-jscommon</artifactId>
+                                    <version>1.0-SNAPSHOT</version>
                                 </artifactItem>
                             </artifactItems>
-                            <excludes>**/*.test.js</excludes>
+                            <excludeTransitive>true</excludeTransitive>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                             <useSubDirectoryPerArtifact>false</useSubDirectoryPerArtifact>
                             <stripVersion>true</stripVersion>
