@@ -19,10 +19,11 @@
 
 package dk.dbc.rr.oai;
 
-import javax.ejb.EJBException;
+import jakarta.ejb.EJBException;
 import org.junit.Test;
 
-import static dk.dbc.rr.oai.BeanFactory.*;
+import static dk.dbc.rr.oai.BeanFactory.newConfig;
+import static dk.dbc.rr.oai.BeanFactory.newIdpRightsConfigValidator;
 
 /**
  *

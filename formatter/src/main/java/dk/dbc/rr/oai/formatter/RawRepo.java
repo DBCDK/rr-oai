@@ -20,27 +20,26 @@ package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.MarcXChangeWrapper;
 import dk.dbc.httpclient.FailSafeHttpClient;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordServiceConnectorNoContentStatusCodeException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.core.Response;
-
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import dk.dbc.rawrepo.record.RecordServiceConnectorNoContentStatusCodeException;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.core.Response;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -77,10 +76,13 @@ public class RawRepo {
                 log.isDebugEnabled() ?
                 RecordServiceConnector.TimingLogLevel.DEBUG :
                 RecordServiceConnector.TimingLogLevel.INFO;
-        final RetryPolicy rp = new RetryPolicy()
-                .retryOn(Collections.singletonList(ProcessingException.class))
-                .retryIf((Response r) -> r.getStatus() == 500 || r.getStatus() == 404 || r.getStatus() == 502)
-                .withDelay(2, TimeUnit.SECONDS)
+        RetryPolicy<Response> rp = new RetryPolicy<Response>()
+                .handle(ProcessingException.class)
+                .handleResultIf(response ->
+                           response.getStatus() == 404
+                        || response.getStatus() == 500
+                        || response.getStatus() == 502)
+                .withDelay(Duration.ofSeconds(2))
                 .withMaxRetries(1);
         final FailSafeHttpClient fsc = FailSafeHttpClient.create(config.getHttpClient(), rp);
         this.connector = new RecordServiceConnector(fsc, config.getRawrepoRecordService(), connectorLogLevel);
@@ -100,9 +102,9 @@ public class RawRepo {
      * @throws ServerErrorException if the record cannot be fetched
      */
     public MarcXChangeWrapper[] getRecordsFor(int agencyId, String bibliographicRecordId) {
-        ArrayList<RecordId> recordIds = new ArrayList<>(3); // At most volume, section and head
+        ArrayList<RecordIdDTO> recordIds = new ArrayList<>(3); // At most volume, section and head
 
-        RecordId id = new RecordId(bibliographicRecordId, agencyId);
+        RecordIdDTO id = new RecordIdDTO(bibliographicRecordId, agencyId);
         while (id != null) {
             recordIds.add(id);
             id = getParentOf(id);
@@ -127,12 +129,12 @@ public class RawRepo {
         }
     }
 
-    private MarcXChangeWrapper marcXChangeWrapper(RecordId id) {
+    private MarcXChangeWrapper marcXChangeWrapper(RecordIdDTO id) {
         log.debug("Wrapping id {}", id);
         return new MarcXChangeWrapper(getDataOf(id), getChildrenOf(id));
     }
 
-    private String getDataOf(RecordId id) {
+    private String getDataOf(RecordIdDTO id) {
         try {
             byte[] content = connector.getRecordContent(id.getAgencyId(), id.getBibliographicRecordId(), PARAMS);
             return new String(content, UTF_8);
@@ -147,12 +149,12 @@ public class RawRepo {
         }
     }
 
-    private RecordId[] getChildrenOf(RecordId id) {
+    private RecordIdDTO[] getChildrenOf(RecordIdDTO id) {
         try {
-            RecordId[] recordParents = connector.getRecordChildren(id.getAgencyId(), id.getBibliographicRecordId());
+            RecordIdDTO[] recordParents = connector.getRecordChildren(id.getAgencyId(), id.getBibliographicRecordId());
             return Arrays.stream(recordParents)
                     .filter(r -> r.getAgencyId() == COMMON_AGENCY)
-                    .toArray(RecordId[]::new);
+                    .toArray(RecordIdDTO[]::new);
         } catch (RecordServiceConnectorException ex) {
             log.error("Error getting children of: {}: {}", id, ex.getMessage());
             log.debug("Error getting children of: {}: ", id, ex);
@@ -166,10 +168,10 @@ public class RawRepo {
      * @param id recordId
      * @return null if no parent or parent id
      */
-    private RecordId getParentOf(RecordId id) {
+    private RecordIdDTO getParentOf(RecordIdDTO id) {
         try {
             log.debug("Get Parent Of: {}", id);
-            RecordId[] recordParents = connector.getRecordParents(id.getAgencyId(), id.getBibliographicRecordId());
+            RecordIdDTO[] recordParents = connector.getRecordParents(id.getAgencyId(), id.getBibliographicRecordId());
             log.debug("Got Parent Of: {}", id);
             return Arrays.stream(recordParents)
                     .filter(r -> r.getAgencyId() == COMMON_AGENCY)

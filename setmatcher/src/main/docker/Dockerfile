@@ -1,4 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara5-micro:latest
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
 
 LABEL \
     MAX_POOL_SIZE="Database pool size THREADS + 1 (number, required)" \

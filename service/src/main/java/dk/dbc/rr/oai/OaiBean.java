@@ -26,30 +26,32 @@ import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
 import dk.dbc.rr.oai.worker.OaiWorker;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Set;
-import java.util.UUID;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Collections.*;
-import static javax.ws.rs.core.Response.Status.*;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Set;
+import java.util.UUID;
+
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static java.util.Collections.EMPTY_SET;
 
 /**
  *

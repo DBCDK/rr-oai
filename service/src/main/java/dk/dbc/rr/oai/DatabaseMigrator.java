@@ -19,16 +19,17 @@
 package dk.dbc.rr.oai;
 
 import dk.dbc.rr.oai.db.DatabaseMigrate;
-import java.sql.Connection;
-import java.sql.SQLException;
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.ejb.EJBException;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.sql.DataSource;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import jakarta.ejb.EJBException;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  *

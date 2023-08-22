@@ -18,15 +18,16 @@
  */
 package dk.dbc.rr.oai;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
 
 import static java.util.stream.Collectors.toList;
 

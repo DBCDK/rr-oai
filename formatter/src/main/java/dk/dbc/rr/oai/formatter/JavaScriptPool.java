@@ -20,12 +20,12 @@ package dk.dbc.rr.oai.formatter;
 
 import dk.dbc.formatter.js.JavaScriptFormatter;
 import dk.dbc.formatter.js.MarcXChangeWrapper;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.PooledObject;

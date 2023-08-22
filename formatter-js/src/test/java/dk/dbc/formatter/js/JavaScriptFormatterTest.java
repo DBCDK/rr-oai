@@ -18,7 +18,7 @@
  */
 package dk.dbc.formatter.js;
 
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,10 +46,10 @@ public class JavaScriptFormatterTest {
         System.out.println("testFormattingMultilevel");
 
         MarcXChangeWrapper[] records = new MarcXChangeWrapper[] {
-            new MarcXChangeWrapper(MARCX_28407866, new RecordId[] {}),
-            new MarcXChangeWrapper(MARCX_28413882, new RecordId[] {
-                new RecordId("this-is-magic", 870970),
-                new RecordId("28407866", 870970)
+            new MarcXChangeWrapper(MARCX_28407866, new RecordIdDTO[] {}),
+            new MarcXChangeWrapper(MARCX_28413882, new RecordIdDTO[] {
+                new RecordIdDTO("this-is-magic", 870970),
+                new RecordIdDTO("28407866", 870970)
             })
         };
         String formatted = formatter.format(records, "marcx", "bkm");

@@ -7,6 +7,21 @@ import dk.dbc.idp.marshallers.request.AuthenticationRequest;
 import dk.dbc.idp.marshallers.response.AuthenticationResponse;
 import dk.dbc.idp.marshallers.response.Rights;
 import dk.dbc.rr.oai.Config;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.cache.annotation.CacheKey;
+import javax.cache.annotation.CacheResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -16,20 +31,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.cache.annotation.CacheKey;
-import javax.cache.annotation.CacheResult;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import org.eclipse.microprofile.metrics.annotation.Timed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -84,9 +85,9 @@ public class IdpRights {
             }
 
             AuthenticationRequest req = new AuthenticationRequest();
-            req.setUserIdAut(parts[0]);
-            req.setAgencyId(parts[1]);
-            req.setPasswordAut(parts[2]);
+            req.withUserIdAut(parts[0]);
+            req.withAgencyId(parts[1]);
+            req.withPasswordAut(parts[2]);
             AuthenticationResponse res = authorize(req);
 
             if (!res.isAuthenticated()) {
@@ -104,7 +105,7 @@ public class IdpRights {
         } else if (ip != null) {
 
             AuthenticationRequest req = new AuthenticationRequest();
-            req.setIp(ip);
+            req.withIp(ip);
             AuthenticationResponse res = authorize(req);
 
             if (res.isAuthenticated()) {

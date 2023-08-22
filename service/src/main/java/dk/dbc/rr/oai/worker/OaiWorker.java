@@ -18,6 +18,21 @@
  */
 package dk.dbc.rr.oai.worker;
 
+import dk.dbc.oai.pmh.DeletedRecordType;
+import dk.dbc.oai.pmh.DescriptionType;
+import dk.dbc.oai.pmh.GetRecordType;
+import dk.dbc.oai.pmh.GranularityType;
+import dk.dbc.oai.pmh.HeaderType;
+import dk.dbc.oai.pmh.IdentifyType;
+import dk.dbc.oai.pmh.ListIdentifiersType;
+import dk.dbc.oai.pmh.ListRecordsType;
+import dk.dbc.oai.pmh.MetadataFormatType;
+import dk.dbc.oai.pmh.MetadataType;
+import dk.dbc.oai.pmh.OAIPMHerrorcodeType;
+import dk.dbc.oai.pmh.RecordType;
+import dk.dbc.oai.pmh.ResumptionTokenType;
+import dk.dbc.oai.pmh.SetType;
+import dk.dbc.oai.pmh.StatusType;
 import dk.dbc.rr.oai.Config;
 import dk.dbc.rr.oai.fetch.DocumentBuilderPool;
 import dk.dbc.rr.oai.fetch.ParallelFetch;
@@ -27,6 +42,17 @@ import dk.dbc.rr.oai.io.OaiRequest;
 import dk.dbc.rr.oai.io.OaiResponse;
 import dk.dbc.rr.oai.io.OaiResumptionToken;
 import dk.dbc.rr.oai.io.OaiTimestamp;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ServerErrorException;
+import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,23 +66,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.ws.rs.ServerErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import dk.dbc.oai.pmh.*;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import static dk.dbc.rr.oai.io.OaiResponse.O;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singleton;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  *

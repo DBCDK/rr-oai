@@ -25,12 +25,13 @@ import dk.dbc.rr.oai.io.OaiIOBean;
 import dk.dbc.rr.oai.worker.OaiDatabaseMetadata;
 import dk.dbc.rr.oai.worker.OaiDatabaseWorker;
 import dk.dbc.rr.oai.worker.OaiWorker;
+import jakarta.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.sql.DataSource;
-import javax.ws.rs.client.ClientBuilder;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import static java.util.stream.Collectors.toMap;
 

@@ -21,18 +21,19 @@ package dk.dbc.rr.oai.io;
 import dk.dbc.oai.pmh.OAIPMH;
 import dk.dbc.oai.pmh.ResumptionTokenType;
 import dk.dbc.rr.oai.Config;
-import java.io.IOException;
-import java.time.Instant;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ejb.Singleton;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.time.Instant;
+
 import static dk.dbc.rr.oai.io.OaiResponse.O;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  *

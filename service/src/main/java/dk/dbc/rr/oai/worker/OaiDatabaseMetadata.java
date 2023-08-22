@@ -18,6 +18,18 @@
  */
 package dk.dbc.rr.oai.worker;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import jakarta.ejb.DependsOn;
+import jakarta.ejb.EJBException;
+import jakarta.ejb.Lock;
+import jakarta.ejb.LockType;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,20 +37,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.ejb.DependsOn;
-import javax.ejb.EJBException;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.sql.DataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toSet;
 
 /**
  *
