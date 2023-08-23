@@ -4,7 +4,7 @@
         "jdbc/rawrepo-oai-migrate": {
             "xa": false,
             "url": "${RAWREPO_OAI_POSTGRES_URL}",
-            "maxSize": "1",
+            "maxSize": "2",
             "steadySize": "0"
         },
         "jdbc/rawrepo-oai": {
