@@ -25,6 +25,8 @@ import jakarta.ejb.Lock;
 import jakarta.ejb.LockType;
 import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +58,13 @@ public class Throttle {
      * This will throttle if too many errors / empty queues encountered
      *
      * @param dao Queue access object
+     * @param con database connection dao is in
      * @return Job item or null if queue is empty
      * @throws QueueException       In case there's an error talking to the
      *                              database
      * @throws InterruptedException Is the system is shutting down
      */
-    public QueueItem fetchJob(RawRepoQueueDAO dao) throws QueueException, InterruptedException {
+    public QueueItem fetchJob(RawRepoQueueDAO dao, Connection con ) throws QueueException, InterruptedException {
         lock.lockInterruptibly();
         try {
             throttle();
@@ -69,6 +72,12 @@ public class Throttle {
             if (item != null) {
                 success();
                 return item;
+            }
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                log.error("Exception: {}", ex.getMessage());
+                log.debug("Exception: ", ex);
             }
         } finally {
             lock.unlock();

@@ -234,7 +234,7 @@ public class Worker {
         QueueItem job = null;
         try {
             while (!inBadState) {
-                job = throttle.fetchJob(dao);
+                job = throttle.fetchJob(dao, rrConnection);
                 if (job != null) {
                     lastDequeue.set(System.currentTimeMillis());
                     int agencyId = job.getAgencyId();
