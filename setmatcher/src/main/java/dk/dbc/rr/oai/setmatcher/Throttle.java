@@ -27,8 +27,6 @@ import jakarta.ejb.Singleton;
 import jakarta.inject.Inject;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +58,7 @@ public class Throttle {
      * This will throttle if too many errors / empty queues encountered
      *
      * @param dao Queue access object
+     * @param con database connection dao is in
      * @return Job item or null if queue is empty
      * @throws QueueException       In case there's an error talking to the
      *                              database
