@@ -29,16 +29,11 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  *
@@ -57,9 +52,11 @@ public class Config {
     private int poolMaxIdle;
     private String queueName;
     private String rawrepoRecordService;
+    private int maxBatchSize;
+    private long maxProcessingTime;
+    private int maxConsecutiveServerErrors;
+    private long pollRate;
     private int threads;
-    private int queueStalledAfter;
-    private List<ThrottleRule> throttle;
 
     public Config() {
         this(System.getenv());
@@ -83,19 +80,36 @@ public class Config {
         this.queueName = getenv("QUEUE_NAME")
                 .isNot("not empty", String::isEmpty)
                 .get();
+        this.maxBatchSize = getenv("MAX_BATCH_SIZE").asInt().min(1).get();
+        this.maxConsecutiveServerErrors = getenv("MAX_CONSECUTIVE_ERRORS").asInt().min(1).get();
+        this.maxProcessingTime = getenv("MAX_PROCESSING_TIME").convert(Config::seconds);
+        this.pollRate = getenv("POLL_RATE").convert(Config::seconds);
         this.poolMinIdle = getenv("POOL_MIN_IDLE").asInt().min(1).get();
         this.poolMaxIdle = getenv("POOL_MAX_IDLE").asInt().min(1).get();
         this.rawrepoRecordService = getenv("RAWREPO_RECORD_SERVICE_URL")
                 .isNot("not empty", String::isEmpty)
                 .get();
         this.threads = getenv("THREADS").asInt().min(1).get();
-        this.throttle = getenv("THROTTLE")
-                .convert(Config::parseThrottleRules);
-        this.queueStalledAfter = getenv("QUEUE_STALLED_AFTER").asInt().min(1).get();
     }
 
     public Client getHttpClient() {
         return httpClient;
+    }
+
+    public int getMaxBatchSize() {
+        return maxBatchSize;
+    }
+
+    public int getMaxConsecutiveServerErrors() {
+        return maxConsecutiveServerErrors;
+    }
+
+    public long getMaxProcessingTime() {
+        return maxProcessingTime;
+    }
+
+    public long getPollRate() {
+        return pollRate;
     }
 
     public int getPoolMaxIdle() {
@@ -110,10 +124,6 @@ public class Config {
         return queueName;
     }
 
-    public int getQueueStalledAfter() {
-        return queueStalledAfter;
-    }
-
     public String getRawrepoRecordService() {
         return rawrepoRecordService;
     }
@@ -122,56 +132,8 @@ public class Config {
         return threads;
     }
 
-    public List<ThrottleRule> getThrottle() {
-        return throttle;
-    }
-
     protected ClientBuilder clientBuilder() {
         return ClientBuilder.newBuilder();
-    }
-
-    public static class ThrottleRule {
-
-        private final long millis;
-        private final long count;
-
-        public ThrottleRule(long millis, long count) {
-            this.millis = millis;
-            this.count = count;
-        }
-
-        public static ThrottleRule of(String spec) {
-            String[] parts = spec.split("/", 2);
-            long millis = milliseconds(parts[0].trim());
-            if (millis <= 0L)
-                throw new IllegalArgumentException("Invalid timeout in throttle spec: " + spec);
-            int count = Integer.parseUnsignedInt(parts[1].trim());
-            if (count <= 0)
-                throw new IllegalArgumentException("Invalid count in throttle spec: " + spec);
-            return new ThrottleRule(millis, count);
-        }
-
-        public long getCount() {
-            return count;
-        }
-
-        public long getMillis() {
-            return millis;
-        }
-    }
-
-    public static List<ThrottleRule> parseThrottleRules(String ruleSpec) {
-        String[] specs = Stream.of(ruleSpec.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
-        if (specs.length == 0)
-            throw new IllegalArgumentException("Cannot parse throttle-spec");
-        String lastSpec = specs[specs.length - 1];
-        ThrottleRule lastRule = new ThrottleRule(milliseconds(lastSpec), Long.MAX_VALUE);
-        return Stream.concat(Arrays.stream(specs, 0, specs.length - 1).map(ThrottleRule::of),
-                             Stream.of(lastRule))
-                .collect(toList());
     }
 
     /**
@@ -181,19 +143,17 @@ public class Config {
      * @param spec string representation
      * @return number of milliseconds
      */
-    static long milliseconds(String spec) {
+    static long seconds(String spec) {
         String[] split = spec.split("(?<=\\d)(?=\\D)");
         if (split.length == 2) {
             long units = Long.parseUnsignedLong(split[0]);
             switch (split[1].toLowerCase(Locale.ROOT)) {
-                case "ms":
-                    return TimeUnit.MILLISECONDS.toMillis(units);
                 case "s":
-                    return TimeUnit.SECONDS.toMillis(units);
+                    return TimeUnit.SECONDS.toSeconds(units);
                 case "m":
-                    return TimeUnit.MINUTES.toMillis(units);
+                    return TimeUnit.MINUTES.toSeconds(units);
                 case "h":
-                    return TimeUnit.HOURS.toMillis(units);
+                    return TimeUnit.HOURS.toSeconds(units);
                 default:
                     break;
             }

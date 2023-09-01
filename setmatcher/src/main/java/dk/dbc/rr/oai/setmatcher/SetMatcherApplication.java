@@ -33,7 +33,6 @@ import java.util.Set;
 public class SetMatcherApplication extends Application {
 
     private static final Set<Class<?>> CLASSES = new HashSet<>(Arrays.asList(
-            StatusBean.class
     ));
 
     @Override
