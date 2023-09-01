@@ -57,6 +57,7 @@ public class JavaScriptPool {
 
     @PostConstruct
     public void init() {
+        log.info("init()");
         try {
             pool = makePool();
         } catch (Exception ex) {
@@ -98,8 +99,8 @@ public class JavaScriptPool {
      *
      * @return are we in a failed state
      */
-    public boolean isInBadState() {
-        return inBadState;
+    public boolean allIsGood() {
+        return !inBadState;
     }
 
     /**

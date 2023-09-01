@@ -45,18 +45,16 @@ public class WorkerIT extends DB {
     @Test(timeout = 2_000L)
     public void testWritingToDatabase() throws Exception {
         System.out.println("testWritingToDatabase");
-        try (Connection connection = rawRepoOai()) {
-            Worker.setPidInDatabase("a", false, Arrays.asList("BKM", "NAT"), connection);
-            assertThat(setsFor("a", connection), expects("BKM=false", "NAT=false"));
-            Worker.setPidInDatabase("a", false, Arrays.asList("ONL", "NAT"), connection);
-            assertThat(setsFor("a", connection), expects("BKM=true", "NAT=false", "ONL=false"));
-            Worker.setPidInDatabase("a", true, Arrays.asList(), connection);
-            assertThat(setsFor("a", connection), expects("BKM=true", "NAT=true", "ONL=true"));
-        }
-        try (Connection connection = rawRepoOai()) {
-            Worker.setPidInDatabase("b", false, Arrays.asList(), connection);
-            assertThat(setsFor("b", connection), expects());
-        }
+        WorkerTask task = new WorkerTask(null, null, dsrroai, null, null);
+        task.setPidInDatabase("a", false, Arrays.asList("BKM", "NAT"));
+        assertThat(setsFor("a"), expects("BKM=false", "NAT=false"));
+        task.setPidInDatabase("a", false, Arrays.asList("ONL", "NAT"));
+        assertThat(setsFor("a"), expects("BKM=true", "NAT=false", "ONL=false"));
+        task.setPidInDatabase("a", true, Arrays.asList());
+        assertThat(setsFor("a"), expects("BKM=true", "NAT=true", "ONL=true"));
+
+        task.setPidInDatabase("b", false, Arrays.asList());
+        assertThat(setsFor("b"), expects());
     }
 
     @Test(timeout = 30_000L)
@@ -68,7 +66,7 @@ public class WorkerIT extends DB {
         worker.init();
         try (Connection connection = rawRepo()) {
             while (countQueue(connection) > 0) {
-                Thread.sleep(100);
+                worker.processJobs();
             }
         }
         worker.destroy();
@@ -96,8 +94,9 @@ public class WorkerIT extends DB {
         return Integer.MAX_VALUE;
     }
 
-    private Map<String, Boolean> setsFor(String pid, Connection connection) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT setspec, gone FROM oairecordsets WHERE pid = ?")) {
+    private Map<String, Boolean> setsFor(String pid) throws SQLException {
+        try (Connection connection = dsrroai.getConnection();
+             PreparedStatement stmt = connection.prepareStatement("SELECT setspec, gone FROM oairecordsets WHERE pid = ?")) {
             stmt.setString(1, pid);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 HashMap<String, Boolean> ret = new HashMap<>();

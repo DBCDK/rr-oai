@@ -24,9 +24,17 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 
 import static java.util.stream.Collectors.toMap;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -47,13 +55,15 @@ public class BeanFactory {
 
     public static Map<String, String> configMapWithDefaults(String... envs) {
         Map<String, String> defaults = configMap(
+                "MAX_BATCH_SIZE=10",
+                "MAX_PROCESSING_TIME=10s",
+                "MAX_CONSECUTIVE_ERRORS=1",
+                "POLL_RATE=1s",
                 "POOL_MIN_IDLE=1",
                 "POOL_MAX_IDLE=10",
                 "QUEUE_NAME=" + DB.QUEUE_NAME,
-                "QUEUE_STALLED_AFTER=120",
                 "RAWREPO_RECORD_SERVICE_URL=" + System.getenv().getOrDefault("RAWREPO_RECORD_SERVICE_URL", "http://localhost/rawrepo-record-service"),
                 "THREADS=2",
-                "THROTTLE=25ms/5,125ms",
                 "USER_AGENT=SpecialAgent/1.0");
         Map<String, String> declared = configMap(envs);
         HashMap<String, String> env = new HashMap<>();
@@ -82,20 +92,29 @@ public class BeanFactory {
         return rawRepo;
     }
 
-    public static Throttle newThrottle(Config config) {
-        Throttle throttle = new Throttle();
-        throttle.config = config;
-        return throttle;
-    }
-
     public static Worker newWorker(Config config, DataSource rr, DataSource rroai) {
-        Worker worker = new Worker();
+        ExecutorService es = Executors.newFixedThreadPool(config.getThreads());
+        Worker worker = new Worker() {
+            @Override
+            public void destroy() {
+                super.destroy();
+                try {
+                    es.shutdownNow();
+                    es.awaitTermination(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        };
         worker.config = config;
         worker.rawRepo = rr;
         worker.rawRepoOai = rroai;
         worker.js = newJavaScriptPool(config);
         worker.rr = newRawRepo(config);
-        worker.throttle = newThrottle(config);
+        worker.executor = es;
+        worker.metricRegistry = mock(MetricRegistry.class);
+        when(worker.metricRegistry.counter(anyString())).then(a -> mock(Counter.class));
+        when(worker.metricRegistry.simpleTimer(anyString())).then(a -> mock(SimpleTimer.class));
         return worker;
     }
 }
