@@ -114,6 +114,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -222,7 +223,6 @@
                     </execution>
                 </executions>
                 <configuration>
-<skip>true</skip>
                     <executable>${project.build.directory}/maven-javascript-unit-test-runner/bin/test-runner.sh</executable>
                     <workingDirectory>${project.build.directory}/maven-javascript-unit-test-runner</workingDirectory>
                     <environmentVariables>
