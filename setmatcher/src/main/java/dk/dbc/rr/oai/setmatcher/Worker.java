@@ -12,15 +12,15 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import jakarta.inject.Inject;
-import java.sql.Connection;
-import java.sql.SQLException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -59,12 +59,12 @@ public class Worker {
     ExecutorService executor;
 
     private Counter rawrepoRecordServiceErrorsCounter;
-    private SimpleTimer workerTaskDurationTimer;
+    private Timer workerTaskDurationTimer;
 
     @PostConstruct
     public void init() {
         rawrepoRecordServiceErrorsCounter = metricRegistry.counter("rawrepo_record_service_errors");
-        workerTaskDurationTimer = metricRegistry.simpleTimer("worker_task");
+        workerTaskDurationTimer = metricRegistry.timer("worker_task");
     }
 
     /**

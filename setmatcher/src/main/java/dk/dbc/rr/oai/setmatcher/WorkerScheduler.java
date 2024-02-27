@@ -9,15 +9,16 @@ import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.enterprise.concurrent.ManagedScheduledExecutorService;
 import jakarta.inject.Inject;
-import java.util.concurrent.TimeUnit;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
-import org.eclipse.microprofile.metrics.ConcurrentGauge;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Enterprise Java Bean responsible for activating workers at scheduled intervals
@@ -42,12 +43,13 @@ public class WorkerScheduler implements HealthCheck {
     @Resource(lookup = "java:comp/DefaultManagedScheduledExecutorService")
     ManagedScheduledExecutorService ses;
 
-    private ConcurrentGauge consecutiveServerErrorsGauge;
+    private AtomicInteger consecutiveServerErrors;
     private Counter serverErrorsCounter;
 
     @PostConstruct
     public void init() {
-        consecutiveServerErrorsGauge = metricRegistry.concurrentGauge("consecutive_server_errors");
+        consecutiveServerErrors = new AtomicInteger(0);
+        metricRegistry.gauge("consecutive_server_errors", consecutiveServerErrors::get);
         serverErrorsCounter = metricRegistry.counter("server_errors");
         ses.scheduleAtFixedRate(this::activateWorker, 0, config.getPollRate(), TimeUnit.SECONDS);
     }
@@ -68,13 +70,10 @@ public class WorkerScheduler implements HealthCheck {
                 // else do another iteration until job queue is empty
             }
 
-            // hmm, a gauge reset method would be nice
-            while (consecutiveServerErrorsGauge.getCount() > 0) {
-                consecutiveServerErrorsGauge.dec();
-            }
+            consecutiveServerErrors.set(0);
 
         } catch (InterruptedException | RuntimeException e) {
-            consecutiveServerErrorsGauge.inc();
+            consecutiveServerErrors.incrementAndGet();
             serverErrorsCounter.inc();
 
             LOGGER.error("unhandled exception caught by scheduler", e);
@@ -84,7 +83,7 @@ public class WorkerScheduler implements HealthCheck {
     @Override
     @Lock(LockType.READ)
     public HealthCheckResponse call() {
-        if (consecutiveServerErrorsGauge.getCount() < config.getMaxConsecutiveServerErrors()) {
+        if (consecutiveServerErrors.get() < config.getMaxConsecutiveServerErrors()) {
             return HealthCheckResponse.up(HEALTH_CHECK_CONSECUTIVE_SERVER_ERRORS);
         }
         return HealthCheckResponse.down(HEALTH_CHECK_CONSECUTIVE_SERVER_ERRORS);
