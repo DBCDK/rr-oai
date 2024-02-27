@@ -19,6 +19,9 @@
 package dk.dbc.rr.oai.setmatcher;
 
 import jakarta.ws.rs.client.ClientBuilder;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Timer;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import javax.sql.DataSource;
@@ -28,13 +31,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 
 import static java.util.stream.Collectors.toMap;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -114,7 +115,7 @@ public class BeanFactory {
         worker.executor = es;
         worker.metricRegistry = mock(MetricRegistry.class);
         when(worker.metricRegistry.counter(anyString())).then(a -> mock(Counter.class));
-        when(worker.metricRegistry.simpleTimer(anyString())).then(a -> mock(SimpleTimer.class));
+        when(worker.metricRegistry.timer(anyString())).then(a -> mock(Timer.class));
         return worker;
     }
 }

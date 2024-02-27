@@ -2,10 +2,11 @@ package dk.dbc.rr.oai.setmatcher;
 
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.queue.QueueItem;
-import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -13,7 +14,6 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import javax.sql.DataSource;
 
 public class WorkerTask implements Callable<QueueItem> {
 
@@ -35,9 +35,9 @@ public class WorkerTask implements Callable<QueueItem> {
     private final RawRepo rr;
     private final DataSource rawRepoOai;
     private final JavaScriptPool js;
-    private final SimpleTimer timer;
+    private final Timer timer;
 
-    public WorkerTask(QueueItem job, RawRepo rr, DataSource rawRepoOai, JavaScriptPool js, SimpleTimer timer) {
+    public WorkerTask(QueueItem job, RawRepo rr, DataSource rawRepoOai, JavaScriptPool js, Timer timer) {
         this.job = job;
         this.rr = rr;
         this.rawRepoOai = rawRepoOai;
@@ -47,7 +47,7 @@ public class WorkerTask implements Callable<QueueItem> {
 
     @Override
     public QueueItem call() throws Exception {
-        try (SimpleTimer.Context timed = timer.time()) {
+        try (Timer.Context timed = timer.time()) {
             int agencyId = job.getAgencyId();
             String bibliographicRecordId = job.getBibliographicRecordId();
             String pid = agencyId + "-" + bibliographicRecordId;
