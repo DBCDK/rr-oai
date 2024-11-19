@@ -1,5 +1,5 @@
 def dockerRepository = 'https://docker-de.artifacts.dbccloud.dk'
-def workerNode = 'devel11'
+def workerNode = 'devel11-java11'
 
 properties([
     disableConcurrentBuilds()
@@ -17,10 +17,9 @@ if (env.BRANCH_NAME == 'master') {
     ])
 }
 pipeline {
-    agent { label "devel11" }
+    agent { label "devel11-java11" }
     tools {
         maven "Maven 3"
-        jdk "jdk11"
     }
     environment {
         MAVEN_OPTS = "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
