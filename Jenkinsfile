@@ -1,5 +1,5 @@
 def dockerRepository = 'https://docker-de.artifacts.dbccloud.dk'
-def workerNode = 'devel11'
+def workerNode = 'devel11-java11'
 
 properties([
     disableConcurrentBuilds()

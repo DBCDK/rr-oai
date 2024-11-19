@@ -1,4 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:old-202447
 
 LABEL \
     MAX_BATCH_SIZE="Max number of records to process in one batch (number, required)" \
