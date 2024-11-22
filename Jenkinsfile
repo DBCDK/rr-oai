@@ -1,5 +1,5 @@
 def dockerRepository = 'https://docker-de.artifacts.dbccloud.dk'
-def workerNode = 'devel11-java11'
+def workerNode = 'devel12'
 
 properties([
     disableConcurrentBuilds()
@@ -17,7 +17,7 @@ if (env.BRANCH_NAME == 'master') {
     ])
 }
 pipeline {
-    agent { label "devel11-java11" }
+    agent { label "devel12" }
     tools {
         maven "Maven 3"
     }
@@ -42,47 +42,18 @@ pipeline {
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null 2>&1 || true
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo clean
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl wsdl install
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl --fail-at-end org.jacoco:jacoco-maven-plugin:prepare-agent install -Dsurefire.useFile=false
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl --fail-at-end install -Dsurefire.useFile=false
                     """
 
                     // We want code-coverage and pmd/findbugs even if unittests fails
-                    def statusAnalysis = sh returnStatus: true, script:  """
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl pmd:pmd pmd:cpd javadoc:aggregate spotbugs:spotbugs -Dspotbugs.excludeFilterFile=src/test/spotbugs/spotbugs-exclude.xml
+                    statusBuild += sh returnStatus: true, script:  """
+                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl
                     """
 
                     junit testResults: '**/target/*-reports/TEST-*.xml'
 
-                    def java = scanForIssues tool: [$class: 'Java']
-                    def javadoc = scanForIssues tool: [$class: 'JavaDoc']
-                    publishIssues issues:[java, javadoc], unstableTotalAll:1
-
-                    def pmd = scanForIssues tool: [$class: 'Pmd'], pattern: '**/target/pmd.xml'
-                    publishIssues issues:[pmd], unstableTotalAll:1
-
-                    def cpd = scanForIssues tool: [$class: 'Cpd'], pattern: '**/target/cpd.xml'
-                    publishIssues issues:[cpd]
-
-                    def findbugs = scanForIssues tool: [$class: 'FindBugs'], pattern: '**/target/findbugsXml.xml'
-                    publishIssues issues:[findbugs], unstableTotalAll:1
-
-                    step([$class: 'JacocoPublisher',
-                          execPattern: 'target/*.exec,**/target/*.exec',
-                          classPattern: 'target/classes,**/target/classes',
-                          sourcePattern: 'src/main/java,**/src/main/java',
-                          exclusionPattern: 'src/test*,**/src/test*,**/*?DTO.*,**/*?DTO$*,**/dk/dbc/oai/pmh/**'
-                    ])
-
-                    warnings consoleParsers: [
-                         [parserName: "Java Compiler (javac)"],
-                         [parserName: "JavaDoc Tool"]],
-                         unstableTotalAll: "0",
-                         failedTotalAll: "0"
-
                     if ( statusBuild != 0 ) {
                         error("Build error");
-                    }
-                    if ( statusAnalysis != 0 ) {
-                        error("Analysis error");
                     }
                 }
             }

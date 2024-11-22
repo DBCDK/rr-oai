@@ -13,7 +13,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-jslib</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>3.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -56,25 +56,6 @@
                 <version>1.6.0</version>
                 <executions>
                     <execution>
-                        <id>Prefetch dbc-jsshell (Java 11)</id>
-                        <!-- This is a workaround for the fact that the executable dbc-jsshell jar
-                             automatically fetched by the JavaScript unit test runner now requires
-                             a Java 17 runtime. -->
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>curl</executable>
-                            <arguments>
-                                <argument>https://is.dbc.dk/job/dbc-jsshell/job/java11-old202447/lastSuccessfulBuild/artifact/shell/target/dbc-jsshell-jar-with-dependencies.jar</argument>
-                                <argument>--create-dirs</argument>
-                                <argument>--output</argument>
-                                <argument>${project.build.directory}/maven-javascript-unit-test-runner/dbc-jsshell-jar-with-dependencies.jar</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>Javascript unit tests</id>
                         <phase>test</phase>
                         <goals>
@@ -82,7 +63,7 @@
                         </goals>
                         <configuration>
                             <executable>${project.build.directory}/maven-javascript-unit-test-runner/bin/test-runner.sh</executable>
-                            <workingDirectory>${project.build.directory}/maven-javascript-unit-test-runner</workingDirectory>
+                            <!--workingDirectory>${project.build.directory}/maven-javascript-unit-test-runner</workingDirectory-->
                             <environmentVariables>
                                 <USE_JAVA_XML_DOM>true</USE_JAVA_XML_DOM>
                                 <MODULE_PATHS>
