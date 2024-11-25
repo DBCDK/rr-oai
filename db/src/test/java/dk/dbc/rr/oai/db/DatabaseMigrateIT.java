@@ -18,38 +18,37 @@
  */
 package dk.dbc.rr.oai.db;
 
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.postgresql.ds.PGSimpleDataSource;
+
+import javax.sql.DataSource;
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Map;
-import javax.sql.DataSource;
-import org.junit.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
-public class DatabaseMigrateIT {
+class DatabaseMigrateIT {
 
-    public DatabaseMigrateIT() {
-    }
+    static final DBCPostgreSQLContainer dbcPostgreSQLContainer = makePostgresContainer();
 
-    @Test(timeout = 10_000L)
-    public void migrate() throws Exception {
+    @Test
+    @Timeout(value = 10, unit = java.util.concurrent.TimeUnit.SECONDS)
+    void migrate() throws Exception {
         System.out.println("migrate");
         DataSource ds = makeDataSource();
         DatabaseMigrate.migrate(ds);
 
         int expected = countMigrations();
 
-        try (Connection connection = ds.getConnection() ;
-             Statement stmt = connection.createStatement() ;
+        try (Connection connection = ds.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet resultSet = stmt.executeQuery("SELECT COUNT(*) AS count FROM flyway_schema_history")) {
             if (resultSet.next()) {
                 int count = resultSet.getInt(1);
@@ -57,10 +56,10 @@ public class DatabaseMigrateIT {
                 return; // Everything is OK!
             }
         }
-        fail("Cound not apply migrations or count applied migrations");
+        Assertions.fail("Could not apply migrations or count applied migrations");
     }
 
-    private int countMigrations() throws IOException {
+    private int countMigrations() {
         File directory = new File("src/main/resources/" + DatabaseMigrate.MIGRATION_LOCATION);
         System.out.println("directory = " + directory);
         if (directory.isDirectory()) {
@@ -71,29 +70,20 @@ public class DatabaseMigrateIT {
         throw new IllegalArgumentException("Cannot find migration directory");
     }
 
+    private static DBCPostgreSQLContainer makePostgresContainer() {
+        final DBCPostgreSQLContainer postgreSQLContainer = new DBCPostgreSQLContainer();
+        postgreSQLContainer.start();
+        postgreSQLContainer.exposeHostPort();
+        return postgreSQLContainer;
+    }
+
     private static DataSource makeDataSource() {
-        String port = System.getProperty("postgresql.port");
-        String user = null;
-        String password = null;
-        String database = "rroai";
-        String host = "localhost";
-        if (port == null) {
-            String username = System.getProperty("user.name");
-            Map<String, String> env = System.getenv();
-            user = env.getOrDefault("PGUSER", username);
-            password = env.getOrDefault("PGPASSWORD", username);
-            database = env.getOrDefault("PGDATABASE", username);
-            host = env.getOrDefault("PGHOST", "localhost");
-            port = env.getOrDefault("PGPORT", "5432");
-        }
         PGSimpleDataSource ds = new PGSimpleDataSource();
-        if (user != null)
-            ds.setUser(user);
-        if (password != null)
-            ds.setPassword(password);
-        ds.setServerNames(new String[] {host});
-        ds.setPortNumbers(new int[] {Integer.parseInt(port)});
-        ds.setDatabaseName(database);
+        ds.setUser(dbcPostgreSQLContainer.getUsername());
+        ds.setPassword(dbcPostgreSQLContainer.getPassword());
+        ds.setServerNames(new String[] {dbcPostgreSQLContainer.getHost()});
+        ds.setPortNumbers(new int[] {dbcPostgreSQLContainer.getHostPort()});
+        ds.setDatabaseName(dbcPostgreSQLContainer.getDatabaseName());
         return ds;
     }
 }
