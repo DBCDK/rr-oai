@@ -21,19 +21,22 @@ package dk.dbc.rr.oai.setmatcher;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.rr.oai.db.DatabaseMigrate;
+import org.junit.Before;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.Map;
-import org.junit.Before;
-import org.postgresql.ds.PGSimpleDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -47,43 +50,44 @@ public class DB {
 
     public static final String QUEUE_NAME = "my-queue";
 
-    protected PGSimpleDataSource dsrr;
-    protected PGSimpleDataSource dsrroai;
+    protected static final DBCPostgreSQLContainer dbcPostgreSQLContainer = makePostgresContainer();
+    protected static PGSimpleDataSource dsrr = makeDataSource("rr");
+    static {
+        executeScript(Path.of("src", "test", "resources", "rawrepo-oai.sql"));
+        executeScript(Path.of("target", "sql", "rawrepo.sql"));
+        executeScript(Path.of("target", "sql", "queuerules.sql"));
+    }
+    protected static PGSimpleDataSource dsrroai = makeDataSource("rroai");
+
+    private static DBCPostgreSQLContainer makePostgresContainer() {
+        final DBCPostgreSQLContainer postgreSQLContainer = new DBCPostgreSQLContainer();
+        postgreSQLContainer.withDatabaseName("rr");
+        postgreSQLContainer.start();
+        postgreSQLContainer.exposeHostPort();
+        return postgreSQLContainer;
+    }
+
+    private static PGSimpleDataSource makeDataSource(String dbName) {
+        PGSimpleDataSource ds = new PGSimpleDataSource();
+        ds.setUser(dbcPostgreSQLContainer.getUsername());
+        ds.setPassword(dbcPostgreSQLContainer.getPassword());
+        ds.setServerNames(new String[] {dbcPostgreSQLContainer.getHost()});
+        ds.setPortNumbers(new int[] {dbcPostgreSQLContainer.getHostPort()});
+        ds.setDatabaseName(dbName);
+        return ds;
+    }
+
+    private static void executeScript(Path scriptPath) {
+        try (Connection connection = dsrr.getConnection();
+             Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(Files.readString(scriptPath));
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Before
     public void initDatabase() throws SQLException {
-        dsrr = new PGSimpleDataSource();
-        dsrroai = new PGSimpleDataSource();
-        String portProperty = System.getProperty("postgresql.port");
-        String username = System.getProperty("user.name");
-        String user = username;
-        String pass = "";
-        String host = "localhost";
-        String port;
-        String baserr = "rr";
-        String baserroai = "rroai";
-        if (portProperty != null) {
-            port = portProperty;
-        } else {
-            Map<String, String> env = System.getenv();
-            user = env.getOrDefault("PGUSER", username);
-            pass = env.getOrDefault("PGPASSWORD", username);
-            port = env.getOrDefault("PGPORT", "5432");
-            host = env.getOrDefault("PGHOST", "localhost");
-            baserr = env.getOrDefault("PGDATABASE", username);
-            baserroai = env.getOrDefault("PGDATABASE", username);
-        }
-        dsrr.setUser(user);
-        dsrr.setPassword(pass);
-        dsrr.setServerNames(new String[] {host});
-        dsrr.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
-        dsrr.setDatabaseName(baserr);
-        dsrroai.setUser(user);
-        dsrroai.setPassword(pass);
-        dsrroai.setServerNames(new String[] {host});
-        dsrroai.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
-        dsrroai.setDatabaseName(baserroai);
-
         DatabaseMigrate.migrate(dsrroai);
         try (Connection connection = rawRepoOai() ;
              Statement stmt = connection.createStatement()) {

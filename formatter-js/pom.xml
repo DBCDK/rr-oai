@@ -63,7 +63,7 @@
                         </goals>
                         <configuration>
                             <executable>${project.build.directory}/maven-javascript-unit-test-runner/bin/test-runner.sh</executable>
-                            <!--workingDirectory>${project.build.directory}/maven-javascript-unit-test-runner</workingDirectory-->
+                            <workingDirectory>${project.build.directory}/maven-javascript-unit-test-runner</workingDirectory>
                             <environmentVariables>
                                 <USE_JAVA_XML_DOM>true</USE_JAVA_XML_DOM>
                                 <MODULE_PATHS>

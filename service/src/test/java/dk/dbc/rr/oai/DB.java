@@ -21,7 +21,17 @@ package dk.dbc.rr.oai;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.rr.oai.db.DatabaseMigrate;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.junit.Before;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.CheckReturnValue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,14 +49,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.CheckReturnValue;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.postgresql.ds.PGSimpleDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -59,44 +61,26 @@ public class DB {
 
     protected static final ObjectMapper O = new ObjectMapper();
 
-    protected static final PGSimpleDataSource ds = createDataSource();
-
-    private static PGSimpleDataSource createDataSource() {
-        String portProperty = System.getProperty("postgresql.port");
-        String username = System.getProperty("user.name");
-        String user = username;
-        String pass = "";
-        String host = "localhost";
-        String port;
-        String base = "rroai";
-        if (portProperty != null) {
-            port = portProperty;
-        } else {
-            Map<String, String> env = System.getenv();
-            user = env.getOrDefault("PGUSER", username);
-            pass = env.getOrDefault("PGPASSWORD", username);
-            port = env.getOrDefault("PGPORT", "5432");
-            host = env.getOrDefault("PGHOST", "localhost");
-            base = env.getOrDefault("PGDATABASE", username);
-        }
-        PGSimpleDataSource ds = new PGSimpleDataSource() {
-            @Override
-            public Connection getConnection() throws SQLException {
-                Connection connection = super.getConnection();
-                try (Statement stmt = connection.createStatement()) {
-                    stmt.execute("SET TIMEZONE='UTC'");
-                }
-                return connection;
-            }
-
-        };
-        ds.setUser(user);
-        ds.setPassword(pass);
-        ds.setServerNames(new String[] {host});
-        ds.setPortNumbers(new int[] {Integer.parseUnsignedInt(port)});
-        ds.setDatabaseName(base);
-
+    protected static final DBCPostgreSQLContainer dbcPostgreSQLContainer = makePostgresContainer();
+    protected static final PGSimpleDataSource ds = makeDataSource();
+    static {
         DatabaseMigrate.migrate(ds);
+    }
+
+    private static DBCPostgreSQLContainer makePostgresContainer() {
+        final DBCPostgreSQLContainer postgreSQLContainer = new DBCPostgreSQLContainer();
+        postgreSQLContainer.start();
+        postgreSQLContainer.exposeHostPort();
+        return postgreSQLContainer;
+    }
+
+    private static PGSimpleDataSource makeDataSource() {
+        PGSimpleDataSource ds = new PGSimpleDataSource();
+        ds.setUser(dbcPostgreSQLContainer.getUsername());
+        ds.setPassword(dbcPostgreSQLContainer.getPassword());
+        ds.setServerNames(new String[] {dbcPostgreSQLContainer.getHost()});
+        ds.setPortNumbers(new int[] {dbcPostgreSQLContainer.getHostPort()});
+        ds.setDatabaseName(dbcPostgreSQLContainer.getDatabaseName());
         return ds;
     }
 
