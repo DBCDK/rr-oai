@@ -45,11 +45,6 @@ pipeline {
                         mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl --fail-at-end install -Dsurefire.useFile=false
                     """
 
-                    // We want code-coverage and pmd/findbugs even if unittests fails
-                    statusBuild += sh returnStatus: true, script:  """
-                        mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo -pl !wsdl
-                    """
-
                     junit testResults: '**/target/*-reports/TEST-*.xml'
 
                     if ( statusBuild != 0 ) {
