@@ -18,19 +18,19 @@
  */
 package dk.dbc.rr.oai.setmatcher;
 
-import dk.dbc.jscommon.JsCommonPaths;
 import dk.dbc.jslib.ClasspathSchemeHandler;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.FileSchemeHandler;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,7 +45,18 @@ public class JavaScriptSetMatcher {
     private static final String OAI_SET_MATCHER_METHOD = "oaiSetMatcher";
 
     private static final String[] SEARCH_PATHS = new String[] {
-        "classpath:javascript/"
+        "classpath:javascript/",
+        "classpath:javascript/javacore/",
+        "classpath:javascript/jscommon/config/",
+        "classpath:javascript/jscommon/convert/",
+        "classpath:javascript/jscommon/devel/",
+        "classpath:javascript/jscommon/external/",
+        "classpath:javascript/jscommon/io/",
+        "classpath:javascript/jscommon/marc/",
+        "classpath:javascript/jscommon/net/",
+        "classpath:javascript/jscommon/system/",
+        "classpath:javascript/jscommon/util/",
+        "classpath:javascript/jscommon/xml/"
     };
 
     private final Environment environment;
@@ -79,7 +90,6 @@ public class JavaScriptSetMatcher {
                 searchPath += "/";
             }
             moduleHandler.addSearchPath(new SchemeURI(searchPath));
-            JsCommonPaths.registerPaths(searchPath, moduleHandler);
         }
         return moduleHandler;
     }

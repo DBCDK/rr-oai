@@ -18,12 +18,15 @@
  */
 package dk.dbc.formatter.js;
 
-import dk.dbc.jscommon.JsCommonPaths;
 import dk.dbc.jslib.ClasspathSchemeHandler;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.FileSchemeHandler;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.script.Bindings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,9 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.script.Bindings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -49,7 +49,18 @@ public class JavaScriptFormatter {
     private static final String ALLOWED_FORMATS_METHOD = "allowedFormats";
 
     private static final String[] SEARCH_PATHS = new String[] {
-        "classpath:javascript/"
+        "classpath:javascript/",
+        "classpath:javascript/javacore/",
+        "classpath:javascript/jscommon/config/",
+        "classpath:javascript/jscommon/convert/",
+        "classpath:javascript/jscommon/devel/",
+        "classpath:javascript/jscommon/external/",
+        "classpath:javascript/jscommon/io/",
+        "classpath:javascript/jscommon/marc/",
+        "classpath:javascript/jscommon/net/",
+        "classpath:javascript/jscommon/system/",
+        "classpath:javascript/jscommon/util/",
+        "classpath:javascript/jscommon/xml/"
     };
 
     private final Environment environment;
@@ -85,7 +96,6 @@ public class JavaScriptFormatter {
                 searchPath += "/";
             }
             moduleHandler.addSearchPath(new SchemeURI(searchPath));
-            JsCommonPaths.registerPaths(searchPath, moduleHandler);
         }
         return moduleHandler;
     }

@@ -1,4 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:old-202447
+FROM docker-dbc.artifacts.dbccloud.dk/payara6-micro:latest
 
 ENV \
     READ_ONLY_DATABASE=true
