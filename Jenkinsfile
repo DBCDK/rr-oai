@@ -1,3 +1,7 @@
+#!groovy
+
+@Library('dependency-track')
+
 def dockerRepository = 'https://docker-de.artifacts.dbccloud.dk'
 def workerNode = 'devel12'
 
@@ -17,10 +21,7 @@ if (env.BRANCH_NAME == 'master') {
     ])
 }
 pipeline {
-    agent { label "devel12" }
-    tools {
-        maven "Maven 3"
-    }
+    agent { label workerNode }
     environment {
         MAVEN_OPTS = "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
         DOCKER_PUSH_TAG = "${env.BUILD_NUMBER}"
@@ -50,6 +51,35 @@ pipeline {
                     if ( statusBuild != 0 ) {
                         error("Build error");
                     }
+                }
+            }
+        }
+
+        stage("sonarqube") {
+            steps {
+                ansiColor('xterm') {
+                    withSonarQubeEnv(installationName: 'sonarqube.dbc.dk') {
+                        script {
+                            def status = 0
+
+                            def sonarOptions = "-Dsonar.branch.name=${BRANCH_NAME}"
+                            if (env.BRANCH_NAME != 'main') {
+                                sonarOptions += " -Dsonar.newCode.referenceBranch=main"
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+        stage("supply-chain gate") {
+            steps {
+                script {
+                    dependencyTrackGate(
+                        projectBom:  'target/sbom-java.json',
+                        projectTeam: 'de-team',
+                        projectType: 'java'
+                    )
                 }
             }
         }
