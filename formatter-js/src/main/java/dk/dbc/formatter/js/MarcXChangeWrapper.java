@@ -19,7 +19,6 @@
 package dk.dbc.formatter.js;
 
 import dk.dbc.rawrepo.dto.RecordIdDTO;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  *
@@ -30,7 +29,6 @@ public class MarcXChangeWrapper {
     public final String content;
     public final RecordIdDTO[] children;
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public MarcXChangeWrapper(String content, RecordIdDTO[] children) {
         this.content = content;
         this.children = children;
